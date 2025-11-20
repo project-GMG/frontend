@@ -1,0 +1,69 @@
+:root {
+  /* 기본 색깔  */
+  --color-orange-100: #ff5315;
+  --color-orange-500: #d93a00;
+  --color-orange-900: #a62c00;
+
+  --color-gray-50:  #f1f2f5;
+  --color-gray-100: #edeef1;
+  --color-gray-200: #dddddd;
+  --color-gray-500: #7e7e7e;
+  --color-gray-900: #333232;
+
+  --color-white-50: #ffffff;
+
+  /* 강조 색깔 */
+  --bg-primary: var(--color-white-50);
+  --bg-default: var(--color-gray-50);
+
+  --text-primary: var(--color-gray-900);
+  --text-emphasis: var(--color-orange-100);
+
+  --action-primary: var(--color-orange-100);
+  --action-primary-active: var(--color-orange-500);
+  --action-primary-disabled: var(--color-gray-200);
+
+  /* 폰트 사이즈 */
+  --font-button-main-18-size: 18px;
+  --font-button-main-18-weight: 600;
+  --font-button-main-18-line: 21.6px;
+  --font-button-main-18-letter: 0px;
+
+  --font-title-h1-size: 46px;
+  --font-title-h1-weight: 100;
+  --font-title-h1-line: 59.8px;
+
+  --font-title-h2-size: 26px;
+  --font-title-h2-weight: 600;
+  --font-title-h2-line: 31.2px;
+
+  --font-subtitle-14-size: 14px;
+  --font-subtitle-14-weight: 400;
+  --font-subtitle-14-line: 16.8px;
+  --font-subtitle-14-letter: 0.25px;
+
+  --font-body-l1-size: 16px;
+  --font-body-l1-weight: 500;
+  --font-body-l1-line: 19.2px;
+
+  --font-body-l2-size: 14px;
+  --font-body-l2-weight: 400;
+  --font-body-l2-line: 16.8px;
+  --font-body-l2-letter: 0.25px;
+
+  --font-body-l3-size: 12px;
+  --font-body-l3-weight: 400;
+  --font-body-l3-line: 14.4px;
+  --font-body-l3-letter: 0.25px;
+
+  --font-body-l4-size: 23px;
+  --font-body-l4-weight: 400;
+  --font-body-l4-line: 27.6px;
+}
+
+/* 기본 폰트 설정 */
+body {
+  font-family: "Pretendard", sans-serif;
+  background-color: var(--bg-default);
+  color: var(--text-primary);
+}

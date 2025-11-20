@@ -1,0 +1,24 @@
+.back-button {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  cursor: pointer;
+}
+
+.back-icon {
+  width: 24px;
+  height: 24px;
+  stroke: var(--text-primary);
+}
