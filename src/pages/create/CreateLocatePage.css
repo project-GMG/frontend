@@ -1,0 +1,297 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.create-locate-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.create-locate-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더: BackButton */
+.create-locate-header {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 콘텐츠 영역 */
+.create-locate-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* 제목 */
+.create-locate-title {
+  margin: 0 0 24px;
+
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 31.2px;
+  color: #333232;
+}
+
+/* 부제목 */
+.create-locate-subtitle {
+  margin: 0 0 14px;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+/* 지도 섹션 */
+.create-locate-map-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* 지도 전체 래퍼 (353 x 485) */
+.create-locate-map-wrapper {
+  width: 100%;
+  max-width: 353px;
+  height: 485px;
+
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+
+  background-color: #d9d9d9; /* 실제 지도 들어오기 전 임시 배경 */
+}
+
+/* -------------------- 1단계: 클릭 전 검색 바 -------------------- */
+.create-locate-search-collapsed {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 14px;
+
+  border: none;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  cursor: pointer;
+  z-index: 2;
+}
+
+.create-locate-search-icon-large {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #c7c7c7;
+}
+
+.create-locate-search-icon-large::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background-color: #c7c7c7;
+  border-radius: 1px;
+
+  right: -4px;
+  bottom: -1px;
+  transform: rotate(45deg);
+}
+
+.create-locate-search-collapsed-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #c7c7c7;
+}
+
+/* -------------------- 2단계: 검색 패널 -------------------- */
+.create-locate-search-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  margin: 0;
+  padding: 12px 12px 16px;
+  background-color: #ffffff;
+
+  z-index: 3;
+}
+
+/* 패널 상단: 뒤로가기 + 입력 + 닫기 */
+.create-locate-search-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-locate-search-back-button,
+.create-locate-search-close-button {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 뒤로가기 아이콘 */
+.create-locate-search-back-icon {
+  position: relative;
+  width: 10px;
+  height: 10px;
+}
+
+.create-locate-search-back-icon::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid #333232;
+  border-bottom: 2px solid #333232;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.create-locate-search-panel-input {
+  flex: 1;
+  height: 32px;
+
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333232;
+}
+
+/* 구분선 */
+.create-locate-search-panel-divider {
+  margin-top: 8px;
+  border-bottom: 1px solid #dddddd;
+}
+
+/* 결과 리스트 */
+.create-locate-search-results {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.create-locate-search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 4px;
+}
+
+/* 거리 + 핀 아이콘 묶음 */
+.create-locate-search-result-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+}
+
+/* 핀 아이콘 */
+.create-locate-search-result-pin {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #7e7e7e;
+}
+
+.create-locate-search-result-distance {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #7e7e7e;
+}
+
+/* 장소 이름 */
+.create-locate-search-result-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333232;
+}
+
+/* 지도 자리 (실제 지도 교체 예정) */
+.create-locate-map-placeholder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* 중심 원(범위 표시용) */
+.create-locate-map-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 220px;
+  height: 220px;
+  margin-left: -110px;
+  margin-top: -110px;
+
+  border-radius: 50%;
+  background-color: rgba(255, 83, 21, 0.18);
+}
+
+/* 핀 아이콘 */
+.create-locate-map-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -32px;
+
+  border-radius: 50%;
+  background-color: #ff5315;
+  border: 3px solid #ffffff;
+}
+
+/* 하단 버튼 영역 */
+.create-locate-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0px;
+}

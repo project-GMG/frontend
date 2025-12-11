@@ -1,0 +1,156 @@
+
+.create-place-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default); 
+}
+
+/* 고정 크기 컨테이너 */
+.create-place-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더: BackButton + TopBar */
+.create-place-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 콘텐츠 영역 */
+.create-place-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* "어디를 갈까요?" */
+.create-place-title {
+  margin: 0 0 20px;
+
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 31.2px;
+  color: #333232;
+}
+
+/* "방문할 장소들을 모두 선택해 주세요" */
+.create-place-subtitle {
+  margin: 0 0 24px;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+/* "모두" 부분만 추가로 강조 */
+.create-place-subtitle-em {
+  font-weight: 600;
+}
+
+/* 리스트 */
+.create-place-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 카테고리 카드 */
+.create-place-category-card {
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background-color: #ffffff;
+  border-radius: 16px;
+
+  border: 1px solid transparent; 
+
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* hover */
+.create-place-category-card:hover {
+  background-color: #fff7f4;
+  border-color: #000000;
+}
+
+/* 선택 */
+.create-place-category-card--selected {
+  background-color: #ffede6;
+  border-color: #ff5315;
+}
+
+
+.create-place-category-card:focus,
+.create-place-category-card:active,
+.create-place-category-card:focus-visible {
+  outline: none;
+}
+
+
+
+.create-place-category-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #9f9f9f;
+  flex-shrink: 0;
+}
+
+/* 텍스트 컨테이너 */
+.create-place-category-texts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+/* "식당, 카페, 술집, 도서관 스터디카페" 텍스트 */
+.create-place-category-label {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 19.2px;
+  color: #ff5315;
+}
+
+/* 설명 텍스트 */
+.create-place-category-description {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 19.2px;
+  color: #333232;
+}
+
+/* 하단 버튼 영역 */
+.create-place-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}

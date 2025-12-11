@@ -1,24 +1,38 @@
-.back-button {
-  position: absolute;
-  top: 16px;
-  left: 16px;
 
-  width: 32px;
-  height: 32px;
+.back-button {
+  width: 44px;
+  height: 22px;
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
-  background: transparent;
-  border: none;
   padding: 0;
-
+  border: none;
+  background: transparent;
   cursor: pointer;
 }
 
-.back-icon {
-  width: 24px;
-  height: 24px;
-  stroke: var(--text-primary);
+
+.back-button-icon {
+  position: relative;
+  width: 12px;
+  height: 22px;
+}
+
+
+.back-button-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 12px;
+  height: 12px;
+
+  border-left: 3px solid #333232;
+  border-bottom: 3px solid #333232;
+
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 1px;
 }

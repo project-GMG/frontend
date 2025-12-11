@@ -1,0 +1,122 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.create-info-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.create-info-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더: BackButton */
+.create-info-header {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 콘텐츠 영역 */
+.create-info-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* 제목: "모임을 생성하세요" */
+.create-info-title {
+  margin: 0 0 32px;
+
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 31.2px;
+  color: #333232;
+}
+
+/* 개별 필드 섹션 */
+.info-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 32px;
+}
+
+/* 라벨 */
+.info-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+  margin-bottom: 8px;
+}
+
+/* 라벨 - 에러 시 */
+.info-field-label--error {
+  color: #fd5839;
+}
+
+/* 입력 래퍼: 밑줄 포함 */
+.info-input-wrapper {
+  border-bottom: 1px solid #333232;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+/* 활성/유효/에러 상태: 밑줄 주황색 */
+.info-input-wrapper--active {
+  border-color: #fd5839;
+}
+
+/* 입력 텍스트 */
+.info-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 27.6px;
+  color: #333232;
+}
+
+/* 처음 예시로 보여줄 때: 회색 */
+.info-input--placeholder {
+  color: #b9b9b9;
+}
+
+/* 에러 문구 */
+.info-error-text {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14.4px;
+  color: #fd5839;
+}
+
+/* 하단 버튼 영역 */
+.create-info-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}

@@ -1,32 +1,24 @@
+
 .topbar {
-  position: relative;
-  width: 360px;
-  height: 56px;
-  margin: 0 auto;
-  box-sizing: border-box;
-
-  background-color: var(--bg-default);
+  width: 100%;                 
+  display: flex;
+  justify-content: center;    
+  align-items: center;
 }
 
 
-.topbar-progress-wrapper {
-  position: absolute;
-  left: 50%;
-  top: 28px; 
-  transform: translateX(-50%);
-}
-
-.topbar-progress-track {
-  width: 200px; 
-  height: 2px;
-  background-color: var(--color-gray-100);
-  border-radius: 999px;
+.topbar-track {
+  width: 220px;
+  height: 4px;
+  border-radius: 55px;
+  background-color: #d9d9d9;
   overflow: hidden;
 }
 
-.topbar-progress-bar {
+
+.topbar-fill {
   height: 100%;
-  background-color: var(--text-primary);
-  border-radius: 999px;
-  transition: width 0.2s ease;
+  border-radius: 55px;
+  background-color: #2f2f2f;
+  transition: width 0.25s ease;
 }

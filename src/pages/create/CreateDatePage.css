@@ -1,0 +1,231 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.create-date-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.create-date-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더: BackButton */
+.create-date-header {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 콘텐츠 영역 */
+.create-date-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* "언제쯤 만날까요?" */
+.create-date-title {
+  margin: 0 0 24px;
+
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 31.2px;
+  color: #333232;
+}
+
+/* 공통 섹션 */
+.create-date-section {
+  margin-bottom: 24px;
+}
+
+.create-date-section-title {
+  margin: 0 0 12px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+/* "날짜", "시간대" 볼드용 */
+.create-date-section-title-strong {
+  font-weight: 700;
+}
+
+/* 캘린더 영역: 7x5, 각 칸 45x45 */
+.create-date-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 45px);
+  grid-template-rows: repeat(5, 45px);
+  gap: 4px;
+  justify-content: center;
+}
+
+/* 빈 셀 (현재 날짜 기준 이전) */
+.create-date-calendar-cell--empty {
+  width: 45px;
+  height: 45px;
+  background-color: #edeef1;
+  border-radius: 8px;
+}
+
+/* 날짜 셀 공통 */
+.create-date-calendar-cell {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* 버튼 형태의 날짜 셀 */
+.create-date-calendar-cell--date {
+  background-color: #ffffff;
+  border: none;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* 선택된 날짜 */
+.create-date-calendar-cell--selected {
+  background-color: #ff5315;
+}
+
+/* 날짜 숫자: 16px, weight 500 */
+.create-date-calendar-day {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #333232;
+}
+
+/* 날짜 숫자 - 주말 색 */
+.create-date-calendar-day--weekend {
+  color: #e03616;
+}
+
+/* 요일 라벨: 10px, weight 400 */
+.create-date-calendar-weekday {
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+  color: #333232;
+}
+
+/* 요일 라벨 - 주말 색 */
+.create-date-calendar-weekday--weekend {
+  color: #e03616;
+}
+
+/* 선택된 날짜일 때 글자색 흰색 */
+.create-date-calendar-cell--selected .create-date-calendar-day,
+.create-date-calendar-cell--selected .create-date-calendar-weekday {
+  color: #ffffff;
+}
+
+/* 날짜 버튼 포커스 제거 */
+.create-date-calendar-cell--date:focus,
+.create-date-calendar-cell--date:active,
+.create-date-calendar-cell--date:focus-visible {
+  outline: none;
+}
+
+/* 시간대 선택 섹션 */
+.create-date-time-section {
+  margin-top: 16px;
+}
+
+/* 시간대 전체 래퍼 */
+.create-date-time-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+/* 시간 휠 래퍼 */
+.create-date-time-wheel {
+  width: 80px;
+  height: 108px; /* 아이템 3개 * 36px */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+  position: relative;
+}
+
+/* 휠 안의 각 시간 아이템 */
+.create-date-time-wheel-item {
+  width: 100%;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  line-height: 1;
+}
+
+/* 빈 자리 (리스트의 위/아래 범위 밖) */
+.create-date-time-wheel-item--empty {
+  cursor: default;
+  color: transparent;
+}
+
+/* 비활성(위·아래): 20px, 400, #7E7E7E */
+.create-date-time-wheel-item--inactive {
+  font-size: 20px;
+  font-weight: 400;
+  color: #7e7e7e;
+}
+
+/* 중앙 활성 아이템: 26px, 400, #1B1B1B */
+.create-date-time-wheel-item--active {
+  font-size: 26px;
+  font-weight: 400;
+  color: #1b1b1b;
+}
+
+/* 구분자 "~" */
+.create-date-time-separator {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333232;
+}
+
+/* 하단 버튼 영역 */
+.create-date-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
