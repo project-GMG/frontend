@@ -1,0 +1,363 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.main-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.main-page-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 상단 헤더: 로고 + 공유 버튼 */
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 로고: 55 x 37 */
+.main-logo {
+  width: 55px;
+  height: 37px;
+  background-color: #000000; 
+  border-radius: 4px;
+}
+
+/* 공유 버튼 */
+.main-share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: none;
+
+  background-color: #ffffff;
+
+  box-shadow:
+    0px 1px 2px -1px #0000001a,
+    0px 1px 3px 0px #0000001a;
+
+  cursor: pointer;
+}
+
+.main-share-text {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  color: #333232;
+}
+
+/* 공유 버튼 화살표 아이콘 */
+.main-share-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.main-share-icon::before,
+.main-share-icon::after {
+  content: '';
+  position: absolute;
+  background-color: #333232;
+  border-radius: 999px;
+}
+
+/* 화살표 몸통 */
+.main-share-icon::before {
+  width: 10px;
+  height: 2px;
+  top: 6px;
+  left: 2px;
+}
+
+/* 화살표 머리 */
+.main-share-icon::after {
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #333232;
+  border-right: 2px solid #333232;
+  background: transparent;
+  right: 2px;
+  top: 3px;
+  transform: rotate(45deg);
+}
+
+/* 공유 말풍선 버튼 */
+.main-share-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+
+  background-color: #ffffff;
+
+  box-shadow:
+    0px 1px 2px -1px #0000001a,
+    0px 1px 3px 0px #0000001a;
+
+  cursor: pointer;
+}
+
+/* 텍스트 */
+.main-share-bubble-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333232;
+  white-space: nowrap;
+}
+
+/* 오른쪽 공유 아이콘 */
+.main-share-bubble-icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+/* 공유 아이콘 원 */
+.main-share-bubble-icon::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #333232;
+}
+
+/* 공유 아이콘 선 */
+.main-share-bubble-icon::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+
+  width: 10px;
+  height: 2px;
+  background-color: #333232;
+
+  transform: rotate(-25deg);
+  transform-origin: left center;
+}
+
+
+/* 메인 콘텐츠 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* 모임 제목 */
+.main-title {
+  margin: 0 0 24px;
+
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 27.6px;
+  color: #333232;
+}
+
+/* 섹션 공통 */
+.main-section {
+  margin-bottom: 24px;
+}
+
+.main-section-title {
+  margin: 0 0 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+/* ================= 일정 컨테이너 ================= */
+
+.schedule-container {
+  width: 353px;
+  height: 322px;
+  border-radius: 24px;
+  background-color: #ffffff;
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* 컨테이너 안 제목 */
+.schedule-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+
+.schedule-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 4px;
+  box-sizing: border-box;
+
+  max-height: 260px; 
+}
+
+
+.schedule-grid {
+  display: grid;
+  column-gap: 2px;
+  row-gap: 4px;
+}
+
+
+.schedule-empty-cell {
+  width: 60px;
+  height: 20px;
+}
+
+/* 날짜 헤더 셀 */
+.schedule-date-header {
+  width: 87.666664px;
+  height: 20px;
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #333232;
+  text-align: center;
+}
+
+.schedule-time-label {
+  width: 30px;
+  height: 20px;
+
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1;         
+  display: flex;
+  align-items: center;  
+  justify-content: flex-end; 
+  padding-right: 0px;      
+  color: #333232;
+}
+
+/* 시간 슬롯 */
+.schedule-slot {
+  width: 87.666664px;
+  height: 20px;
+  box-sizing: border-box;
+
+  background-color: #EDEEF1;
+  border: 1px solid #edeef1;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  cursor: pointer;
+}
+
+.schedule-slot:hover {
+  background-color: #e9e9eb;
+}
+
+/* ================= 음식점 추천 컨테이너 ================= */
+
+.restaurant-rail {
+  display: flex;
+  gap: 12px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 60px;
+}
+
+
+.restaurant-container {
+  width: 333px;
+  height: 167px;
+  border-radius: 24px;
+  background-color: #ffffff;
+
+  padding: 12px;
+  box-sizing: border-box;
+
+  flex: 0 0 333px;    
+}
+
+
+.restaurant-set {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+
+.restaurant-card {
+  width: 92px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.restaurant-image {
+  width: 92px;
+  height: 100px;
+  border-radius: 16px;
+  background-color: #d9d9d9;
+}
+
+.restaurant-name {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #333232;
+}
+
+
+/* 하단 버튼 영역 */
+.main-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  white-space: nowrap;
+}

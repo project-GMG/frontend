@@ -1,0 +1,177 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.create-final-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.create-final-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더: BackButton */
+.create-final-header {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 콘텐츠 영역 */
+.create-final-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* "모임이 생성됐어요" */
+.create-final-title {
+  margin: 0 0 32px; 
+
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 31.2px;
+  color: #333232;
+}
+
+/* 안내 문구 */
+.create-final-subtitle {
+  margin: 0 0 32px;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 15.6px;
+  color: #333232;
+}
+
+/* 링크 + 복사 버튼 박스  */
+.create-final-link-box {
+  width: 330.23px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  padding: 12px 12px 12px 16px;
+
+  background-color: #ffffff;
+  border-radius: 999px;
+
+  /* 그림자 2개 */
+  box-shadow:
+    0px 1px 2px -1px #0000001a,
+    0px 1px 3px 0px #0000001a;
+}
+
+/* 링크 텍스트 */
+.create-final-link-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 15.6px;
+  color: #333232;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* "복사" 버튼 */
+.create-final-copy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 8px 14px;
+
+  border: none;
+  border-radius: 999px;
+  background-color: #ff5315;
+  cursor: pointer;
+}
+
+/* 복사 아이콘  */
+.create-final-copy-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.create-final-copy-icon::before,
+.create-final-copy-icon::after {
+  content: '';
+  position: absolute;
+  border-radius: 2px;
+  border: 1.5px solid #ffffff;
+  box-sizing: border-box;
+}
+
+/* 뒤쪽 종이 */
+.create-final-copy-icon::before {
+  width: 10px;
+  height: 10px;
+  top: 1px;
+  left: 3px;
+  opacity: 0.7;
+}
+
+/* 앞쪽 종이 */
+.create-final-copy-icon::after {
+  width: 10px;
+  height: 10px;
+  top: 3px;
+  left: 1px;
+}
+
+/* 복사 텍스트 */
+.create-final-copy-label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 15.6px;
+  color: #ffffff;
+}
+
+/* 이미지 영역 래퍼 */
+.create-final-image-wrapper {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 이후 실제 이미지로 교체 예정 */
+.create-final-image-placeholder {
+  width: 216.43px;
+  height: 176px;
+  border-radius: 24px;
+
+  background: linear-gradient(135deg, #ffd6c2, #ffe9d8);
+}
+
+/* 하단 버튼 영역 */
+.create-final-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}

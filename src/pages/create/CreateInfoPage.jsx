@@ -3,11 +3,14 @@ import './CreateInfoPage.css';
 import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
+import { useNavigate } from 'react-router-dom';
+
 
 const DEFAULT_NAME = '전북대에서 밥먹자';
 const DEFAULT_PASSWORD = '0000';
 
 export default function CreateInfoPage() {
+    const navigate = useNavigate();
   const [groupName, setGroupName] = useState(DEFAULT_NAME);
   const [password, setPassword] = useState(DEFAULT_PASSWORD);
 
@@ -63,6 +66,8 @@ export default function CreateInfoPage() {
 
     console.log('모임 이름:', groupName);
     console.log('비밀번호:', password);
+
+    navigate('/create/final');
   };
 
 const nameUnderlineClass =
