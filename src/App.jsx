@@ -9,6 +9,7 @@ import CreateInfoPage from './pages/create/CreateInfoPage';
 import CreateFinalPage from './pages/create/CreateFinalPage';
 import MainPage from './pages/main/MainPage'; 
 import JoinModalPage from './pages/join/JoinModalPage';
+import JoinTimePage from './pages/join/JoinTimePage'; 
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Route path="/create/final" element={<CreateFinalPage />} />
       <Route path="/main" element={<MainPage />} />
       <Route path="/join" element={<JoinModalPage />} />
+      <Route path="/join/time" element={<JoinTimePage />} />
 
       <Route path="*" element={<Navigate to="/create/place" replace />} />
     </Routes>

@@ -1,0 +1,275 @@
+/* src/pages/join/JoinTimePage.css */
+
+/* 전체 레이아웃 */
+.join-time-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+.join-time-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #F1F2F5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 헤더 */
+.join-time-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+}
+
+.join-time-back {
+  width: 36px;
+  height: 36px;
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  font-size: 26px;
+  line-height: 36px;
+  color: #333232;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.join-time-step-pill {
+  justify-self: center;
+
+  height: 18px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  background: #d9d9d9;
+  color: #333232;
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.join-time-header-spacer {
+  width: 36px;
+  height: 36px;
+}
+
+/* 본문 */
+.join-time-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.join-time-title {
+  margin: 18px 0 12px;
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 27.6px;
+  color: #333232;
+}
+
+/* 그리드 카드(메인페이지 느낌) */
+.join-time-grid-card {
+  width: 353px;
+  height: 520px;
+  border-radius: 24px;
+  background: #F1F2F5;
+
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+
+/* ====== 그리드 프레임(메인페이지와 동일 컨셉) ====== */
+.jt-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  --time-col: 48px;
+  --date-row: 20px;
+  --cell-w: 87.666664px;
+  --cell-h: 20px;
+  --gap-x: 2px;
+  --gap-y: 4px;
+}
+
+/* 상단 날짜 */
+.jt-date-rail {
+  position: absolute;
+  top: 0;
+  left: calc(var(--time-col) + 4px);
+  right: 4px;
+
+  height: var(--date-row);
+  overflow: hidden;
+}
+
+.jt-date-row {
+  display: flex;
+  gap: var(--gap-x);
+}
+
+.jt-date-header {
+  width: var(--cell-w);
+  height: var(--date-row);
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: var(--date-row);
+  color: #333232;
+  text-align: center;
+}
+
+/* 좌측 시간(세로 스크롤) */
+.jt-time-rail {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);
+  left: 0;
+  bottom: 8px;
+
+  width: var(--time-col);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.jt-time-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.jt-time-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-y);
+}
+
+.jt-time-label {
+  width: var(--time-col);
+  height: var(--cell-h);
+
+  font-size: 10px;
+  font-weight: 400;
+  color: #333232;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+/* 슬롯 영역(세로 스크롤만) */
+.jt-grid-scroll {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);
+  left: calc(var(--time-col) + 4px);
+  right: 4px;
+  bottom: 8px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  border-radius: 12px;
+  background: #f1f2f5; 
+}
+
+.jt-grid {
+  display: grid;
+  column-gap: var(--gap-x);
+  row-gap: var(--gap-y);
+  width: fit-content;
+}
+
+.jt-slot {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  box-sizing: border-box;
+
+  background: #dddddd;          /* 변경 */
+  border: 1px solid #dddddd;    /* 변경 */
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  cursor: pointer;
+}
+
+.jt-slot:hover {
+  background: #e9e9eb;
+}
+
+.jt-slot--active {
+  background: #ff5315;
+  border-color: #ff5315;
+}
+
+/* 페이지네이션(도트 + 이전/다음) */
+.join-time-pagination {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.join-time-page-btn {
+  border: none;
+  background: transparent;
+  color: #333232;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.join-time-page-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.join-time-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.join-time-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #d9d9d9;
+}
+
+.join-time-dot.is-active {
+  background: #333232;
+}
+
+/* 하단 버튼 */
+.join-time-footer {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
