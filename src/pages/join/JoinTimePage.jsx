@@ -5,8 +5,12 @@ import NextButton from '../components/common/NextButton';
 import './JoinTimePage.css';
 
 const TIME_SLOTS = [
-  '1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM',
-  '6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM',
+  '1:00 PM','1:30 PM',
+  '2:00 PM','2:30 PM',
+  '3:00 PM','3:30 PM',
+  '4:00 PM','4:30 PM',
+  '5:00 PM','5:30 PM',
+  '6:00 PM','6:30 PM',
 ];
 
 const TIME_LABELS = [
@@ -16,10 +20,6 @@ const TIME_LABELS = [
   '4 PM','',
   '5 PM','',
   '6 PM','',
-  '7 PM','',
-  '8 PM','',
-  '9 PM','',
-  '10 PM','',
 ];
 
 export default function JoinTimePage() {

@@ -107,13 +107,16 @@
   width: 100%;
   height: 100%;
 
-  --time-col: 48px;
+  --time-col: 30px;
   --date-row: 20px;
-  --cell-w: 87.666664px;
-  --cell-h: 20px;
+
+  --cell-w: 100px;
+  --cell-h: 35px;
+
   --gap-x: 2px;
   --gap-y: 4px;
 }
+
 
 /* 상단 날짜 */
 .jt-date-rail {
@@ -134,13 +137,13 @@
 .jt-date-header {
   width: var(--cell-w);
   height: var(--date-row);
-
   font-size: 11px;
   font-weight: 500;
   line-height: var(--date-row);
   color: #333232;
   text-align: center;
 }
+
 
 /* 좌측 시간(세로 스크롤) */
 .jt-time-rail {
@@ -182,6 +185,7 @@
   line-height: 1;
 }
 
+
 /* 슬롯 영역(세로 스크롤만) */
 .jt-grid-scroll {
   position: absolute;
@@ -205,12 +209,12 @@
 }
 
 .jt-slot {
-  width: var(--cell-w);
-  height: var(--cell-h);
+  width: 100px;
+  height: 35px;
   box-sizing: border-box;
 
-  background: #dddddd;          /* 변경 */
-  border: 1px solid #dddddd;    /* 변경 */
+  background: #dddddd;          
+  border: 1px solid #dddddd;    
 
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
