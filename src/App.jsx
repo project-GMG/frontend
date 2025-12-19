@@ -7,9 +7,10 @@ import CreateDatePage from './pages/create/CreateDatePage';
 import CreateLocatePage from './pages/create/CreateLocatePage';
 import CreateInfoPage from './pages/create/CreateInfoPage';
 import CreateFinalPage from './pages/create/CreateFinalPage';
-import MainPage from './pages/main/MainPage'; 
+import MainPage from './pages/main/MainPage';
 import JoinModalPage from './pages/join/JoinModalPage';
-import JoinTimePage from './pages/join/JoinTimePage'; 
+import JoinTimePage from './pages/join/JoinTimePage';
+import JoinPlaceCategoryPage from './pages/join/JoinPlaceCategoryPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       <Route path="/main" element={<MainPage />} />
       <Route path="/join" element={<JoinModalPage />} />
       <Route path="/join/time" element={<JoinTimePage />} />
+      <Route path="/join/Category" element={<JoinPlaceCategoryPage />} />
 
       <Route path="*" element={<Navigate to="/create/place" replace />} />
     </Routes>
