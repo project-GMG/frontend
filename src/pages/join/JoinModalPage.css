@@ -1,0 +1,585 @@
+/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+.main-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+/* 고정 크기 컨테이너 */
+.main-page-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: #f1f2f5;
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 상단 헤더: 로고 + 공유 버튼 */
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 로고: 55 x 37 */
+.main-logo {
+  width: 55px;
+  height: 37px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.main-share-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 공유 버튼 */
+.main-share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: none;
+
+  cursor: pointer;
+}
+
+
+.main-share-bubble-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.main-share-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.main-share-icon-image {
+  width: 23px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.main-share-icon-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  padding: 0;
+
+  background: transparent;   
+  box-shadow: none;          
+  cursor: pointer;
+}
+
+
+/* 공유 말풍선 버튼 */
+.main-share-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 5px 16px;
+  border: none;
+
+  background-color: #ffffff;
+
+ 
+  border-radius: 999px 0 999px 999px;
+
+  box-shadow:
+    0px 1px 2px -1px #0000001a,
+    0px 1px 3px 0px #0000001a;
+
+  cursor: pointer;
+}
+
+
+/* 텍스트 */
+.main-share-bubble-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #333232;
+  white-space: nowrap;
+}
+
+
+
+/* 메인 콘텐츠 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* 모임 제목 "전북대에서 먹자  */
+.main-title {
+  margin: 0 0 24px;
+
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 27.6px;
+  color: #333232;
+}
+
+/* 섹션 공통 */
+.main-section {
+  margin-bottom: 24px;
+}
+
+
+
+/* ================= 일정 컨테이너 ================= */
+
+
+.schedule-container--new {
+  position: relative;
+}
+
+.schedule-frame {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+
+.schedule-frame {
+  --time-col: 48px;            /* 왼쪽 시간 라벨 폭 */
+  --date-row: 20px;            /* 상단 날짜 높이 */
+  --cell-w: 87.666664px;
+  --cell-h: 20px;
+  --gap-x: 2px;
+  --gap-y: 4px;
+}
+
+/* 날짜 레일: 컨테이너 안쪽에서 grid 위에 위치 */
+.schedule-date-rail {
+  position: absolute;
+  top: 0;
+  left: calc(var(--time-col) + 4px); 
+  right: 4px;
+
+  height: var(--date-row);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* 날짜(상단) 스크롤바 숨김 */
+.schedule-date-rail {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge 구버전 */
+}
+.schedule-date-rail::-webkit-scrollbar {
+  display: none;              /* Chrome/Safari */
+}
+
+/* 시간(왼쪽) 스크롤바 숨김 */
+.schedule-time-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.schedule-time-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.schedule-date-row {
+  display: flex;
+  gap: var(--gap-x);
+  width: fit-content;
+}
+
+.schedule-date-header {
+  width: var(--cell-w);
+  height: var(--date-row);
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: var(--date-row);
+  color: #333232;
+  text-align: center;
+}
+
+/* 시간 레일: 컨테이너 안쪽에서 grid 왼쪽에 위치(마진으로) */
+.schedule-time-rail {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);  /* 날짜 아래 여백 */
+  left: -10px;
+  bottom: 8px;
+
+  width: var(--time-col);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.schedule-time-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-y);
+}
+
+.schedule-time-label {
+  width: var(--time-col);
+  height: var(--cell-h);
+
+  font-size: 10px;
+  font-weight: 400;
+  color: #333232;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  box-sizing: border-box;
+
+  line-height: 1;
+}
+
+/* 그리드 스크롤(주체): 날짜/시간 영역을 피해서 안쪽에 위치 */
+.schedule-grid-scroll {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);
+  left: calc(var(--time-col) + 4px);
+  right: 4px;
+  bottom: 8px;
+
+  overflow: auto;
+  border-radius: 12px;
+
+  background-color: #ffffff;
+}
+
+/* 슬롯만 있는 그리드 */
+.schedule-grid-slots {
+  display: grid;
+  column-gap: var(--gap-x);
+  row-gap: var(--gap-y);
+  width: fit-content;
+}
+
+/* 슬롯(기존 유지) */
+.schedule-slot {
+  width: 87.666664px;
+  height: 20px;
+  box-sizing: border-box;
+
+  background-color: #EDEEF1;
+  border: 1px solid #edeef1;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  cursor: pointer;
+}
+
+.schedule-slot:hover {
+  background-color: #e9e9eb;
+}
+
+.schedule-slot--active {
+  background-color: #FF5315; 
+}
+
+
+/* ================= 스크롤 바================= */
+/* 공통: WebKit */
+.gmg-scrollbar-both::-webkit-scrollbar,
+.gmg-scrollbar-x::-webkit-scrollbar,
+.gmg-scrollbar-y::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.gmg-scrollbar-both::-webkit-scrollbar-track,
+.gmg-scrollbar-x::-webkit-scrollbar-track,
+.gmg-scrollbar-y::-webkit-scrollbar-track {
+  background: #d9d9d9;         /* 트랙(연한 회색) */
+  border-radius: 999px;
+}
+
+.gmg-scrollbar-both::-webkit-scrollbar-thumb,
+.gmg-scrollbar-x::-webkit-scrollbar-thumb,
+.gmg-scrollbar-y::-webkit-scrollbar-thumb {
+  background: #2b2b2b;         /* thumb(진한색) */
+  border-radius: 999px;
+}
+
+/* Firefox */
+.gmg-scrollbar-both,
+.gmg-scrollbar-x,
+.gmg-scrollbar-y {
+  scrollbar-width: thin;
+  scrollbar-color: #2b2b2b #d9d9d9;
+}
+
+/* 하................................ */
+.gmg-scrollbar-both::-webkit-scrollbar-button,
+.gmg-scrollbar-both::-webkit-scrollbar-button:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:single-button,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:start:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:end:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:start:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:end:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+
+.gmg-scrollbar-both::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+
+
+
+.schedule-container {
+  width: 353px;
+  height: 322px;
+  border-radius: 24px;
+  background-color: #ffffff;
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* 컨테이너 안 제목 */
+.schedule-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+
+.schedule-empty-cell {
+  width: 60px;
+  height: 20px;
+}
+
+
+
+/* ================= 음식점 추천 컨테이너 ================= */
+
+.restaurant-rail {
+  display: flex;
+  gap: 12px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 60px;
+}
+
+.restaurant-container {
+  width: 333px;
+  height: 167px;
+  border-radius: 24px;
+  background-color: #ffffff;
+
+  padding: 12px;
+  box-sizing: border-box;
+
+  flex: 0 0 333px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 컨테이너 내부 제목 */
+.restaurant-container-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
+
+
+.restaurant-set {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+
+.restaurant-card {
+  width: 92px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.restaurant-image {
+  width: 92px;
+  height: 100px;
+  border-radius: 16px;
+  background-color: #d9d9d9;
+}
+
+.restaurant-name {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #333232;
+}
+
+.restaurant-rail-title {
+  flex: 0 0 auto;
+  margin: 0 12px 0 0;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+
+  display: flex;
+  align-items: center;   /* 세로 가운데 */
+  height: 167px;         /* 옆 컨테이너 높이랑 맞춤(기존 restaurant-container 높이) */
+}
+.restaurant-rail--hidden-scrollbar {
+  scrollbar-width: none;    /* Firefox */
+  -ms-overflow-style: none; /* IE/구 Edge */
+}
+.restaurant-rail--hidden-scrollbar::-webkit-scrollbar {
+  display: none;            /* Chrome/Safari/Edge */
+}
+
+
+
+
+/* 하단 버튼 영역 */
+.main-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+/* 하단 입력 모달(시트) */
+.join-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0;
+  z-index: 9999;
+}
+
+.join-sheet {
+  width: 393px;
+  height: 286.68573px;
+
+  padding-top: 24px;
+  padding-right: 38px;
+  padding-bottom: 38px;
+  padding-left: 38px;
+
+  box-sizing: border-box;
+  background: #ffffff;
+
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+
+.join-sheet-grabber {
+  display: none;
+}
+
+/* 제목: "이름을 입력해 주세요" */
+.join-sheet-label {
+  display: block;
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 600;
+  color: #333232;
+}
+
+/* 입력창 */
+.join-sheet-input {
+  width: 100%;
+  border: none;
+  outline: none;
+
+  border-bottom: 1px solid #cfcfd3;
+  padding: 10px 0 8px;
+
+  font-size: 23px;
+  font-weight: 400;
+  color: #333232;
+  background: transparent;
+}
+
+.join-sheet-input::placeholder {
+  color: #b0b0b6;
+}
+
+/* 안내 문구 */
+.join-sheet-helper {
+  margin: -18px 0 0; 
+  font-size: 14px;
+  font-weight: 400;
+  color: #7e7e7e;
+
+  min-height: 18px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.join-sheet-helper.is-visible {
+  opacity: 1;
+}
+
+/* 버튼 래퍼 */
+.join-sheet-button {
+  margin-top: auto; /* 버튼을 아래로 밀기 */
+}

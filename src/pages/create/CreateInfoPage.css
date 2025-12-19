@@ -80,6 +80,7 @@
   padding: 4px 0;
   display: flex;
   align-items: center;
+  gap: 10px; /* 입력과 연필 사이 간격 */
 }
 
 /* 활성/유효/에러 상태: 밑줄 주황색 */
@@ -104,6 +105,17 @@
 .info-input--placeholder {
   color: #b9b9b9;
 }
+
+/* 연필 아이콘 (이미지)  26px 로 했는데 잘 안보여서 일단 30으로 변경 근데 안보이는거 보면 색상문제가 큰듯  */
+.info-pencil {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 18px;
+  object-fit: contain;
+  opacity: 0.6;
+}
+
+
 
 /* 에러 문구 */
 .info-error-text {

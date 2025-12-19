@@ -8,6 +8,7 @@ import CreateLocatePage from './pages/create/CreateLocatePage';
 import CreateInfoPage from './pages/create/CreateInfoPage';
 import CreateFinalPage from './pages/create/CreateFinalPage';
 import MainPage from './pages/main/MainPage'; 
+import JoinModalPage from './pages/join/JoinModalPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/create/info" element={<CreateInfoPage />} />
       <Route path="/create/final" element={<CreateFinalPage />} />
       <Route path="/main" element={<MainPage />} />
+      <Route path="/join" element={<JoinModalPage />} />
 
       <Route path="*" element={<Navigate to="/create/place" replace />} />
     </Routes>

@@ -1,8 +1,11 @@
-import React from 'react';
 import './MainPage.css';
 import NextButton from '../components/common/NextButton';
+import Logo from '../../assets/icons/logo.png';
+import ShareIcon from '../../assets/icons/share.png';
+import React, { useRef, useState } from 'react';
 
 const DUMMY_LINK = 'https://meet.jbnu.ac.kr/fhcfspup';
+
 
 const DATES = ['11/23 일', '11/24 월', '11/25 화', '11/26 수', '11/27 목'];
 
@@ -24,7 +27,6 @@ const TIME_LABELS = [
   '10 PM','',
 ];
 
-// 컨테이너(세트 박스) 4개, 각 컨테이너 안에 음식점 3개
 const RESTAURANT_SETS = [
   [
     { id: '1-1', name: '좋은치킨', imageAlt: '추천 음식 1' },
@@ -49,6 +51,45 @@ const RESTAURANT_SETS = [
 ];
 
 export default function MainPage() {
+  const [selectedSlots, setSelectedSlots] = useState(() => new Set());
+
+  const gridScrollRef = useRef(null);
+  const dateScrollRef = useRef(null);
+  const timeScrollRef = useRef(null);
+
+  const toggleSlot = (key) => {
+  setSelectedSlots((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  });
+};
+
+  const syncFromGrid = () => {
+    const grid = gridScrollRef.current;
+    const date = dateScrollRef.current;
+    const time = timeScrollRef.current;
+    if (!grid || !date || !time) return;
+
+    date.scrollLeft = grid.scrollLeft;
+    time.scrollTop = grid.scrollTop;
+  };
+
+  const syncFromDate = () => {
+    const grid = gridScrollRef.current;
+    const date = dateScrollRef.current;
+    if (!grid || !date) return;
+    grid.scrollLeft = date.scrollLeft;
+  };
+
+  const syncFromTime = () => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    if (!grid || !time) return;
+    grid.scrollTop = time.scrollTop;
+  };
+
   const handleShare = async () => {
     try {
       if (navigator.share) {
@@ -74,17 +115,16 @@ export default function MainPage() {
     <div className="main-page">
       <div className="main-page-container">
         <header className="main-header">
-          <div className="main-logo" aria-label="GMG 로고" />
-            <button
-            type="button"
-            className="main-share-bubble"
-            onClick={handleShare}
-            >
-            <span className="main-share-bubble-text">
-                공유하고 모임을 잡아보세요!
-            </span>
-            <span className="main-share-bubble-icon" />
+          <img src={Logo} alt="GMG 로고" className="main-logo" />
+          <div className="main-share-area">
+            <button type="button" className="main-share-bubble" onClick={handleShare}>
+              <span className="main-share-bubble-text">공유하고 모임을 잡아보세요!</span>
             </button>
+
+            <button type="button" className="main-share-icon-button" onClick={handleShare}>
+              <img src={ShareIcon} alt="공유" className="main-share-icon-image" />
+            </button>
+          </div>
         </header>
 
         <main className="main-content">
@@ -92,65 +132,98 @@ export default function MainPage() {
 
           {/* 일정 컨테이너 */}
           <section className="main-section">
-            <div className="schedule-container">
+            <div className="schedule-container schedule-container--new">
               <h2 className="schedule-title">이때 만날까요?</h2>
 
-              <div className="schedule-scroll">
+
+              <div className="schedule-frame">
+                {/* 날짜(상단) */}
                 <div
-                  className="schedule-grid"
-                  style={{
-                    gridTemplateColumns: `60px repeat(${DATES.length}, 87.666664px)`,
-                    gridTemplateRows: `20px repeat(${TIME_SLOTS.length}, 20px)`,
-                  }}
+                  ref={dateScrollRef}
+                  className="schedule-date-rail "
+                  onScroll={syncFromDate}
                 >
-                  <div className="schedule-empty-cell" />
+                  <div className="schedule-date-row">
+                    {DATES.map((date) => (
+                      <div key={date} className="schedule-date-header">
+                        {date}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                  {DATES.map((date) => (
-                    <div key={date} className="schedule-date-header">
-                      {date}
-                    </div>
-                  ))}
-
-                  {TIME_SLOTS.map((slot, rowIndex) => (
-                    <React.Fragment key={slot}>
-                      <div className="schedule-time-label">
+                {/* 시간(좌측) */}
+                <div
+                  ref={timeScrollRef}
+                  className="schedule-time-rail "
+                  onScroll={syncFromTime}
+                >
+                  <div className="schedule-time-col">
+                    {TIME_SLOTS.map((slot, rowIndex) => (
+                      <div key={slot} className="schedule-time-label">
                         {TIME_LABELS[rowIndex] ?? ''}
                       </div>
+                    ))}
+                  </div>
+                </div>
 
-                      {DATES.map((date) => (
-                        <button
-                          type="button"
-                          key={`${date}-${slot}`}
-                          className="schedule-slot"
-                          onClick={() => console.log('slot click:', date, slot)}
-                        />
-                      ))}
-                    </React.Fragment>
-                  ))}
+    
+                <div
+                  ref={gridScrollRef}
+                  className="schedule-grid-scroll gmg-scrollbar-both"
+                  onScroll={syncFromGrid}
+                >
+                  <div
+                    className="schedule-grid-slots"
+                    style={{
+                      gridTemplateColumns: `repeat(${DATES.length}, 87.666664px)`,
+                      gridTemplateRows: `repeat(${TIME_SLOTS.length}, 20px)`,
+                    }}
+                  >
+                       {TIME_SLOTS.map((slot) =>
+                        DATES.map((date) => {
+                          const key = `${date}-${slot}`;
+                          const isActive = selectedSlots.has(key);
+
+                          return (
+                            <button
+                              type="button"
+                              key={key}
+                              className={`schedule-slot ${isActive ? 'schedule-slot--active' : ''}`}
+                              onClick={() => toggleSlot(key)}
+                            />
+                          );
+                        })
+                      )}
+
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* 음식점 추천: "컨테이너(세트 박스)" 자체가 좌우로 여러 개 */}
-          <section className="main-section">
-            <h2 className="main-section-title">이 음식점 어때요?</h2>
+          {/* 음식점 추천 */}
+            <section className="main-section">
+              <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
+                {RESTAURANT_SETS.map((set, idx) => (
+                  <div key={`box-${idx}`} className="restaurant-container">
 
-            <div className="restaurant-rail">
-              {RESTAURANT_SETS.map((set, idx) => (
-                <div key={`box-${idx}`} className="restaurant-container">
-                  <div className="restaurant-set">
-                    {set.map((item) => (
-                      <article key={item.id} className="restaurant-card">
-                        <div className="restaurant-image" aria-label={item.imageAlt} />
-                        <p className="restaurant-name">{item.name}</p>
-                      </article>
-                    ))}
+                    <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+
+                    <div className="restaurant-set">
+                      {set.map((item) => (
+                        <article key={item.id} className="restaurant-card">
+                          <div className="restaurant-image" aria-label={item.imageAlt} />
+                          <p className="restaurant-name">{item.name}</p>
+                        </article>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+
+
         </main>
 
         <footer className="main-footer">

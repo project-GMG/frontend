@@ -47,11 +47,11 @@
 
 /* "모임이 생성됐어요" */
 .create-final-title {
-  margin: 0 0 32px; 
+  margin: 100px 0 32px; 
 
   font-size: 26px;
   font-weight: 600;
-  line-height: 31.2px;
+  line-height: 100%;
   color: #333232;
 }
 
@@ -61,7 +61,7 @@
 
   font-size: 13px;
   font-weight: 500;
-  line-height: 15.6px;
+  line-height: 23px;
   color: #333232;
 }
 
@@ -112,38 +112,12 @@
   cursor: pointer;
 }
 
-/* 복사 아이콘  */
 .create-final-copy-icon {
-  position: relative;
-  width: 14px;
+  width: 14px;       
   height: 14px;
+  object-fit: contain;
 }
 
-.create-final-copy-icon::before,
-.create-final-copy-icon::after {
-  content: '';
-  position: absolute;
-  border-radius: 2px;
-  border: 1.5px solid #ffffff;
-  box-sizing: border-box;
-}
-
-/* 뒤쪽 종이 */
-.create-final-copy-icon::before {
-  width: 10px;
-  height: 10px;
-  top: 1px;
-  left: 3px;
-  opacity: 0.7;
-}
-
-/* 앞쪽 종이 */
-.create-final-copy-icon::after {
-  width: 10px;
-  height: 10px;
-  top: 3px;
-  left: 1px;
-}
 
 /* 복사 텍스트 */
 .create-final-copy-label {
@@ -160,14 +134,13 @@
   justify-content: center;
 }
 
-/* 이후 실제 이미지로 교체 예정 */
-.create-final-image-placeholder {
+.create-final-image {
   width: 216.43px;
   height: 176px;
-  border-radius: 24px;
-
-  background: linear-gradient(135deg, #ffd6c2, #ffe9d8);
+  object-fit: contain;
+  margin-top: 40px;
 }
+
 
 /* 하단 버튼 영역 */
 .create-final-footer {

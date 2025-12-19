@@ -39,8 +39,14 @@
 .main-logo {
   width: 55px;
   height: 37px;
-  background-color: #000000; 
   border-radius: 4px;
+  object-fit: contain;
+}
+
+.main-share-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* 공유 버튼 */
@@ -53,56 +59,44 @@
   border-radius: 999px;
   border: none;
 
-  background-color: #ffffff;
-
-  box-shadow:
-    0px 1px 2px -1px #0000001a,
-    0px 1px 3px 0px #0000001a;
-
   cursor: pointer;
 }
 
-.main-share-text {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 14px;
-  color: #333232;
+
+.main-share-bubble-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.main-share-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* 공유 버튼 화살표 아이콘 */
-.main-share-icon {
-  position: relative;
-  width: 14px;
-  height: 14px;
+.main-share-icon-image {
+  width: 23px;
+  height: 22px;
+  object-fit: contain;
 }
 
-.main-share-icon::before,
-.main-share-icon::after {
-  content: '';
-  position: absolute;
-  background-color: #333232;
-  border-radius: 999px;
+.main-share-icon-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  padding: 0;
+
+  background: transparent;   
+  box-shadow: none;          
+  cursor: pointer;
 }
 
-/* 화살표 몸통 */
-.main-share-icon::before {
-  width: 10px;
-  height: 2px;
-  top: 6px;
-  left: 2px;
-}
-
-/* 화살표 머리 */
-.main-share-icon::after {
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid #333232;
-  border-right: 2px solid #333232;
-  background: transparent;
-  right: 2px;
-  top: 3px;
-  transform: rotate(45deg);
-}
 
 /* 공유 말풍선 버튼 */
 .main-share-bubble {
@@ -110,11 +104,13 @@
   align-items: center;
   gap: 12px;
 
-  padding: 10px 16px;
-  border-radius: 999px;
+  padding: 5px 16px;
   border: none;
 
   background-color: #ffffff;
+
+ 
+  border-radius: 999px 0 999px 999px;
 
   box-shadow:
     0px 1px 2px -1px #0000001a,
@@ -123,48 +119,15 @@
   cursor: pointer;
 }
 
+
 /* 텍스트 */
 .main-share-bubble-text {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   color: #333232;
   white-space: nowrap;
 }
 
-/* 오른쪽 공유 아이콘 */
-.main-share-bubble-icon {
-  position: relative;
-  width: 20px;
-  height: 20px;
-}
-
-/* 공유 아이콘 원 */
-.main-share-bubble-icon::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #333232;
-}
-
-/* 공유 아이콘 선 */
-.main-share-bubble-icon::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 8px;
-
-  width: 10px;
-  height: 2px;
-  background-color: #333232;
-
-  transform: rotate(-25deg);
-  transform-origin: left center;
-}
 
 
 /* 메인 콘텐츠 */
@@ -175,7 +138,7 @@
   margin-top: 24px;
 }
 
-/* 모임 제목 */
+/* 모임 제목 "전북대에서 먹자  */
 .main-title {
   margin: 0 0 24px;
 
@@ -190,16 +153,216 @@
   margin-bottom: 24px;
 }
 
-.main-section-title {
-  margin: 0 0 8px;
 
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 16.8px;
-  color: #333232;
-}
 
 /* ================= 일정 컨테이너 ================= */
+
+
+.schedule-container--new {
+  position: relative;
+}
+
+.schedule-frame {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+
+.schedule-frame {
+  --time-col: 48px;            /* 왼쪽 시간 라벨 폭 */
+  --date-row: 20px;            /* 상단 날짜 높이 */
+  --cell-w: 87.666664px;
+  --cell-h: 20px;
+  --gap-x: 2px;
+  --gap-y: 4px;
+}
+
+/* 날짜 레일: 컨테이너 안쪽에서 grid 위에 위치 */
+.schedule-date-rail {
+  position: absolute;
+  top: 0;
+  left: calc(var(--time-col) + 4px); 
+  right: 4px;
+
+  height: var(--date-row);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* 날짜(상단) 스크롤바 숨김 */
+.schedule-date-rail {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge 구버전 */
+}
+.schedule-date-rail::-webkit-scrollbar {
+  display: none;              /* Chrome/Safari */
+}
+
+/* 시간(왼쪽) 스크롤바 숨김 */
+.schedule-time-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.schedule-time-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.schedule-date-row {
+  display: flex;
+  gap: var(--gap-x);
+  width: fit-content;
+}
+
+.schedule-date-header {
+  width: var(--cell-w);
+  height: var(--date-row);
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: var(--date-row);
+  color: #333232;
+  text-align: center;
+}
+
+/* 시간 레일: 컨테이너 안쪽에서 grid 왼쪽에 위치(마진으로) */
+.schedule-time-rail {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);  /* 날짜 아래 여백 */
+  left: -10px;
+  bottom: 8px;
+
+  width: var(--time-col);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.schedule-time-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-y);
+}
+
+.schedule-time-label {
+  width: var(--time-col);
+  height: var(--cell-h);
+
+  font-size: 10px;
+  font-weight: 400;
+  color: #333232;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  box-sizing: border-box;
+
+  line-height: 1;
+}
+
+/* 그리드 스크롤(주체): 날짜/시간 영역을 피해서 안쪽에 위치 */
+.schedule-grid-scroll {
+  position: absolute;
+  top: calc(var(--date-row) + 4px);
+  left: calc(var(--time-col) + 4px);
+  right: 4px;
+  bottom: 8px;
+
+  overflow: auto;
+  border-radius: 12px;
+
+  background-color: #ffffff;
+}
+
+/* 슬롯만 있는 그리드 */
+.schedule-grid-slots {
+  display: grid;
+  column-gap: var(--gap-x);
+  row-gap: var(--gap-y);
+  width: fit-content;
+}
+
+/* 슬롯(기존 유지) */
+.schedule-slot {
+  width: 87.666664px;
+  height: 20px;
+  box-sizing: border-box;
+
+  background-color: #EDEEF1;
+  border: 1px solid #edeef1;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  cursor: pointer;
+}
+
+.schedule-slot:hover {
+  background-color: #e9e9eb;
+}
+
+.schedule-slot--active {
+  background-color: #FF5315; 
+}
+
+
+/* ================= 스크롤 바================= */
+/* 공통: WebKit */
+.gmg-scrollbar-both::-webkit-scrollbar,
+.gmg-scrollbar-x::-webkit-scrollbar,
+.gmg-scrollbar-y::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.gmg-scrollbar-both::-webkit-scrollbar-track,
+.gmg-scrollbar-x::-webkit-scrollbar-track,
+.gmg-scrollbar-y::-webkit-scrollbar-track {
+  background: #d9d9d9;         /* 트랙(연한 회색) */
+  border-radius: 999px;
+}
+
+.gmg-scrollbar-both::-webkit-scrollbar-thumb,
+.gmg-scrollbar-x::-webkit-scrollbar-thumb,
+.gmg-scrollbar-y::-webkit-scrollbar-thumb {
+  background: #2b2b2b;         /* thumb(진한색) */
+  border-radius: 999px;
+}
+
+/* Firefox */
+.gmg-scrollbar-both,
+.gmg-scrollbar-x,
+.gmg-scrollbar-y {
+  scrollbar-width: thin;
+  scrollbar-color: #2b2b2b #d9d9d9;
+}
+
+/* 하................................ */
+.gmg-scrollbar-both::-webkit-scrollbar-button,
+.gmg-scrollbar-both::-webkit-scrollbar-button:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:single-button,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:start:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:end:increment,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:start:decrement,
+.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:end:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+
+.gmg-scrollbar-both::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+
+
 
 .schedule-container {
   width: 353px;
@@ -224,76 +387,12 @@
 }
 
 
-.schedule-scroll {
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: auto;
-
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 4px;
-  box-sizing: border-box;
-
-  max-height: 260px; 
-}
-
-
-.schedule-grid {
-  display: grid;
-  column-gap: 2px;
-  row-gap: 4px;
-}
-
-
 .schedule-empty-cell {
   width: 60px;
   height: 20px;
 }
 
-/* 날짜 헤더 셀 */
-.schedule-date-header {
-  width: 87.666664px;
-  height: 20px;
 
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 20px;
-  color: #333232;
-  text-align: center;
-}
-
-.schedule-time-label {
-  width: 30px;
-  height: 20px;
-
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1;         
-  display: flex;
-  align-items: center;  
-  justify-content: flex-end; 
-  padding-right: 0px;      
-  color: #333232;
-}
-
-/* 시간 슬롯 */
-.schedule-slot {
-  width: 87.666664px;
-  height: 20px;
-  box-sizing: border-box;
-
-  background-color: #EDEEF1;
-  border: 1px solid #edeef1;
-
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-
-  cursor: pointer;
-}
-
-.schedule-slot:hover {
-  background-color: #e9e9eb;
-}
 
 /* ================= 음식점 추천 컨테이너 ================= */
 
@@ -307,7 +406,6 @@
   padding-right: 60px;
 }
 
-
 .restaurant-container {
   width: 333px;
   height: 167px;
@@ -317,8 +415,22 @@
   padding: 12px;
   box-sizing: border-box;
 
-  flex: 0 0 333px;    
+  flex: 0 0 333px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
+/* 컨테이너 내부 제목 */
+.restaurant-container-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
 
 
 .restaurant-set {
@@ -352,6 +464,29 @@
   line-height: 14px;
   color: #333232;
 }
+
+.restaurant-rail-title {
+  flex: 0 0 auto;
+  margin: 0 12px 0 0;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+
+  display: flex;
+  align-items: center;   /* 세로 가운데 */
+  height: 167px;         /* 옆 컨테이너 높이랑 맞춤(기존 restaurant-container 높이) */
+}
+.restaurant-rail--hidden-scrollbar {
+  scrollbar-width: none;    /* Firefox */
+  -ms-overflow-style: none; /* IE/구 Edge */
+}
+.restaurant-rail--hidden-scrollbar::-webkit-scrollbar {
+  display: none;            /* Chrome/Safari/Edge */
+}
+
+
 
 
 /* 하단 버튼 영역 */

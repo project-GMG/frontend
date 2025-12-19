@@ -40,3 +40,26 @@
 .next-button--enabled:active {
   background-color: var(--action-primary-active);
 }
+
+.next-button {
+  width: 100%;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+
+  font-size: 16px;
+  font-weight: 600;
+   white-space: nowrap;
+  cursor: pointer;
+}
+
+.next-button--disabled {
+  background: #d9d9d9;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+.next-button--enabled {
+  background: #ff5315;
+  color: #ffffff;
+}

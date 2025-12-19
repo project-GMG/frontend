@@ -2,6 +2,10 @@ import React from 'react';
 import './CreateFinalPage.css';
 import BackButton from '../components/common/BackButton';
 import NextButton from '../components/common/NextButton';
+import EndIcon from '../../assets/icons/End_ico.png';
+import CopyIcon from '../../assets/icons/copy.png';
+
+
 
 const DUMMY_LINK = 'https://meet.jbnu.ac.kr/fhcfspup';
 
@@ -59,15 +63,22 @@ export default function CreateFinalPage() {
               className="create-final-copy-button"
               onClick={handleCopyLink}
             >
-              <span className="create-final-copy-icon" />
+                        <img
+              src={CopyIcon}
+              alt="복사 아이콘"
+              className="create-final-copy-icon"
+            />
+
               <span className="create-final-copy-label">복사</span>
             </button>
           </div>
-
-          <div className="create-final-image-wrapper">
-            {/* 이후 실제 이미지로 교체 예정 */}
+                <img
+                  src={EndIcon}
+                  alt="모임 생성 완료 아이콘"
+                  className="create-final-image"
+                />
             <div className="create-final-image-placeholder" />
-          </div>
+          
         </main>
 
         <footer className="create-final-footer">
