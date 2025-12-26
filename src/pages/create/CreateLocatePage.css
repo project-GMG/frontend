@@ -16,7 +16,7 @@
   height: 852px;
   box-sizing: border-box;
 
-  background-color: #f1f2f5;
+  background-color: var(--bg-default);
 
   padding-top: 56px;
   padding-right: 20px;
@@ -26,6 +26,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  /* 반응형 */
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100vh - 40px));
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 16px;
 }
 
 /* 헤더: BackButton */

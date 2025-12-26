@@ -1,22 +1,17 @@
-/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
 .main-page {
   width: 100vw;
   height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background-color: var(--bg-default);
+  background-color: #F1F2F5;
 }
 
-/* 고정 크기 컨테이너 */
 .main-page-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
-
-  background-color: #f1f2f5;
+  background-color: #F1F2F5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -26,16 +21,16 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  overflow: hidden;
 }
 
-/* 상단 헤더: 로고 + 공유 버튼 */
 .main-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* 로고: 55 x 37 */
 .main-logo {
   width: 55px;
   height: 37px;
@@ -43,32 +38,6 @@
   object-fit: contain;
 }
 
-.main-share-area {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 공유 버튼 */
-.main-share-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: none;
-
-  cursor: pointer;
-}
-
-
-.main-share-bubble-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
 .main-share-area {
   display: flex;
   align-items: center;
@@ -91,14 +60,10 @@
 
   border: none;
   padding: 0;
-
-  background: transparent;   
-  box-shadow: none;          
+  background: transparent;
   cursor: pointer;
 }
 
-
-/* 공유 말풍선 버튼 */
 .main-share-bubble {
   display: inline-flex;
   align-items: center;
@@ -106,10 +71,8 @@
 
   padding: 5px 16px;
   border: none;
-
   background-color: #ffffff;
 
- 
   border-radius: 999px 0 999px 999px;
 
   box-shadow:
@@ -119,8 +82,6 @@
   cursor: pointer;
 }
 
-
-/* 텍스트 */
 .main-share-bubble-text {
   font-size: 14px;
   font-weight: 400;
@@ -128,89 +89,96 @@
   white-space: nowrap;
 }
 
-
-
-/* 메인 콘텐츠 */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-top: 24px;
+  min-height: 0;
 }
 
-/* 모임 제목 "전북대에서 먹자  */
 .main-title {
   margin: 0 0 24px;
-
   font-size: 23px;
   font-weight: 600;
   line-height: 27.6px;
   color: #333232;
 }
 
-/* 섹션 공통 */
 .main-section {
   margin-bottom: 24px;
 }
-
-
-
-/* ================= 일정 컨테이너 ================= */
-
 
 .schedule-container--new {
   position: relative;
 }
 
+.schedule-container {
+  width: 353px;
+  height: 322px;
+
+  border-radius: 22px;
+  background-color: #ffffff;
+
+  padding-top: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  padding-bottom: 0;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.schedule-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16.8px;
+  color: #333232;
+}
+
 .schedule-frame {
   position: relative;
   flex: 1;
-  height: 100%;
-}
+  min-height: 0;
 
+  --time-col: 46px;
+  --date-row: 20px;
 
-.schedule-frame {
-  --time-col: 48px;            /* 왼쪽 시간 라벨 폭 */
-  --date-row: 20px;            /* 상단 날짜 높이 */
   --cell-w: 87.666664px;
   --cell-h: 20px;
-  --gap-x: 2px;
-  --gap-y: 4px;
+
+  --time-rail-shift: -26px;
+  --rail-grid-gap: -6px;
+  --grid-left: calc(var(--time-rail-shift) + var(--time-col) + var(--rail-grid-gap));
 }
 
-/* 날짜 레일: 컨테이너 안쪽에서 grid 위에 위치 */
 .schedule-date-rail {
   position: absolute;
   top: 0;
-  left: calc(var(--time-col) + 4px); 
-  right: 4px;
+  left: var(--grid-left);
+  right: 0;
 
   height: var(--date-row);
   overflow-x: auto;
   overflow-y: hidden;
-}
 
-/* 날짜(상단) 스크롤바 숨김 */
-.schedule-date-rail {
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge 구버전 */
-}
-.schedule-date-rail::-webkit-scrollbar {
-  display: none;              /* Chrome/Safari */
-}
-
-/* 시간(왼쪽) 스크롤바 숨김 */
-.schedule-time-rail {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.schedule-time-rail::-webkit-scrollbar {
+.schedule-date-rail::-webkit-scrollbar {
   display: none;
 }
 
 .schedule-date-row {
   display: flex;
-  gap: var(--gap-x);
+  gap: 0 !important;
   width: fit-content;
 }
 
@@ -225,22 +193,27 @@
   text-align: center;
 }
 
-/* 시간 레일: 컨테이너 안쪽에서 grid 왼쪽에 위치(마진으로) */
 .schedule-time-rail {
   position: absolute;
-  top: calc(var(--date-row) + 4px);  /* 날짜 아래 여백 */
-  left: -10px;
-  bottom: 8px;
+  top: var(--date-row);
+  left: var(--time-rail-shift) !important;
+  bottom: 0;
 
   width: var(--time-col);
   overflow-y: auto;
   overflow-x: hidden;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.schedule-time-rail::-webkit-scrollbar {
+  display: none;
 }
 
 .schedule-time-col {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-y);
+  gap: 0 !important;
 }
 
 .schedule-time-label {
@@ -254,60 +227,64 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 6px;
-  box-sizing: border-box;
 
+  padding-right: 0 !important;
+  box-sizing: border-box;
   line-height: 1;
 }
 
-/* 그리드 스크롤(주체): 날짜/시간 영역을 피해서 안쪽에 위치 */
 .schedule-grid-scroll {
   position: absolute;
-  top: calc(var(--date-row) + 4px);
-  left: calc(var(--time-col) + 4px);
-  right: 4px;
-  bottom: 8px;
+  scrollbar-gutter: stable;
+
+  top: var(--date-row);
+  left: var(--grid-left);
+  right: 12px;
+  bottom: 12px;
 
   overflow: auto;
   border-radius: 12px;
-
   background-color: #ffffff;
+
+  padding-right: 2px;
+  padding-bottom: 2px;
+  box-sizing: border-box;
 }
 
-/* 슬롯만 있는 그리드 */
 .schedule-grid-slots {
   display: grid;
-  column-gap: var(--gap-x);
-  row-gap: var(--gap-y);
+  column-gap: 1px !important;
+  row-gap: 1px !important;
+
   width: fit-content;
+  background: #ffffff;
+
+  padding-left: 1px;
+  padding-top: 1px;
+  box-sizing: border-box;
 }
 
-/* 슬롯(기존 유지) */
 .schedule-slot {
-  width: 87.666664px;
-  height: 20px;
+  width: var(--cell-w);
+  height: var(--cell-h);
   box-sizing: border-box;
 
   background-color: #EDEEF1;
-  border: 1px solid #edeef1;
+  border: 0 !important;
 
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
 
+  margin-left: -0.5px;
+  margin-top: -0.5px;
+
   cursor: pointer;
 }
 
-.schedule-slot:hover {
-  background-color: #e9e9eb;
-}
-
 .schedule-slot--active {
-  background-color: #FF5315; 
+  background-color: #FF5315;
 }
 
-
-/* ================= 스크롤 바================= */
-/* 공통: WebKit */
 .gmg-scrollbar-both::-webkit-scrollbar,
 .gmg-scrollbar-x::-webkit-scrollbar,
 .gmg-scrollbar-y::-webkit-scrollbar {
@@ -318,18 +295,17 @@
 .gmg-scrollbar-both::-webkit-scrollbar-track,
 .gmg-scrollbar-x::-webkit-scrollbar-track,
 .gmg-scrollbar-y::-webkit-scrollbar-track {
-  background: #d9d9d9;         /* 트랙(연한 회색) */
+  background: #d9d9d9;
   border-radius: 999px;
 }
 
 .gmg-scrollbar-both::-webkit-scrollbar-thumb,
 .gmg-scrollbar-x::-webkit-scrollbar-thumb,
 .gmg-scrollbar-y::-webkit-scrollbar-thumb {
-  background: #2b2b2b;         /* thumb(진한색) */
+  background: #2b2b2b;
   border-radius: 999px;
 }
 
-/* Firefox */
 .gmg-scrollbar-both,
 .gmg-scrollbar-x,
 .gmg-scrollbar-y {
@@ -337,7 +313,6 @@
   scrollbar-color: #2b2b2b #d9d9d9;
 }
 
-/* 하................................ */
 .gmg-scrollbar-both::-webkit-scrollbar-button,
 .gmg-scrollbar-both::-webkit-scrollbar-button:increment,
 .gmg-scrollbar-both::-webkit-scrollbar-button:decrement,
@@ -356,46 +331,11 @@
   background: transparent !important;
 }
 
-
 .gmg-scrollbar-both::-webkit-scrollbar-corner {
   background: transparent !important;
 }
 
-
-
-
-.schedule-container {
-  width: 353px;
-  height: 322px;
-  border-radius: 24px;
-  background-color: #ffffff;
-
-  padding: 16px;
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
-}
-
-/* 컨테이너 안 제목 */
-.schedule-title {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 16.8px;
-  color: #333232;
-}
-
-
-.schedule-empty-cell {
-  width: 60px;
-  height: 20px;
-}
-
-
-
-/* ================= 음식점 추천 컨테이너 ================= */
-
+/* 음식점 추천 */
 .restaurant-rail {
   display: flex;
   gap: 12px;
@@ -404,6 +344,14 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   padding-right: 60px;
+}
+
+.restaurant-rail--hidden-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.restaurant-rail--hidden-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .restaurant-container {
@@ -422,7 +370,6 @@
   gap: 10px;
 }
 
-/* 컨테이너 내부 제목 */
 .restaurant-container-title {
   margin: 0;
   font-size: 14px;
@@ -430,8 +377,6 @@
   line-height: 16.8px;
   color: #333232;
 }
-
-
 
 .restaurant-set {
   width: 100%;
@@ -442,54 +387,47 @@
   align-items: flex-start;
 }
 
-
+/* MainPage와 동일: 이미지 + 하단 흰 라벨 오버레이 */
 .restaurant-card {
-  width: 92px; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.restaurant-image {
   width: 92px;
   height: 100px;
   border-radius: 16px;
-  background-color: #d9d9d9;
+  overflow: hidden;
+  background-color: #ffffff;
+  position: relative;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.restaurant-name {
-  margin: 8px 0 0;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 14px;
-  color: #333232;
+.restaurant-thumb {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
-.restaurant-rail-title {
-  flex: 0 0 auto;
-  margin: 0 12px 0 0;
+.restaurant-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 16.8px;
-  color: #333232;
+  height: 28px;
+  background-color: #ffffff;
 
   display: flex;
-  align-items: center;   /* 세로 가운데 */
-  height: 167px;         /* 옆 컨테이너 높이랑 맞춤(기존 restaurant-container 높이) */
-}
-.restaurant-rail--hidden-scrollbar {
-  scrollbar-width: none;    /* Firefox */
-  -ms-overflow-style: none; /* IE/구 Edge */
-}
-.restaurant-rail--hidden-scrollbar::-webkit-scrollbar {
-  display: none;            /* Chrome/Safari/Edge */
+  align-items: center;
+  justify-content: center;
 }
 
+.restaurant-label-text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14px;
+  color: #333232;
+  white-space: nowrap;
+}
 
-
-
-/* 하단 버튼 영역 */
 .main-footer {
   display: flex;
   justify-content: center;
@@ -497,7 +435,7 @@
   white-space: nowrap;
 }
 
-/* 하단 입력 모달(시트) */
+/* 하단 입력 모달 */
 .join-sheet-overlay {
   position: fixed;
   inset: 0;
@@ -529,12 +467,10 @@
   gap: 30px;
 }
 
-
 .join-sheet-grabber {
   display: none;
 }
 
-/* 제목: "이름을 입력해 주세요" */
 .join-sheet-label {
   display: block;
   margin: 0;
@@ -544,7 +480,6 @@
   color: #333232;
 }
 
-/* 입력창 */
 .join-sheet-input {
   width: 100%;
   border: none;
@@ -563,9 +498,8 @@
   color: #b0b0b6;
 }
 
-/* 안내 문구 */
 .join-sheet-helper {
-  margin: -18px 0 0; 
+  margin: -18px 0 0;
   font-size: 14px;
   font-weight: 400;
   color: #7e7e7e;
@@ -579,7 +513,15 @@
   opacity: 1;
 }
 
-/* 버튼 래퍼 */
 .join-sheet-button {
-  margin-top: auto; /* 버튼을 아래로 밀기 */
+  margin-top: auto;
+}
+
+/* ===== 추가(클릭 가능 표시) ===== */
+.schedule-container--clickable {
+  cursor: pointer;
+}
+
+.restaurant-container--clickable {
+  cursor: pointer;
 }

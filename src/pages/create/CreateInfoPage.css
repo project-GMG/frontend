@@ -1,4 +1,4 @@
-/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+
 .create-info-page {
   width: 100vw;
   height: 100vh;
@@ -16,7 +16,7 @@
   height: 852px;
   box-sizing: border-box;
 
-  background-color: #f1f2f5;
+  background-color: var(--bg-default);
 
   padding-top: 56px;
   padding-right: 20px;
@@ -26,6 +26,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  /* 반응형 */
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100vh - 40px));
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 16px;
 }
 
 /* 헤더: BackButton */
@@ -43,7 +51,7 @@
   margin-top: 24px;
 }
 
-/* 제목: "모임을 생성하세요" */
+/* 제목 */
 .create-info-title {
   margin: 0 0 32px;
 
@@ -60,7 +68,7 @@
   margin-bottom: 32px;
 }
 
-/* 라벨 */
+/* 라벨(기본 상태: 검정) */
 .info-field-label {
   font-size: 14px;
   font-weight: 500;
@@ -69,22 +77,32 @@
   margin-bottom: 8px;
 }
 
-/* 라벨 - 에러 시 */
+/* 2) 클릭/수정 상태 */
+.info-field-label--active {
+  color: #ff5315;
+}
+
+/* 3) 오류 상태 */
 .info-field-label--error {
   color: #fd5839;
 }
 
-/* 입력 래퍼: 밑줄 포함 */
+/* 입력 래퍼(밑줄) */
 .info-input-wrapper {
-  border-bottom: 1px solid #333232;
-  padding: 4px 0;
+  border-bottom: 1px solid #333232; 
+  padding: 6px 0;
   display: flex;
   align-items: center;
-  gap: 10px; /* 입력과 연필 사이 간격 */
+  gap: 10px;
 }
 
-/* 활성/유효/에러 상태: 밑줄 주황색 */
+/* 2) 클릭/수정 상태: 밑줄 주황 */
 .info-input-wrapper--active {
+  border-color: #ff5315;
+}
+
+/* 3) 오류 상태: 밑줄 빨강 */
+.info-input-wrapper--error {
   border-color: #fd5839;
 }
 
@@ -101,25 +119,36 @@
   color: #333232;
 }
 
-/* 처음 예시로 보여줄 때: 회색 */
 .info-input--placeholder {
   color: #b9b9b9;
 }
 
-/* 연필 아이콘 (이미지)  26px 로 했는데 잘 안보여서 일단 30으로 변경 근데 안보이는거 보면 색상문제가 큰듯  */
+.info-pencil-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 연필 아이콘 */
 .info-pencil {
   width: 30px;
   height: 30px;
-  flex: 0 0 18px;
+  flex: 0 0 16px;
   object-fit: contain;
-  opacity: 0.6;
+
+  opacity: 1; 
+ 
+  filter: grayscale(1) brightness(0.6);
 }
-
-
 
 /* 에러 문구 */
 .info-error-text {
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 12px;
   font-weight: 400;
   line-height: 14.4px;

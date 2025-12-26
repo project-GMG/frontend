@@ -2,10 +2,11 @@ import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
 import ShareIcon from '../../assets/icons/share.png';
-import React, { useRef, useState } from 'react';
+import ChickenImg from '../../assets/icons/chicken.png'; 
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DUMMY_LINK = 'https://meet.jbnu.ac.kr/fhcfspup';
-
 
 const DATES = ['11/23 일', '11/24 월', '11/25 화', '11/26 수', '11/27 목'];
 
@@ -51,20 +52,10 @@ const RESTAURANT_SETS = [
 ];
 
 export default function MainPage() {
-  const [selectedSlots, setSelectedSlots] = useState(() => new Set());
-
+  const navigate = useNavigate();
   const gridScrollRef = useRef(null);
   const dateScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
-
-  const toggleSlot = (key) => {
-  setSelectedSlots((prev) => {
-    const next = new Set(prev);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    return next;
-  });
-};
 
   const syncFromGrid = () => {
     const grid = gridScrollRef.current;
@@ -109,6 +100,7 @@ export default function MainPage() {
 
   const handleParticipate = () => {
     console.log('참여 · 수정하기 버튼 클릭');
+    navigate('/join');
   };
 
   return (
@@ -135,12 +127,11 @@ export default function MainPage() {
             <div className="schedule-container schedule-container--new">
               <h2 className="schedule-title">이때 만날까요?</h2>
 
-
               <div className="schedule-frame">
                 {/* 날짜(상단) */}
                 <div
                   ref={dateScrollRef}
-                  className="schedule-date-rail "
+                  className="schedule-date-rail"
                   onScroll={syncFromDate}
                 >
                   <div className="schedule-date-row">
@@ -155,7 +146,7 @@ export default function MainPage() {
                 {/* 시간(좌측) */}
                 <div
                   ref={timeScrollRef}
-                  className="schedule-time-rail "
+                  className="schedule-time-rail"
                   onScroll={syncFromTime}
                 >
                   <div className="schedule-time-col">
@@ -167,7 +158,7 @@ export default function MainPage() {
                   </div>
                 </div>
 
-    
+                {/* 그리드(스크롤 주체) */}
                 <div
                   ref={gridScrollRef}
                   className="schedule-grid-scroll gmg-scrollbar-both"
@@ -180,22 +171,12 @@ export default function MainPage() {
                       gridTemplateRows: `repeat(${TIME_SLOTS.length}, 20px)`,
                     }}
                   >
-                       {TIME_SLOTS.map((slot) =>
-                        DATES.map((date) => {
-                          const key = `${date}-${slot}`;
-                          const isActive = selectedSlots.has(key);
-
-                          return (
-                            <button
-                              type="button"
-                              key={key}
-                              className={`schedule-slot ${isActive ? 'schedule-slot--active' : ''}`}
-                              onClick={() => toggleSlot(key)}
-                            />
-                          );
-                        })
-                      )}
-
+                    {TIME_SLOTS.map((slot) =>
+                      DATES.map((date) => {
+                        const key = `${date}-${slot}`;
+                        return <div key={key} className="schedule-slot" />;
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -203,27 +184,30 @@ export default function MainPage() {
           </section>
 
           {/* 음식점 추천 */}
-            <section className="main-section">
-              <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
-                {RESTAURANT_SETS.map((set, idx) => (
-                  <div key={`box-${idx}`} className="restaurant-container">
+          <section className="main-section">
+            <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
+              {RESTAURANT_SETS.map((set, idx) => (
+                <div key={`box-${idx}`} className="restaurant-container">
+                  <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
 
-                    <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
-
-                    <div className="restaurant-set">
-                      {set.map((item) => (
-                        <article key={item.id} className="restaurant-card">
-                          <div className="restaurant-image" aria-label={item.imageAlt} />
-                          <p className="restaurant-name">{item.name}</p>
-                        </article>
-                      ))}
-                    </div>
+                  <div className="restaurant-set">
+                    {set.map((item) => (
+                      <article key={item.id} className="restaurant-card">
+                        <img
+                          src={ChickenImg}
+                          alt={item.imageAlt}
+                          className="restaurant-thumb"
+                        />
+                        <div className="restaurant-label">
+                          <p className="restaurant-label-text">{item.name}</p>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-
-
+                </div>
+              ))}
+            </div>
+          </section>
         </main>
 
         <footer className="main-footer">

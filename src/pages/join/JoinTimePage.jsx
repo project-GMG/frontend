@@ -1,4 +1,3 @@
-// src/pages/join/JoinTimePage.jsx
 import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -22,10 +21,13 @@ const TIME_LABELS = [
   '6 PM','',
 ];
 
+const LONG_PRESS_MS = 250;
+const MOVE_CANCEL_PX = 8; 
+
 export default function JoinTimePage() {
   const navigate = useNavigate();
 
-  // 더미 날짜 12개(3일 x 4페이지)
+ 
   const allDates = useMemo(
     () => [
       '11/23 일', '11/24 월', '11/25 화',
@@ -45,7 +47,7 @@ export default function JoinTimePage() {
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
 
-  // 스와이프 감지용
+  // 스와이프 감지용(페이지 넘김)
   const touchStartRef = useRef({ x: 0, y: 0 });
 
   const pageDates = allDates.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
@@ -64,35 +66,27 @@ export default function JoinTimePage() {
     grid.scrollTop = time.scrollTop;
   };
 
-  const toggleSlot = (key) => {
-    setSelectedSlots((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
   const goPrev = () => setPage((p) => Math.max(0, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
 
   const onTouchStart = (e) => {
+    if (selectStateRef.current.mode !== 'idle') return;
     const t = e.touches[0];
     touchStartRef.current = { x: t.clientX, y: t.clientY };
   };
 
   const onTouchEnd = (e) => {
+    if (selectStateRef.current.mode !== 'idle') return; 
     const start = touchStartRef.current;
     const t = e.changedTouches[0];
     const dx = t.clientX - start.x;
     const dy = t.clientY - start.y;
 
-    // 세로 스크롤 제스처면 무시
     if (Math.abs(dy) > Math.abs(dx)) return;
 
-    const TH = 40; // 임계값
-    if (dx <= -TH) goNext();      // 왼쪽으로 밀면 다음 페이지
-    else if (dx >= TH) goPrev();  // 오른쪽으로 밀면 이전 페이지
+    const TH = 40;
+    if (dx <= -TH) goNext();
+    else if (dx >= TH) goPrev();
   };
 
   const handleBack = () => navigate(-1);
@@ -102,6 +96,163 @@ export default function JoinTimePage() {
   };
 
   const isNextDisabled = selectedSlots.size === 0;
+
+  // =========================
+  // 롱프레스 드래그 선택/해제
+  // =========================
+
+  const [selectModeUI, setSelectModeUI] = useState('idle');
+
+  const selectStateRef = useRef({
+    mode: 'idle', 
+    pointerDown: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    startKey: null,
+    lastKey: null,
+    longPressTimer: null,
+    movedBeforeLongPress: false,
+  });
+
+  const clearLongPressTimer = () => {
+    const st = selectStateRef.current;
+    if (st.longPressTimer) {
+      clearTimeout(st.longPressTimer);
+      st.longPressTimer = null;
+    }
+  };
+
+  const setMode = (mode) => {
+    selectStateRef.current.mode = mode;
+    setSelectModeUI(mode);
+  };
+
+  const applyKeyByMode = (key, mode) => {
+    if (!key) return;
+    setSelectedSlots((prev) => {
+      const next = new Set(prev);
+      if (mode === 'select') next.add(key);
+      else if (mode === 'deselect') next.delete(key);
+      return next;
+    });
+  };
+
+  const toggleSingle = (key) => {
+    setSelectedSlots((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const findSlotKeyFromPoint = (clientX, clientY) => {
+    const el = document.elementFromPoint(clientX, clientY);
+    if (!el) return null;
+    const slotEl = el.closest?.('[data-slot-key]');
+    return slotEl?.getAttribute?.('data-slot-key') ?? null;
+  };
+
+  const onSlotPointerDown = (e, key) => {
+    // 좌클릭/터치만
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    const st = selectStateRef.current;
+    st.pointerDown = true;
+    st.pointerId = e.pointerId;
+    st.startX = e.clientX;
+    st.startY = e.clientY;
+    st.startKey = key;
+    st.lastKey = key;
+    st.movedBeforeLongPress = false;
+
+    clearLongPressTimer();
+
+    // 250ms 뒤 선택모드 진입
+    st.longPressTimer = setTimeout(() => {
+      if (!st.pointerDown) return;
+      if (st.movedBeforeLongPress) return; 
+
+      const isActive = selectedSlots.has(key);
+      const mode = isActive ? 'deselect' : 'select';
+      setMode(mode);
+
+      applyKeyByMode(key, mode);
+
+      timeScrollRef.current?.classList.add('is-selecting');
+      gridScrollRef.current?.classList.add('is-selecting');
+
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    }, LONG_PRESS_MS);
+  };
+
+  const onSlotPointerMove = (e) => {
+    const st = selectStateRef.current;
+    if (!st.pointerDown) return;
+
+    const dx = e.clientX - st.startX;
+    const dy = e.clientY - st.startY;
+
+    if (st.mode === 'idle') {
+      if (Math.abs(dx) > MOVE_CANCEL_PX || Math.abs(dy) > MOVE_CANCEL_PX) {
+        st.movedBeforeLongPress = true;
+        clearLongPressTimer();
+      }
+      return;
+    }
+
+    // 선택/해제 모드: 드래그로 연속 적용
+    e.preventDefault();
+
+    const key = findSlotKeyFromPoint(e.clientX, e.clientY);
+    if (!key) return;
+    if (key === st.lastKey) return;
+
+    st.lastKey = key;
+    applyKeyByMode(key, st.mode);
+  };
+
+  const finishPointer = (e) => {
+    const st = selectStateRef.current;
+    if (!st.pointerDown) return;
+
+    const wasMode = st.mode;
+    const startKey = st.startKey;
+
+    st.pointerDown = false;
+    st.pointerId = null;
+
+    // 롱프레스 타이머 정리
+    clearLongPressTimer();
+
+   
+    if (wasMode === 'idle') {
+      if (!st.movedBeforeLongPress && startKey) {
+        toggleSingle(startKey);
+      }
+      st.startKey = null;
+      st.lastKey = null;
+      return;
+    }
+
+    setMode('idle');
+
+    timeScrollRef.current?.classList.remove('is-selecting');
+    gridScrollRef.current?.classList.remove('is-selecting');
+
+    st.startKey = null;
+    st.lastKey = null;
+
+    // 포인터 캡처 해제
+    try {
+      e.currentTarget?.releasePointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const onPointerCancel = (e) => finishPointer(e);
 
   return (
     <div className="join-time-page">
@@ -129,7 +280,7 @@ export default function JoinTimePage() {
 
           {/* 그리드 카드 (스와이프 영역) */}
           <section
-            className="join-time-grid-card"
+            className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
@@ -175,16 +326,20 @@ export default function JoinTimePage() {
                 >
                   {TIME_SLOTS.map((slot) =>
                     pageDates.map((date) => {
-                      const key = `${date}-${slot}`; // 페이지와 무관하게 날짜+시간으로 관리(원하면 page 포함해도 됨)
+                      const key = `${date}-${slot}`;
                       const isActive = selectedSlots.has(key);
 
                       return (
                         <button
                           type="button"
                           key={`${page}-${key}`}
+                          data-slot-key={key}
                           className={`jt-slot ${isActive ? 'jt-slot--active' : ''}`}
-                          onClick={() => toggleSlot(key)}
                           aria-label={`${date} ${slot}`}
+                          onPointerDown={(e) => onSlotPointerDown(e, key)}
+                          onPointerMove={onSlotPointerMove}
+                          onPointerUp={finishPointer}
+                          onPointerCancel={onPointerCancel}
                         />
                       );
                     }),
@@ -194,7 +349,7 @@ export default function JoinTimePage() {
             </div>
           </section>
 
-          {/* 페이지 도트(버튼 없음) */}
+          {/* 페이지 도트 */}
           <div className="join-time-pagination join-time-pagination--dots-only">
             <div className="join-time-dots" aria-label="페이지 표시">
               {Array.from({ length: totalPages }).map((_, i) => (

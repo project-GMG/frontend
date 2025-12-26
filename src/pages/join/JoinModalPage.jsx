@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './JoinModalPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
 import ShareIcon from '../../assets/icons/share.png';
+import ChickenImg from '../../assets/icons/chicken.png';
 
 const DUMMY_LINK = 'https://meet.jbnu.ac.kr/fhcfspup';
 
@@ -62,11 +64,13 @@ function saveMembers(next) {
 }
 
 export default function JoinModalPage() {
-  // 스케줄 선택(멀티)
+  const navigate = useNavigate();
+
   const [selectedSlots, setSelectedSlots] = useState(() => new Set());
 
-  // 하단 모달
   const [isJoinOpen, setIsJoinOpen] = useState(true);
+  const [hasJoined, setHasJoined] = useState(false);
+
   const [name, setName] = useState('');
   const inputRef = useRef(null);
 
@@ -75,8 +79,8 @@ export default function JoinModalPage() {
   const timeScrollRef = useRef(null);
 
   useEffect(() => {
-    // 첫 진입 시 자동 오픈 + 포커스
     setIsJoinOpen(true);
+    setHasJoined(false);
     setTimeout(() => inputRef.current?.focus(), 0);
   }, []);
 
@@ -90,9 +94,7 @@ export default function JoinModalPage() {
 
   const helperText = useMemo(() => {
     if (!trimmedName) return '';
-    return isExistingMember
-      ? '등록된 이름이네요. 수정으로 진행해요.'
-      : '새로운 모임원이네요.';
+    return isExistingMember ? '등록된 이름이네요. 수정으로 진행해요.' : '새로운 모임원이네요.';
   }, [trimmedName, isExistingMember]);
 
   const buttonLabel = useMemo(() => {
@@ -164,9 +166,35 @@ export default function JoinModalPage() {
       console.log('기존 멤버 수정:', trimmedName);
     }
 
-    // 여기서 다음 단계(참여/수정 플로우)로 이동 처리하면 됨
-    // 예: navigate('/edit') 또는 모달 닫기
     setIsJoinOpen(false);
+    setHasJoined(true);
+  };
+
+  const goJoinTime = () => {
+    if (!hasJoined) return;
+    navigate('/join/time');
+  };
+
+  const onScheduleKeyDown = (e) => {
+    if (!hasJoined) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      goJoinTime();
+    }
+  };
+
+  // ✅ 음식점 컨테이너 클릭 시 /join/Category 이동
+  const goJoinCategory = () => {
+    if (!hasJoined) return;
+    navigate('/join/Category');
+  };
+
+  const onRestaurantKeyDown = (e) => {
+    if (!hasJoined) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      goJoinCategory();
+    }
   };
 
   return (
@@ -188,13 +216,26 @@ export default function JoinModalPage() {
         <main className="main-content">
           <h1 className="main-title">전북대에서 밥먹자</h1>
 
-          {/* 일정 컨테이너 */}
+          {/* 일정 컨테이너: 참여 완료 후 클릭 시 JoinTime 이동 */}
           <section className="main-section">
-            <div className="schedule-container schedule-container--new">
+            <div
+              className={`schedule-container schedule-container--new ${
+                hasJoined ? 'schedule-container--clickable' : ''
+              }`}
+              role="button"
+              tabIndex={hasJoined ? 0 : -1}
+              aria-disabled={!hasJoined}
+              onClick={goJoinTime}
+              onKeyDown={onScheduleKeyDown}
+            >
               <h2 className="schedule-title">이때 만날까요?</h2>
 
-              <div className="schedule-frame">
-                {/* 날짜(상단) */}
+              <div
+                className="schedule-frame"
+                style={{
+                  pointerEvents: isJoinOpen ? 'none' : 'auto',
+                }}
+              >
                 <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
                   <div className="schedule-date-row">
                     {DATES.map((date) => (
@@ -205,7 +246,6 @@ export default function JoinModalPage() {
                   </div>
                 </div>
 
-                {/* 시간(좌측) */}
                 <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
                   <div className="schedule-time-col">
                     {TIME_SLOTS.map((slot, rowIndex) => (
@@ -216,7 +256,6 @@ export default function JoinModalPage() {
                   </div>
                 </div>
 
-                {/* 슬롯 그리드 */}
                 <div
                   ref={gridScrollRef}
                   className="schedule-grid-scroll gmg-scrollbar-both"
@@ -238,7 +277,10 @@ export default function JoinModalPage() {
                             type="button"
                             key={key}
                             className={`schedule-slot ${isActive ? 'schedule-slot--active' : ''}`}
-                            onClick={() => toggleSlot(key)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSlot(key);
+                            }}
                           />
                         );
                       }),
@@ -249,18 +291,38 @@ export default function JoinModalPage() {
             </div>
           </section>
 
-          {/* 음식점 추천 */}
+          {/* ✅ 음식점 추천: 참여 완료 후 클릭 시 JoinPlaceCategoryPage 이동 */}
           <section className="main-section">
             <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
               {RESTAURANT_SETS.map((set, idx) => (
-                <div key={`box-${idx}`} className="restaurant-container">
+                <div
+                  key={`box-${idx}`}
+                  className={`restaurant-container ${hasJoined ? 'restaurant-container--clickable' : ''}`}
+                  role="button"
+                  tabIndex={hasJoined ? 0 : -1}
+                  aria-disabled={!hasJoined}
+                  onClick={goJoinCategory}
+                  onKeyDown={onRestaurantKeyDown}
+                >
                   <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
 
-                  <div className="restaurant-set">
+                  <div
+                    className="restaurant-set"
+                    style={{
+                      // 모달 열려있으면 클릭 차단
+                      pointerEvents: isJoinOpen ? 'none' : 'auto',
+                    }}
+                  >
                     {set.map((item) => (
-                      <article key={item.id} className="restaurant-card">
-                        <div className="restaurant-image" aria-label={item.imageAlt} />
-                        <p className="restaurant-name">{item.name}</p>
+                      <article
+                        key={item.id}
+                        className="restaurant-card"
+                        onClick={(e) => e.stopPropagation()} // 컨테이너 클릭 이동과 충돌 방지
+                      >
+                        <img src={ChickenImg} alt={item.imageAlt} className="restaurant-thumb" />
+                        <div className="restaurant-label">
+                          <p className="restaurant-label-text">{item.name}</p>
+                        </div>
                       </article>
                     ))}
                   </div>

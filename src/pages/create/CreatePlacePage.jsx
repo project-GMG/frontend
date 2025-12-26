@@ -4,15 +4,36 @@ import './CreatePlacePage.css';
 import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
+import riceIcon from '../../assets/icons/rice.png';
+import coffeeIcon from '../../assets/icons/coffee.png';
+import beerIcon from '../../assets/icons/beer.png';
+import bookIcon from '../../assets/icons/book.png';
+
 
 const CATEGORIES = [
-  { id: 'restaurant', label: '식당', description: '맛있는 밥 먹어야지!' },
-  { id: 'cafe', label: '카페', description: '커피 한잔 해야지!' },
-  { id: 'pub', label: '술집', description: '술 한잔 해야지!' },
+  {
+    id: 'restaurant',
+    label: '식당',
+    description: '맛있는 밥 먹어야지!',
+    image: riceIcon,
+  },
+  {
+    id: 'cafe',
+    label: '카페',
+    description: '커피 한잔 해야지!',
+    image: coffeeIcon,
+  },
+  {
+    id: 'pub',
+    label: '술집',
+    description: '술 한잔 해야지!',
+    image: beerIcon,
+  },
   {
     id: 'library',
     label: '도서관 스터디카페',
     description: '공부 하러 가야지!',
+    image: bookIcon,
   },
 ];
 
@@ -75,7 +96,11 @@ export default function CreatePlacePage() {
                   }
                   onClick={() => toggleCategory(category.id)}
                 >
-                  <div className="create-place-category-thumbnail" />
+                <img
+                  src={category.image}
+                  alt={category.label}
+                  className="create-place-category-thumbnail"
+                />
                   <div className="create-place-category-texts">
                     <span className="create-place-category-label">
                       {category.label}
