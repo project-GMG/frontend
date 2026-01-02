@@ -1,0 +1,187 @@
+/* src/pages/join/JoinPlaceCategorySubPage.css */
+
+.jpcs-page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-default);
+}
+
+.jpcs-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+  background-color: var(--bg-default);
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  overflow-y: auto;
+  border-radius: 16px;
+}
+
+/* 헤더 */
+.jpcs-header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+.jpcs-header-title {
+  margin: 0;
+  justify-self: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333232;
+}
+
+.jpcs-header-spacer {
+  width: 44px;
+  height: 22px;
+}
+
+/* 본문 */
+.jpcs-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+/* 검색바 */
+.jpcs-search {
+  width: 353px;
+  height: 44px;
+  background: #ffffff;
+  border-radius: 999px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 14px;
+  box-sizing: border-box;
+}
+
+.jpcs-search-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+  object-fit: contain;
+}
+
+.jpcs-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-size: 14px;
+  color: #333232;
+}
+
+.jpcs-search-input::placeholder {
+  color: #7e7e7e;
+}
+
+/* 그리드 */
+.jpcs-grid {
+  width: 353px;
+  display: grid;
+  grid-template-columns: repeat(3, 111px);
+  gap: 10px;
+  align-content: start;
+}
+
+/* 타일 공통 */
+.jpcs-tile {
+  width: 111px;
+  height: 111px;
+  border-radius: 22px;
+
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 전체 선택 타일 */
+.jpcs-tile--all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jpcs-all-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333232;
+}
+
+/* 이미지 */
+.jpcs-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 하단 라벨 */
+.jpcs-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 28px;
+  background: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jpcs-label-text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333232;
+  white-space: nowrap;
+}
+
+/* 선택 오버레이 */
+.jpcs-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 83, 21, 0.5); /* #FF5315 opacity 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* 하얀색 X (opacity 50%) */
+.jpcs-x {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 하단 버튼 */
+.jpcs-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}

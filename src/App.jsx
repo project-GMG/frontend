@@ -11,6 +11,8 @@ import MainPage from './pages/main/MainPage';
 import JoinModalPage from './pages/join/JoinModalPage';
 import JoinTimePage from './pages/join/JoinTimePage';
 import JoinPlaceCategoryPage from './pages/join/JoinPlaceCategoryPage';
+import JoinPlaceCategorySubPage from './pages/join/JoinPlaceCategorySubPage';
+import JoinFinalPage from './pages/join/JoinFinalPage';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
       <Route path="/join" element={<JoinModalPage />} />
       <Route path="/join/time" element={<JoinTimePage />} />
       <Route path="/join/Category" element={<JoinPlaceCategoryPage />} />
+      <Route path="/join/category/sub" element={<JoinPlaceCategorySubPage />} />
+      <Route path="/join/final" element={<JoinFinalPage />} />
 
       <Route path="*" element={<Navigate to="/create/place" replace />} />
     </Routes>

@@ -161,4 +161,5 @@
 .jpc-footer {
   display: flex;
   justify-content: center;
+  transform: translateY(-50px);
 }

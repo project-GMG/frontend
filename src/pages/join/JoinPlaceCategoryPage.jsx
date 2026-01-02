@@ -1,4 +1,3 @@
-// src/pages/join/JoinPlaceCategoryPage.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './JoinPlaceCategoryPage.css';
@@ -57,11 +56,13 @@ export default function JoinPlaceCategoryPage() {
 
   const handleBack = () => navigate(-1);
 
-  const goSub = (groupId, itemId) => {
-    // 라우팅은 프로젝트에 맞게 바꾸면 됨
-    // 예: navigate(`/join/place-category/sub?group=${groupId}&item=${itemId}`);
-    navigate('/join/place-category/sub', {
-      state: { groupId, itemId },
+  const goSub = (groupId, item) => {
+    navigate('/join/Category/sub', {
+      state: {
+        groupId,
+        itemId: item.id,
+        title: item.label,
+      },
     });
   };
 
@@ -101,7 +102,7 @@ export default function JoinPlaceCategoryPage() {
                       key={item.id}
                       type="button"
                       className="jpc-item"
-                      onClick={() => goSub(group.id, item.id)}
+                      onClick={() => goSub(group.id, item)}
                       aria-label={`${item.label} 선택`}
                     >
                       <div className="jpc-item-icon" />

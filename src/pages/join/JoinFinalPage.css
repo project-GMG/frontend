@@ -1,0 +1,85 @@
+/* 전체 레이아웃 */
+.join-final-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--bg-default);
+}
+
+.join-final-container {
+  width: 393px;
+  height: 852px;
+  box-sizing: border-box;
+
+  background-color: var(--bg-default);
+
+  padding-top: 56px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+  padding-left: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  overflow-y: auto;
+  border-radius: 16px;
+}
+
+/* 콘텐츠 중앙 정렬 */
+.join-final-content {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+/* 타이틀 */
+.join-final-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 21.6px;
+  color: #333232;
+}
+
+/* 서브 텍스트 */
+.join-final-subtitle {
+  margin: 0 0 28px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #7e7e7e;
+}
+
+/* 일러스트 영역 */
+.join-final-illustration {
+  width: 180px;
+  height: 180px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 일러스트 이미지 */
+.join-final-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 하단 버튼 */
+.join-final-footer {
+  display: flex;
+  justify-content: center;
+}

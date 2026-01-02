@@ -2,7 +2,7 @@ import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
 import ShareIcon from '../../assets/icons/share.png';
-import ChickenImg from '../../assets/icons/chicken.png'; 
+import ChickenImg from '../../assets/icons/chicken.png';
 import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,21 +11,49 @@ const DUMMY_LINK = 'https://meet.jbnu.ac.kr/fhcfspup';
 const DATES = ['11/23 일', '11/24 월', '11/25 화', '11/26 수', '11/27 목'];
 
 const TIME_SLOTS = [
-  '1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM',
-  '6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM',
+  '1:00 PM',
+  '1:30 PM',
+  '2:00 PM',
+  '2:30 PM',
+  '3:00 PM',
+  '3:30 PM',
+  '4:00 PM',
+  '4:30 PM',
+  '5:00 PM',
+  '5:30 PM',
+  '6:00 PM',
+  '6:30 PM',
+  '7:00 PM',
+  '7:30 PM',
+  '8:00 PM',
+  '8:30 PM',
+  '9:00 PM',
+  '9:30 PM',
+  '10:00 PM',
+  '10:30 PM',
 ];
 
 const TIME_LABELS = [
-  '1 PM','',
-  '2 PM','',
-  '3 PM','',
-  '4 PM','',
-  '5 PM','',
-  '6 PM','',
-  '7 PM','',
-  '8 PM','',
-  '9 PM','',
-  '10 PM','',
+  '1 PM',
+  '',
+  '2 PM',
+  '',
+  '3 PM',
+  '',
+  '4 PM',
+  '',
+  '5 PM',
+  '',
+  '6 PM',
+  '',
+  '7 PM',
+  '',
+  '8 PM',
+  '',
+  '9 PM',
+  '',
+  '10 PM',
+  '',
 ];
 
 const RESTAURANT_SETS = [
@@ -99,7 +127,6 @@ export default function MainPage() {
   };
 
   const handleParticipate = () => {
-    console.log('참여 · 수정하기 버튼 클릭');
     navigate('/join');
   };
 
@@ -122,18 +149,13 @@ export default function MainPage() {
         <main className="main-content">
           <h1 className="main-title">전북대에서 밥먹자</h1>
 
-          {/* 일정 컨테이너 */}
           <section className="main-section">
-            <div className="schedule-container schedule-container--new">
+            <div className="schedule-container">
               <h2 className="schedule-title">이때 만날까요?</h2>
 
               <div className="schedule-frame">
-                {/* 날짜(상단) */}
-                <div
-                  ref={dateScrollRef}
-                  className="schedule-date-rail"
-                  onScroll={syncFromDate}
-                >
+                {/* 날짜 레일 */}
+                <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
                   <div className="schedule-date-row">
                     {DATES.map((date) => (
                       <div key={date} className="schedule-date-header">
@@ -143,12 +165,8 @@ export default function MainPage() {
                   </div>
                 </div>
 
-                {/* 시간(좌측) */}
-                <div
-                  ref={timeScrollRef}
-                  className="schedule-time-rail"
-                  onScroll={syncFromTime}
-                >
+                {/* 시간 레일 */}
+                <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
                   <div className="schedule-time-col">
                     {TIME_SLOTS.map((slot, rowIndex) => (
                       <div key={slot} className="schedule-time-label">
@@ -158,7 +176,7 @@ export default function MainPage() {
                   </div>
                 </div>
 
-                {/* 그리드(스크롤 주체) */}
+                {/* 그리드 */}
                 <div
                   ref={gridScrollRef}
                   className="schedule-grid-scroll gmg-scrollbar-both"
@@ -175,7 +193,7 @@ export default function MainPage() {
                       DATES.map((date) => {
                         const key = `${date}-${slot}`;
                         return <div key={key} className="schedule-slot" />;
-                      })
+                      }),
                     )}
                   </div>
                 </div>
@@ -183,7 +201,6 @@ export default function MainPage() {
             </div>
           </section>
 
-          {/* 음식점 추천 */}
           <section className="main-section">
             <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
               {RESTAURANT_SETS.map((set, idx) => (
@@ -193,11 +210,7 @@ export default function MainPage() {
                   <div className="restaurant-set">
                     {set.map((item) => (
                       <article key={item.id} className="restaurant-card">
-                        <img
-                          src={ChickenImg}
-                          alt={item.imageAlt}
-                          className="restaurant-thumb"
-                        />
+                        <img src={ChickenImg} alt={item.imageAlt} className="restaurant-thumb" />
                         <div className="restaurant-label">
                           <p className="restaurant-label-text">{item.name}</p>
                         </div>
@@ -208,13 +221,13 @@ export default function MainPage() {
               ))}
             </div>
           </section>
-        </main>
 
-        <footer className="main-footer">
-          <NextButton disabled={false} onClick={handleParticipate}>
-            참여 · 수정하기
-          </NextButton>
-        </footer>
+          <footer className="main-footer">
+            <NextButton disabled={false} onClick={handleParticipate}>
+              참여 · 수정하기
+            </NextButton>
+          </footer>
+        </main>
       </div>
     </div>
   );

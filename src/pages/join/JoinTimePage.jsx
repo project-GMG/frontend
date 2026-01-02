@@ -4,36 +4,42 @@ import NextButton from '../components/common/NextButton';
 import './JoinTimePage.css';
 
 const TIME_SLOTS = [
-  '1:00 PM','1:30 PM',
-  '2:00 PM','2:30 PM',
-  '3:00 PM','3:30 PM',
-  '4:00 PM','4:30 PM',
-  '5:00 PM','5:30 PM',
-  '6:00 PM','6:30 PM',
+  '1:00 PM',
+  '1:30 PM',
+  '2:00 PM',
+  '2:30 PM',
+  '3:00 PM',
+  '3:30 PM',
+  '4:00 PM',
+  '4:30 PM',
+  '5:00 PM',
+  '5:30 PM',
+  '6:00 PM',
+  '6:30 PM',
 ];
 
-const TIME_LABELS = [
-  '1 PM','',
-  '2 PM','',
-  '3 PM','',
-  '4 PM','',
-  '5 PM','',
-  '6 PM','',
-];
+const TIME_LABELS = ['1 PM', '', '2 PM', '', '3 PM', '', '4 PM', '', '5 PM', '', '6 PM', ''];
 
 const LONG_PRESS_MS = 250;
-const MOVE_CANCEL_PX = 8; 
+const MOVE_CANCEL_PX = 8;
 
 export default function JoinTimePage() {
   const navigate = useNavigate();
 
- 
   const allDates = useMemo(
     () => [
-      '11/23 일', '11/24 월', '11/25 화',
-      '11/26 수', '11/27 목', '11/28 금',
-      '11/29 토', '11/30 일', '12/01 월',
-      '12/02 화', '12/03 수', '12/04 목',
+      '11/23 일',
+      '11/24 월',
+      '11/25 화',
+      '11/26 수',
+      '11/27 목',
+      '11/28 금',
+      '11/29 토',
+      '11/30 일',
+      '12/01 월',
+      '12/02 화',
+      '12/03 수',
+      '12/04 목',
     ],
     [],
   );
@@ -47,7 +53,6 @@ export default function JoinTimePage() {
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
 
-  // 스와이프 감지용(페이지 넘김)
   const touchStartRef = useRef({ x: 0, y: 0 });
 
   const pageDates = allDates.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
@@ -76,7 +81,7 @@ export default function JoinTimePage() {
   };
 
   const onTouchEnd = (e) => {
-    if (selectStateRef.current.mode !== 'idle') return; 
+    if (selectStateRef.current.mode !== 'idle') return;
     const start = touchStartRef.current;
     const t = e.changedTouches[0];
     const dx = t.clientX - start.x;
@@ -93,6 +98,7 @@ export default function JoinTimePage() {
 
   const handleNext = () => {
     console.log('선택된 슬롯:', Array.from(selectedSlots));
+    navigate('/join/Category');
   };
 
   const isNextDisabled = selectedSlots.size === 0;
@@ -104,7 +110,7 @@ export default function JoinTimePage() {
   const [selectModeUI, setSelectModeUI] = useState('idle');
 
   const selectStateRef = useRef({
-    mode: 'idle', 
+    mode: 'idle',
     pointerDown: false,
     pointerId: null,
     startX: 0,
@@ -155,7 +161,6 @@ export default function JoinTimePage() {
   };
 
   const onSlotPointerDown = (e, key) => {
-    // 좌클릭/터치만
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
     const st = selectStateRef.current;
@@ -169,10 +174,9 @@ export default function JoinTimePage() {
 
     clearLongPressTimer();
 
-    // 250ms 뒤 선택모드 진입
     st.longPressTimer = setTimeout(() => {
       if (!st.pointerDown) return;
-      if (st.movedBeforeLongPress) return; 
+      if (st.movedBeforeLongPress) return;
 
       const isActive = selectedSlots.has(key);
       const mode = isActive ? 'deselect' : 'select';
@@ -202,7 +206,6 @@ export default function JoinTimePage() {
       return;
     }
 
-    // 선택/해제 모드: 드래그로 연속 적용
     e.preventDefault();
 
     const key = findSlotKeyFromPoint(e.clientX, e.clientY);
@@ -223,10 +226,8 @@ export default function JoinTimePage() {
     st.pointerDown = false;
     st.pointerId = null;
 
-    // 롱프레스 타이머 정리
     clearLongPressTimer();
 
-   
     if (wasMode === 'idle') {
       if (!st.movedBeforeLongPress && startKey) {
         toggleSingle(startKey);
@@ -243,8 +244,6 @@ export default function JoinTimePage() {
 
     st.startKey = null;
     st.lastKey = null;
-
-    // 포인터 캡처 해제
     try {
       e.currentTarget?.releasePointerCapture?.(e.pointerId);
     } catch {
@@ -257,7 +256,6 @@ export default function JoinTimePage() {
   return (
     <div className="join-time-page">
       <div className="join-time-container">
-        {/* 헤더: 백버튼 + 페이지 표시 */}
         <header className="join-time-header">
           <button
             type="button"
@@ -278,14 +276,12 @@ export default function JoinTimePage() {
         <main className="join-time-content">
           <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
 
-          {/* 그리드 카드 (스와이프 영역) */}
           <section
             className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
             <div className="jt-frame">
-              {/* 상단 날짜(3일 고정, 스크롤 없음) */}
               <div className="jt-date-rail">
                 <div className="jt-date-row">
                   {pageDates.map((d) => (
@@ -296,12 +292,7 @@ export default function JoinTimePage() {
                 </div>
               </div>
 
-              {/* 좌측 시간(세로 스크롤, grid와 동기화) */}
-              <div
-                ref={timeScrollRef}
-                className="jt-time-rail"
-                onScroll={syncFromTime}
-              >
+              <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
                 <div className="jt-time-col">
                   {TIME_SLOTS.map((slot, idx) => (
                     <div key={slot} className="jt-time-label">
@@ -311,12 +302,7 @@ export default function JoinTimePage() {
                 </div>
               </div>
 
-              {/* 슬롯 영역(세로 스크롤) */}
-              <div
-                ref={gridScrollRef}
-                className="jt-grid-scroll"
-                onScroll={syncFromGrid}
-              >
+              <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
                 <div
                   className="jt-grid"
                   style={{
@@ -349,14 +335,10 @@ export default function JoinTimePage() {
             </div>
           </section>
 
-          {/* 페이지 도트 */}
           <div className="join-time-pagination join-time-pagination--dots-only">
             <div className="join-time-dots" aria-label="페이지 표시">
               {Array.from({ length: totalPages }).map((_, i) => (
-                <span
-                  key={i}
-                  className={`join-time-dot ${i === page ? 'is-active' : ''}`}
-                />
+                <span key={i} className={`join-time-dot ${i === page ? 'is-active' : ''}`} />
               ))}
             </div>
           </div>

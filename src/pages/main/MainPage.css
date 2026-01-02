@@ -1,19 +1,24 @@
-/* MainPage.css (시간 레일 ↔ 슬롯 그리드 간격 5px 반영, 전체 코드) */
+/* MainPage.css */
 
+/* 화면 전체에서 컨테이너 중앙 배치 */
 .main-page {
   width: 100vw;
   height: 100vh;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #F1F2F5;
+
+  background-color: var(--bg-default);
 }
 
+/* 전체 레이아웃: 고정 393x852 + 내부 스크롤 */
 .main-page-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
-  background-color: #F1F2F5;
+
+  background-color: var(--bg-default);
 
   padding-top: 56px;
   padding-right: 20px;
@@ -24,10 +29,16 @@
   flex-direction: column;
   gap: 10px;
 
-  overflow: hidden;
+  overflow-y: auto;
+  border-radius: 16px;
 }
 
+/* ================= 헤더(로고/공유) ================= */
+/* 요청: width 353 / height 49 / space-between */
 .main-header {
+  width: 353px;
+  height: 49px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,30 +57,9 @@
   gap: 8px;
 }
 
-.main-share-icon-image {
-  width: 23px;
-  height: 22px;
-  object-fit: contain;
-}
-
-.main-share-icon-button {
-  width: 36px;
-  height: 36px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
 .main-share-bubble {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
 
   padding: 5px 16px;
   border: none;
@@ -91,12 +81,31 @@
   white-space: nowrap;
 }
 
+.main-share-icon-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.main-share-icon-image {
+  width: 23px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* ================= 콘텐츠 ================= */
 .main-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   margin-top: 24px;
-  min-height: 0;
 }
 
 .main-title {
@@ -111,10 +120,8 @@
   margin-bottom: 24px;
 }
 
-.schedule-container--new {
-  position: relative;
-}
-
+/* ================= 일정 컨테이너 ================= */
+/* 요청: width 353 / height 322 / gap 16 / padding top 20 right 20 left 20 / radius 22 */
 .schedule-container {
   width: 353px;
   height: 322px;
@@ -131,10 +138,9 @@
 
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 16px;
 
   margin: 0 auto;
-  overflow: visible;
 }
 
 .schedule-title {
@@ -145,35 +151,38 @@
   color: #333232;
 }
 
+/*
+  프레임 구성:
+  - 상단 날짜줄 20px
+  - 아래 영역(시간레일+그리드) 높이 241px
+  - 시간레일 width 24, padding-top 5, padding-bottom 15
+*/
 .schedule-frame {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  width: 100%;
+  height: 261px; /* 20(date) + 241(grid) */
 
-  /* 시간 라벨 컬럼 폭 */
-  --time-col: 46px;
-  /* 상단 날짜 헤더 높이 */
+  /* 시간레일이 프레임 안쪽으로 들어가 보이도록 */
+  --frame-inset-x: 8px;
+
   --date-row: 20px;
+  --grid-h: 241px;
 
-  /* 슬롯(셀) 크기 */
-  --cell-w: 87.66666412353516px;
+  --time-rail-w: 24px;
+  --rail-gap: 8px;
+
+  --cell-w: 87.666664px;
   --cell-h: 20px;
 
-  /* (참고) 슬롯 간격 변수(현재 직접 사용 안 함) */
-  --gap-x: 5px;
-  --gap-y: 5px;
-
-  /* 시간 레일 X 위치 */
-  --time-rail-shift: 0px;
-
-  /* 핵심: 시간레일과 그리드 사이 간격을 정확히 5px */
-  --rail-grid-gap: 5px;
-
-  /* 그리드/날짜레일 시작 X */
-  --grid-left: calc(var(--time-rail-shift) + var(--time-col) + var(--rail-grid-gap));
+  /*
+    ✅ 요청: "일정 슬롯 그리드도 왼쪽으로 10px 이동"
+    - 시간레일은 그대로
+    - 그리드(그리고 날짜 레일)는 10px 왼쪽으로
+  */
+  --grid-left: calc(var(--frame-inset-x) + var(--time-rail-w) + var(--rail-gap) - 10px);
 }
 
-/* 상단 날짜 레일 */
+/* 날짜 레일 */
 .schedule-date-rail {
   position: absolute;
   top: 0;
@@ -181,8 +190,12 @@
   right: 0;
 
   height: var(--date-row);
+
   overflow-x: auto;
   overflow-y: hidden;
+
+  background: #ffffff;
+  z-index: 3;
 
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -193,7 +206,6 @@
 
 .schedule-date-row {
   display: flex;
-  gap: 0 !important;
   width: fit-content;
 }
 
@@ -208,16 +220,23 @@
   text-align: center;
 }
 
-/* 좌측 시간 레일 */
+/* 시간 레일 */
 .schedule-time-rail {
   position: absolute;
   top: var(--date-row);
-  left: var(--time-rail-shift) !important;
-  bottom: 0;
+  left: var(--frame-inset-x);
 
-  width: var(--time-col);
+  width: var(--time-rail-w);
+  height: var(--grid-h);
+
+  padding-top: 5px;
+  padding-bottom: 15px;
+
   overflow-y: auto;
   overflow-x: hidden;
+
+  background: #ffffff;
+  z-index: 2;
 
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -229,11 +248,10 @@
 .schedule-time-col {
   display: flex;
   flex-direction: column;
-  gap: 0 !important;
 }
 
 .schedule-time-label {
-  width: var(--time-col);
+  width: var(--time-rail-w);
   height: var(--cell-h);
 
   font-size: 10px;
@@ -244,23 +262,28 @@
   align-items: center;
   justify-content: flex-end;
 
-  padding-right: 8px !important;
+  padding-right: 2px;
   box-sizing: border-box;
+
   line-height: 1;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-/* 그리드(스크롤 주체) */
+/* 그리드 스크롤 */
 .schedule-grid-scroll {
   position: absolute;
-  scrollbar-gutter: stable;
   top: var(--date-row);
   left: var(--grid-left);
-  right: 12px;
-  bottom: 12px;
+  right: 0;
+
+  height: var(--grid-h);
 
   overflow: auto;
   border-radius: 12px;
-  background-color: #ffffff;
+  background: #ffffff;
+
+  z-index: 1;
 
   padding-right: 2px;
   padding-bottom: 2px;
@@ -269,8 +292,8 @@
 
 .schedule-grid-slots {
   display: grid;
-  column-gap: 1px !important;
-  row-gap: 1px !important;
+  column-gap: 1px;
+  row-gap: 1px;
 
   width: fit-content;
   background: #ffffff;
@@ -282,21 +305,19 @@
 .schedule-slot {
   width: var(--cell-w);
   height: var(--cell-h);
-  box-sizing: border-box;
 
-  background-color: #EDEEF1;
-  border: 0 !important;
+  background-color: #edeef1;
 
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
 
-  pointer-events: none;
-
   margin-left: -0.5px;
   margin-top: -0.5px;
+
+  pointer-events: none;
 }
 
-/* ================= 스크롤 바================= */
+/* ================= 스크롤 바 (일정 그리드) ================= */
 .gmg-scrollbar-both::-webkit-scrollbar,
 .gmg-scrollbar-x::-webkit-scrollbar,
 .gmg-scrollbar-y::-webkit-scrollbar {
@@ -355,6 +376,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+
   padding-right: 60px;
 }
 
@@ -439,9 +461,13 @@
   white-space: nowrap;
 }
 
+/* ================= 하단 버튼 ================= */
 .main-footer {
   display: flex;
   justify-content: center;
-  margin-top: 8px;
+
+  margin-top: 20px;
+  padding-bottom: 10px;
+
   white-space: nowrap;
 }
