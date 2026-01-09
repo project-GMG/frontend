@@ -141,6 +141,9 @@
   gap: 16px;
 
   margin: 0 auto;
+
+  /* ✅ 핵심 수정: 프레임이 컨테이너 밖으로 안 새게 */
+  overflow: hidden;
 }
 
 .schedule-title {
@@ -162,8 +165,10 @@
   width: 100%;
   height: 261px; /* 20(date) + 241(grid) */
 
-  /* 시간레일이 프레임 안쪽으로 들어가 보이도록 */
-  --frame-inset-x: 8px;
+  /* ✅ 핵심 수정:
+     기존 8px inset + grid-left에서 -10px 때문에 왼쪽으로 빠져나갔음
+     → inset을 0으로 두고, grid-left는 '컨테이너 안'에서만 계산되게 고정 */
+  --frame-inset-x: 0px;
 
   --date-row: 20px;
   --grid-h: 241px;
@@ -174,12 +179,8 @@
   --cell-w: 87.666664px;
   --cell-h: 20px;
 
-  /*
-    ✅ 요청: "일정 슬롯 그리드도 왼쪽으로 10px 이동"
-    - 시간레일은 그대로
-    - 그리드(그리고 날짜 레일)는 10px 왼쪽으로
-  */
-  --grid-left: calc(var(--frame-inset-x) + var(--time-rail-w) + var(--rail-gap) - 10px);
+  /* ✅ 핵심 수정: -10px 제거, 항상 0 이상 */
+  --grid-left: calc(var(--frame-inset-x) + var(--time-rail-w) + var(--rail-gap));
 }
 
 /* 날짜 레일 */
@@ -454,8 +455,8 @@
 
 .restaurant-label-text {
   margin: 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 10.56px;
+  font-weight: 500;
   line-height: 14px;
   color: #333232;
   white-space: nowrap;

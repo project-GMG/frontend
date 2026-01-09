@@ -88,7 +88,7 @@
   border-radius: 24px;
   overflow: hidden;
 
-  background-color: #d9d9d9; /* 실제 지도 들어오기 전 임시 배경 */
+  background-color: #d9d9d9; 
 }
 
 /* -------------------- 1단계: 클릭 전 검색 바 -------------------- */
@@ -112,7 +112,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 
   cursor: pointer;
-  z-index: 2;
+  z-index: 4;
 }
 
 .create-locate-search-icon-large {
@@ -153,7 +153,11 @@
   padding: 12px 12px 16px;
   background-color: #ffffff;
 
-  z-index: 3;
+  z-index: 5;
+
+  /* 결과가 많아도 지도 안에서 스크롤되도록 */
+  max-height: 70%;
+  overflow-y: auto;
 }
 
 /* 패널 상단: 뒤로가기 + 입력 + 닫기 */
@@ -205,6 +209,8 @@
   font-size: 16px;
   font-weight: 500;
   color: #333232;
+
+  background: transparent;
 }
 
 /* 구분선 */
@@ -226,6 +232,12 @@
   gap: 12px;
 
   padding: 10px 4px;
+  cursor: pointer;
+}
+
+.create-locate-search-result-item:active {
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
 }
 
 /* 거리 + 핀 아이콘 묶음 */
@@ -259,42 +271,60 @@
   color: #333232;
 }
 
-/* 지도 자리 (실제 지도 교체 예정) */
+/* 지도 자리 (카카오 지도 컨테이너) */
 .create-locate-map-placeholder {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* 중심 원(범위 표시용) */
-.create-locate-map-circle {
+
+
+/* 현재 위치 버튼 */
+.create-locate-current-location-button {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  right: 12px;
+  bottom: 12px;
 
-  width: 220px;
-  height: 220px;
-  margin-left: -110px;
-  margin-top: -110px;
+  width: 44px;
+  height: 44px;
 
-  border-radius: 50%;
-  background-color: rgba(255, 83, 21, 0.18);
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  cursor: pointer;
+  z-index: 4;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 핀 아이콘 */
-.create-locate-map-pin {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+.create-locate-current-location-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #333232;
+  border-radius: 4px;
+  position: relative;
+}
 
-  width: 28px;
-  height: 28px;
-  margin-left: -14px;
-  margin-top: -32px;
+.create-locate-current-location-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  width: 6px;
+  height: 6px;
+
+  margin-left: -3px;
+  margin-top: -3px;
 
   border-radius: 50%;
-  background-color: #ff5315;
-  border: 3px solid #ffffff;
+  background: #333232;
 }
 
 /* 하단 버튼 영역 */

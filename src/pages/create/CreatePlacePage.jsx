@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+// gmg-front/src/pages/create/CreatePlacePage.jsx
+
+import React, { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './CreatePlacePage.css';
 import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
@@ -8,7 +10,6 @@ import riceIcon from '../../assets/icons/rice.png';
 import coffeeIcon from '../../assets/icons/coffee.png';
 import beerIcon from '../../assets/icons/beer.png';
 import bookIcon from '../../assets/icons/book.png';
-
 
 const CATEGORIES = [
   {
@@ -37,39 +38,64 @@ const CATEGORIES = [
   },
 ];
 
+const PLACE_TYPE_CODE_MAP = {
+  restaurant: 'RESTAURANT',
+  cafe: 'CAFE',
+  pub: 'BAR',
+  library: 'STUDY',
+};
+
+const CODE_TO_ID_MAP = {
+  RESTAURANT: 'restaurant',
+  CAFE: 'cafe',
+  BAR: 'bar',
+  STUDY: 'study',
+};
+
 export default function CreatePlacePage() {
   const navigate = useNavigate();
-  const [selectedIds, setSelectedIds] = useState([]);
+  const location = useLocation();
+  const prev = location.state || {};
+
+  // 뒤로 왔다가 다시 진입 시 복원 (placeTypeCodes -> selectedIds)
+  const initialSelectedIds = useMemo(() => {
+    const codes = Array.isArray(prev.placeTypeCodes) ? prev.placeTypeCodes : [];
+    return codes.map((c) => CODE_TO_ID_MAP[c]).filter(Boolean);
+  }, [prev.placeTypeCodes]);
+
+  const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
 
   const toggleCategory = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id],
-    );
+    setSelectedIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   };
 
-  const handleBack = () => {
-    window.history.back();
-  };
+  const handleBack = () => window.history.back();
+
+  const placeTypeCodes = useMemo(() => {
+    return selectedIds.map((id) => PLACE_TYPE_CODE_MAP[id]).filter(Boolean);
+  }, [selectedIds]);
+
+  const hasSelection = placeTypeCodes.length > 0;
 
   const handleNext = () => {
-    if (!selectedIds.length) return;
-    navigate('/create/date');
-    console.log('선택된 카테고리:', selectedIds);
-  };
+    if (!placeTypeCodes.length) return;
 
-  const hasSelection = selectedIds.length > 0;
+    // 다음 페이지로 누적 데이터 전달
+    navigate('/create/date', {
+      state: {
+        ...prev, // 나중에 확장될 데이터도 유지
+        placeTypeCodes,
+      },
+    });
+  };
 
   return (
     <div className="create-place-page">
       <div className="create-place-container">
-        {/* 상단 프로그래스 바 */}
         <div className="create-place-topbar">
           <TopBar currentStep={1} totalSteps={4} />
         </div>
 
-        {/* 백버튼 */}
         <div className="create-place-back">
           <BackButton onClick={handleBack} />
         </div>
@@ -90,21 +116,17 @@ export default function CreatePlacePage() {
                   type="button"
                   className={
                     'create-place-category-card' +
-                    (isSelected
-                      ? ' create-place-category-card--selected'
-                      : '')
+                    (isSelected ? ' create-place-category-card--selected' : '')
                   }
                   onClick={() => toggleCategory(category.id)}
                 >
-                <img
-                  src={category.image}
-                  alt={category.label}
-                  className="create-place-category-thumbnail"
-                />
+                  <img
+                    src={category.image}
+                    alt={category.label}
+                    className="create-place-category-thumbnail"
+                  />
                   <div className="create-place-category-texts">
-                    <span className="create-place-category-label">
-                      {category.label}
-                    </span>
+                    <span className="create-place-category-label">{category.label}</span>
                     <span className="create-place-category-description">
                       {category.description}
                     </span>

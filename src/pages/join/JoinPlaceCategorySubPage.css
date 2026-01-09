@@ -93,6 +93,20 @@
   color: #7e7e7e;
 }
 
+/* ✅ 빈 상태 문구 */
+.jpcs-empty {
+  width: 353px;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: Pretendard;
+  font-weight: 500;
+  font-size: 16px;
+  color: #333232;
+}
+
 /* 그리드 */
 .jpcs-grid {
   width: 353px;
@@ -164,7 +178,7 @@
 .jpcs-overlay {
   position: absolute;
   inset: 0;
-  background-color: rgba(255, 83, 21, 0.5); /* #FF5315 opacity 50% */
+  background-color: rgba(255, 83, 21, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;

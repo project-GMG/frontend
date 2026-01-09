@@ -513,15 +513,3 @@
   opacity: 1;
 }
 
-.join-sheet-button {
-  margin-top: auto;
-}
-
-/* ===== 추가(클릭 가능 표시) ===== */
-.schedule-container--clickable {
-  cursor: pointer;
-}
-
-.restaurant-container--clickable {
-  cursor: pointer;
-}

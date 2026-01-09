@@ -1,6 +1,6 @@
 // src/pages/join/JoinPlaceCategorySubPage.jsx
-import React, { useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinPlaceCategorySubPage.css';
 
 import BackButton from '../components/common/BackButton';
@@ -9,65 +9,141 @@ import NextButton from '../components/common/NextButton';
 import ChickenImg from '../../assets/icons/chicken.png';
 import SearchIcon from '../../assets/icons/search.png';
 
-const LABEL_MAP = {
-  restaurant: {
-    korean: '한식',
-    chinese: '중식',
-    japanese: '일식',
-    western: '양식',
-    'late-night': '분식·야식',
-  },
-  pub: {
-    beer: '소주·맥주',
-    izakaya: '이자카야',
-    makgeolli: '막걸리',
-    cocktail: '펍·칵테일',
-    wine: '와인',
-  },
-  study: {
-    library: '도서관',
-    'study-cafe': '스터디카페',
-    'study-room': '스터디룸',
-    'reading-room': '독서실',
-    etc: '기타',
-  },
-};
+function loadDisliked(hashUrl) {
+  try {
+    const raw = localStorage.getItem(`gmg_disliked_${hashUrl || 'unknown'}`);
+    const obj = raw ? JSON.parse(raw) : {};
+    return {
+      dislikedCategoryIds: Array.isArray(obj.dislikedCategoryIds) ? obj.dislikedCategoryIds : [],
+      dislikedPlaceIds: Array.isArray(obj.dislikedPlaceIds) ? obj.dislikedPlaceIds : [],
+    };
+  } catch {
+    return { dislikedCategoryIds: [], dislikedPlaceIds: [] };
+  }
+}
 
-function makeDummyPlaces() {
-  return Array.from({ length: 12 }, (_, i) => ({
-    id: `place-${i + 1}`,
-    name: '충만치킨',
-    imageUrl: ChickenImg,
-  }));
+function saveDisliked(hashUrl, payload) {
+  localStorage.setItem(`gmg_disliked_${hashUrl || 'unknown'}`, JSON.stringify(payload));
 }
 
 export default function JoinPlaceCategorySubPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const { groupId, itemId } = location.state ?? {};
+  const hashUrl = (searchParams.get('code') || '').trim();
+
+  // ✅ query 우선 (새로고침/직접진입 대비)
+  const categoryIdFromQuery = searchParams.get('categoryId');
+  const state = location.state || {};
+  const categoryIdFromState = state.categoryId ?? state.itemId;
+
+  const normalizedCategoryId = useMemo(() => {
+    const v = categoryIdFromQuery ?? categoryIdFromState;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }, [categoryIdFromQuery, categoryIdFromState]);
+
+  // ✅ title은 state.title 우선 (카테고리 페이지에서 label을 넘겼음)
   const title = useMemo(() => {
-    if (!groupId || !itemId) return '카테고리';
-    return LABEL_MAP[groupId]?.[itemId] ?? '카테고리';
-  }, [groupId, itemId]);
+    return state.title || '카테고리';
+  }, [state.title]);
 
-  const allPlaces = useMemo(() => makeDummyPlaces(), []);
   const [query, setQuery] = useState('');
-  const [selectedIds, setSelectedIds] = useState(new Set());
 
+  // 서버 places
+  const [places, setPlaces] = useState([]); // [{id:number, name, imageUrl}]
+  const [hasNext, setHasNext] = useState(false);
+  const [page, setPage] = useState(0);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorText, setErrorText] = useState('');
+
+  // 선택된 place ids (number로 통일)
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+
+  const pageSize = 16;
+
+  const handleBack = () => navigate(-1);
+
+  // 장소 조회: GET /api/events/{hashUrl}/places
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      if (!hashUrl || normalizedCategoryId == null) {
+        if (!alive) return;
+        setIsLoading(false);
+        setErrorText('필수 값이 누락되었습니다. (code 또는 categoryId)');
+        setPlaces([]);
+        setHasNext(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorText('');
+
+      try {
+        const res = await fetch(
+          `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
+            normalizedCategoryId,
+          )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(pageSize)}`,
+          { headers: { accept: 'application/json' } },
+        );
+
+        const json = await res.json().catch(() => null);
+        if (!alive) return;
+
+        if (!res.ok) {
+          setErrorText(json?.message || '장소 목록을 불러오지 못했습니다.');
+          setIsLoading(false);
+          setPlaces([]);
+          setHasNext(false);
+          return;
+        }
+
+        const data = json?.data || {};
+        const list = Array.isArray(data.places) ? data.places : [];
+
+        // ✅ page=0이면 교체, 그 외엔 append
+        setPlaces((prev) => (page === 0 ? list : [...prev, ...list]));
+        setHasNext(!!data.hasNext);
+        setIsLoading(false);
+      } catch {
+        if (!alive) return;
+        setErrorText('네트워크 오류로 장소 목록을 불러오지 못했습니다.');
+        setIsLoading(false);
+        setPlaces([]);
+        setHasNext(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [hashUrl, normalizedCategoryId, page]);
+
+  // 검색(기본 유지)
   const filteredPlaces = useMemo(() => {
     const q = query.trim();
-    if (!q) return allPlaces;
-    return allPlaces.filter((p) => p.name.includes(q));
-  }, [allPlaces, query]);
+    if (!q) return places;
+    return places.filter((p) => String(p?.name || '').includes(q));
+  }, [places, query]);
+
+  // ✅ 빈 상태 문구 조건
+  const isApiEmpty = !isLoading && !errorText && places.length === 0;
+  const isSearchEmpty =
+    !isLoading && !errorText && places.length > 0 && query.trim() && filteredPlaces.length === 0;
 
   const allVisibleSelected =
-    filteredPlaces.length > 0 && filteredPlaces.every((p) => selectedIds.has(p.id));
+    filteredPlaces.length > 0 && filteredPlaces.every((p) => selectedIds.has(Number(p.id)));
 
   const toggleOne = (id) => {
+    const n = Number(id);
+    if (!Number.isFinite(n)) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      next.has(n) ? next.delete(n) : next.add(n);
       return next;
     });
   };
@@ -75,22 +151,40 @@ export default function JoinPlaceCategorySubPage() {
   const toggleAll = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      const visibleIds = filteredPlaces.map((p) => p.id);
+      const visibleIds = filteredPlaces
+        .map((p) => Number(p.id))
+        .filter((n) => Number.isFinite(n));
+
       const isAllSelected = visibleIds.length > 0 && visibleIds.every((id) => next.has(id));
 
-      if (isAllSelected) {
-        visibleIds.forEach((id) => next.delete(id));
-      } else {
-        visibleIds.forEach((id) => next.add(id));
-      }
+      if (isAllSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+
       return next;
     });
   };
 
-  const handleBack = () => navigate(-1);
-
   const handleDone = () => {
     console.log('선택된 place ids:', Array.from(selectedIds));
+
+    // 기본 동작은 유지(뒤로가기) + 로컬 누적 저장만
+    if (hashUrl && normalizedCategoryId != null) {
+      const prev = loadDisliked(hashUrl);
+
+      const nextCategoryIds = Array.from(
+        new Set([...(prev.dislikedCategoryIds || []), normalizedCategoryId]),
+      );
+
+      const nextPlaceIds = Array.from(
+        new Set([...(prev.dislikedPlaceIds || []), ...Array.from(selectedIds)]),
+      );
+
+      saveDisliked(hashUrl, {
+        dislikedCategoryIds: nextCategoryIds,
+        dislikedPlaceIds: nextPlaceIds,
+      });
+    }
+
     navigate(-1);
   };
 
@@ -114,50 +208,86 @@ export default function JoinPlaceCategorySubPage() {
             />
           </div>
 
-          <section className="jpcs-grid">
-            {/* ✅ 전체 선택 타일 */}
-            <button
-              type="button"
-              className={
-                'jpcs-tile jpcs-tile--all' + (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
-              }
-              onClick={toggleAll}
-              aria-label="전체 선택"
-            >
-              <span className="jpcs-all-text">전체 선택</span>
+          {!!errorText && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+          )}
 
-              {/* 전체 선택이 켜져있을 때도 동일한 오버레이/ X 표시 */}
-              {allVisibleSelected && (
-                <div className="jpcs-overlay">
-                  <span className="jpcs-x">×</span>
-                </div>
-              )}
-            </button>
+          {/* ✅ API 결과가 아예 없을 때 */}
+          {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
 
-            {filteredPlaces.map((p) => {
-              const selected = selectedIds.has(p.id);
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  className="jpcs-tile jpcs-tile--place"
-                  onClick={() => toggleOne(p.id)}
-                >
-                  <img src={p.imageUrl} alt={p.name} className="jpcs-thumb" />
+          {/* ✅ 검색 결과가 없을 때 */}
+          {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
 
-                  {selected && (
-                    <div className="jpcs-overlay">
-                      <span className="jpcs-x">×</span>
-                    </div>
-                  )}
+          {/* ✅ grid는 기존 유지하되, 빈 상태에서는 렌더하지 않음 */}
+          {!isApiEmpty && !isSearchEmpty && (
+            <section className="jpcs-grid">
+              {/* ✅ API에서 아무것도 못 받으면 전체 선택 버튼 제거 */}
+              <button
+                type="button"
+                className={
+                  'jpcs-tile jpcs-tile--all' +
+                  (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
+                }
+                onClick={toggleAll}
+                aria-label="전체 선택"
+                disabled={!!errorText || isLoading || filteredPlaces.length === 0}
+              >
+                <span className="jpcs-all-text">전체 선택</span>
 
-                  <div className="jpcs-label">
-                    <p className="jpcs-label-text">{p.name}</p>
+                {allVisibleSelected && (
+                  <div className="jpcs-overlay">
+                    <span className="jpcs-x">×</span>
                   </div>
-                </button>
-              );
-            })}
-          </section>
+                )}
+              </button>
+
+              {filteredPlaces.map((p) => {
+                const idNum = Number(p.id);
+                const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
+
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="jpcs-tile jpcs-tile--place"
+                    onClick={() => toggleOne(p.id)}
+                    disabled={!!errorText || isLoading}
+                  >
+                    <img src={p.imageUrl || ChickenImg} alt={p.name} className="jpcs-thumb" />
+
+                    {selected && (
+                      <div className="jpcs-overlay">
+                        <span className="jpcs-x">×</span>
+                      </div>
+                    )}
+
+                    <div className="jpcs-label">
+                      <p className="jpcs-label-text">{p.name}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </section>
+          )}
+
+          {hasNext && !isApiEmpty && !isSearchEmpty && (
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={isLoading || !!errorText}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  background: '#fff',
+                  fontSize: 14,
+                }}
+              >
+                더 보기
+              </button>
+            </div>
+          )}
         </main>
 
         <footer className="jpcs-footer">

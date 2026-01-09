@@ -27,6 +27,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  /* ✅ 스크롤 가능 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* ✅ 푸터가 덮지 않도록 하단 여유 */
+  padding-bottom: 120px;
 }
 
 /* 헤더 */
@@ -94,10 +101,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  padding-bottom: 16px;
 }
 
 .jpc-group-card {
   width: 353px;
+
+  /* ✅ 기본: 353 * 151 */
   height: 151px;
 
   border-radius: 22px;
@@ -109,6 +120,11 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* ✅ 식당만: 353 * 241 */
+.jpc-group-card--restaurant {
+  height: 241px;
 }
 
 .jpc-group-title {
@@ -147,6 +163,12 @@
   height: 44px;
   border-radius: 999px;
   background: #ededf1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
 }
 
 .jpc-item-label {
@@ -158,8 +180,18 @@
 
   white-space: nowrap;
 }
+
 .jpc-footer {
   display: flex;
   justify-content: center;
-  transform: translateY(-50px);
+
+  transform: none;
+
+  position: sticky;
+  bottom: 0;
+
+  background: transparent;
+
+  padding-top: 12px;
+  padding-bottom: 16px;
 }
