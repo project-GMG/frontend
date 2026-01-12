@@ -22,45 +22,67 @@ const DEFAULT_PLACE = {
 
 const DEFAULT_RADIUS_M = 500;
 
-const DUMMY_RESULTS = [
-  {
-    id: 'jbnu-main',
-    name: '전북대학교',
-    address: '전북특별자치도 전주시 덕진구 백제대로 567',
-    distance: '0m',
-    lat: 35.8467,
-    lng: 127.1293,
-  },
-  {
-    id: 'jbnu-gate1',
-    name: '전북대학교 정문',
-    address: '전북특별자치도 전주시 덕진구 덕진동1가',
-    distance: '400m',
-    lat: 35.8469,
-    lng: 127.1269,
-  },
-  {
-    id: 'jbnu-gate2',
-    name: '전북대학교 후문',
-    address: '전북특별자치도 전주시 덕진구 금암동',
-    distance: '700m',
-    lat: 35.8489,
-    lng: 127.1344,
-  },
-  {
-    id: 'jbnu-gate3',
-    name: '전북대학교 구정문',
-    address: '전북특별자치도 전주시 덕진구 덕진동',
-    distance: '900m',
-    lat: 35.8452,
-    lng: 127.1228,
-  },
-];
+// ===== marker image (ff5315) =====
+function createOrangePinDataUrl(colorHex = '#ff5315') {
+  // 간단한 핀 SVG (fill=ff5315, stroke=white)
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="44" viewBox="0 0 40 44">
+      <path d="M20 43.5C20 43.5 35 29.3 35 16.5C35 7.9 28.3 1 20 1C11.7 1 5 7.9 5 16.5C5 29.3 20 43.5 20 43.5Z"
+            fill="${colorHex}" stroke="#FFFFFF" stroke-width="2" />
+      <circle cx="20" cy="16.5" r="6" fill="#FFFFFF"/>
+    </svg>
+  `.trim();
+
+  // Kakao MarkerImage는 URL 필요 → data URL 사용
+  const encoded = encodeURIComponent(svg)
+    .replace(/'/g, '%27')
+    .replace(/"/g, '%22');
+
+  return `data:image/svg+xml;charset=UTF-8,${encoded}`;
+}
+
+// SDK 로더 (autoload=false면 maps.load() 필수)
+const loadKakaoSdk = () => {
+  const ensureMapsLoaded = (resolve, reject) => {
+    if (!window.kakao || !window.kakao.maps) {
+      reject(new Error('카카오 maps 객체가 없습니다.'));
+      return;
+    }
+    window.kakao.maps.load(() => resolve());
+  };
+
+  return new Promise((resolve, reject) => {
+    if (!KAKAO_APP_KEY) {
+      reject(new Error('VITE_KAKAO_MAP_APP_KEY가 설정되어 있지 않습니다.'));
+      return;
+    }
+
+    if (window.kakao && window.kakao.maps) {
+      ensureMapsLoaded(resolve, reject);
+      return;
+    }
+
+    const existing = document.querySelector('script[data-kakao-sdk="true"]');
+    if (existing) {
+      existing.addEventListener('load', () => ensureMapsLoaded(resolve, reject));
+      existing.addEventListener('error', () => reject(new Error('카카오 SDK 로드 실패')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.setAttribute('data-kakao-sdk', 'true');
+    script.async = true;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+    script.onload = () => ensureMapsLoaded(resolve, reject);
+    script.onerror = () => reject(new Error('카카오 SDK 로드 실패'));
+    document.head.appendChild(script);
+  });
+};
 
 export default function CreateLocatePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const prev = location.state || {}; // CreateDatePage에서 넘어온 placeTypeCodes/dateRange/timeRange
+  const prev = location.state || {};
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -72,16 +94,12 @@ export default function CreateLocatePage() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 사용자가 "선택"한 위치(지도 클릭/검색 결과 클릭/현재위치/더미 클릭)
   const [selectedPlace, setSelectedPlace] = useState(DEFAULT_PLACE);
-
-  // 지도 중심(화면 중심)
   const [center, setCenter] = useState(DEFAULT_CENTER);
-
   const [results, setResults] = useState([]);
 
-  // 카카오 SDK 사용 가능 여부
   const [isKakaoReady, setIsKakaoReady] = useState(false);
+  const [kakaoError, setKakaoError] = useState('');
 
   const hasSelection = useMemo(() => !!selectedPlace, [selectedPlace]);
 
@@ -90,7 +108,6 @@ export default function CreateLocatePage() {
   const handleNext = () => {
     if (!selectedPlace) return;
 
-    // API request body에 맞는 location 객체
     const payloadLocation = {
       centerLatitude: selectedPlace.lat,
       centerLongitude: selectedPlace.lng,
@@ -108,53 +125,15 @@ export default function CreateLocatePage() {
     });
   };
 
-  const openSearch = () => setIsSearchActive(true);
+  const openSearch = () => {
+    if (!isKakaoReady) return;
+    setIsSearchActive(true);
+  };
 
   const closeSearch = () => {
     setIsSearchActive(false);
     setSearchQuery('');
     setResults([]);
-  };
-
-  // SDK 로더 (핵심: autoload=false면 maps.load()가 반드시 끝나야 LatLng 등이 생성됨)
-  const loadKakaoSdk = () => {
-    const ensureMapsLoaded = (resolve, reject) => {
-      if (!window.kakao || !window.kakao.maps) {
-        reject(new Error('카카오 maps 객체가 없습니다.'));
-        return;
-      }
-
-      // autoload=false: 반드시 load 콜백을 거쳐야 코어 클래스(LatLng 등)가 준비됨
-      window.kakao.maps.load(() => resolve());
-    };
-
-    return new Promise((resolve, reject) => {
-      if (!KAKAO_APP_KEY) {
-        reject(new Error('VITE_KAKAO_MAP_APP_KEY가 설정되어 있지 않습니다.'));
-        return;
-      }
-
-      // 이미 window.kakao.maps가 있으면 load만 보장
-      if (window.kakao && window.kakao.maps) {
-        ensureMapsLoaded(resolve, reject);
-        return;
-      }
-
-      const existing = document.querySelector('script[data-kakao-sdk="true"]');
-      if (existing) {
-        existing.addEventListener('load', () => ensureMapsLoaded(resolve, reject));
-        existing.addEventListener('error', () => reject(new Error('카카오 SDK 로드 실패')));
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.setAttribute('data-kakao-sdk', 'true');
-      script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-      script.onload = () => ensureMapsLoaded(resolve, reject);
-      script.onerror = () => reject(new Error('카카오 SDK 로드 실패'));
-      document.head.appendChild(script);
-    });
   };
 
   // 카카오 지도에서 "선택" 처리
@@ -191,26 +170,18 @@ export default function CreateLocatePage() {
     }
   };
 
-  // SDK가 안 될 때도 선택값/중심값을 바꿀 수 있게 하는 더미 클릭 처리
-  const setSelectionDummy = (lat, lng, info) => {
-    const name = info?.name || '선택한 위치';
-    const address = info?.address || '';
-    setSelectedPlace({ name, address, lat, lng });
-    setCenter({ lat, lng });
-  };
-
-  // 지도 초기화(가능하면 카카오, 아니면 더미 UI만)
+  // 지도 초기화 (더미 제거: 카카오만)
   useEffect(() => {
     let isMounted = true;
 
     (async () => {
       try {
+        setKakaoError('');
         await loadKakaoSdk();
         if (!isMounted) return;
 
         const { kakao } = window;
 
-        // 방어: maps는 있어도 LatLng가 준비 안 된 상태면 여기서 잡아냄
         if (!kakao?.maps?.LatLng) {
           throw new Error('kakao.maps.LatLng가 로드되지 않았습니다.');
         }
@@ -224,8 +195,19 @@ export default function CreateLocatePage() {
         });
         mapRef.current = map;
 
+        // === 커스텀 마커 이미지(#ff5315) 적용 ===
+        const markerImageUrl = createOrangePinDataUrl('#ff5315');
+        const markerImageSize = new kakao.maps.Size(40, 44);
+        const markerImageOption = { offset: new kakao.maps.Point(20, 44) }; // 하단 끝이 좌표에 오도록
+        const markerImage = new kakao.maps.MarkerImage(
+          markerImageUrl,
+          markerImageSize,
+          markerImageOption,
+        );
+
         const marker = new kakao.maps.Marker({
           position: map.getCenter(),
+          image: markerImage,
         });
         marker.setMap(map);
         markerRef.current = marker;
@@ -243,7 +225,7 @@ export default function CreateLocatePage() {
         infowindowRef.current = new kakao.maps.InfoWindow({ zIndex: 10 });
         placesRef.current = new kakao.maps.services.Places();
 
-        // 초기 선택(전북대)도 지도에 반영
+        // 초기 선택(전북대)
         setSelectionByLatLng(DEFAULT_PLACE.lat, DEFAULT_PLACE.lng, {
           name: DEFAULT_PLACE.name,
           address: DEFAULT_PLACE.address,
@@ -265,12 +247,12 @@ export default function CreateLocatePage() {
         setIsKakaoReady(true);
       } catch (e) {
         console.error(e);
-        setIsKakaoReady(false);
+        if (!isMounted) return;
 
-        setSelectionDummy(DEFAULT_PLACE.lat, DEFAULT_PLACE.lng, {
-          name: DEFAULT_PLACE.name,
-          address: DEFAULT_PLACE.address,
-        });
+        setIsKakaoReady(false);
+        setKakaoError(
+          e?.message || '카카오 지도를 불러오지 못했습니다. 키/도메인 설정을 확인하세요.',
+        );
       }
     })();
 
@@ -282,70 +264,47 @@ export default function CreateLocatePage() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    if (!isKakaoReady || !window.kakao?.maps || !placesRef.current) return;
 
     const keyword = searchQuery.trim();
     if (!keyword) return;
 
-    // 카카오가 되면 실제 검색
-    if (isKakaoReady && window.kakao && window.kakao.maps && placesRef.current) {
-      const { kakao } = window;
-      const places = placesRef.current;
+    const { kakao } = window;
+    const places = placesRef.current;
 
-      places.keywordSearch(keyword, (data, status) => {
-        if (status !== kakao.maps.services.Status.OK) {
-          setResults([]);
-          return;
-        }
+    places.keywordSearch(keyword, (data, status) => {
+      if (status !== kakao.maps.services.Status.OK) {
+        setResults([]);
+        return;
+      }
 
-        const mapped = (data || []).map((d, idx) => ({
-          id: `${d.id || idx}`,
-          name: d.place_name,
-          address: d.road_address_name || d.address_name || '',
-          distance: d.distance ? `${d.distance}m` : '',
-          lat: Number(d.y),
-          lng: Number(d.x),
-        }));
+      const mapped = (data || []).map((d, idx) => ({
+        id: `${d.id || idx}`,
+        name: d.place_name,
+        address: d.road_address_name || d.address_name || '',
+        distance: d.distance ? `${d.distance}m` : '',
+        lat: Number(d.y),
+        lng: Number(d.x),
+      }));
 
-        setResults(mapped);
-      });
-
-      return;
-    }
-
-    // 카카오가 안되면 더미 검색
-    const q = keyword.toLowerCase();
-    const filtered = DUMMY_RESULTS.filter((item) => {
-      return (
-        item.name.toLowerCase().includes(q) ||
-        (item.address || '').toLowerCase().includes(q)
-      );
+      setResults(mapped);
     });
-    setResults(filtered);
   };
 
   const selectResult = (item) => {
-    // 카카오가 되면 지도 이동 + 인포윈도우
-    if (isKakaoReady && window.kakao && window.kakao.maps && mapRef.current) {
-      const { kakao } = window;
-      const map = mapRef.current;
+    if (!isKakaoReady || !window.kakao?.maps || !mapRef.current) return;
 
-      const moveLatLng = new kakao.maps.LatLng(item.lat, item.lng);
-      map.panTo(moveLatLng);
+    const { kakao } = window;
+    const map = mapRef.current;
 
-      setSelectionByLatLng(item.lat, item.lng, {
-        name: item.name,
-        address: item.address,
-      });
+    const moveLatLng = new kakao.maps.LatLng(item.lat, item.lng);
+    map.panTo(moveLatLng);
 
-      setIsSearchActive(false);
-      return;
-    }
-
-    // 더미 모드면 선택만 변경
-    setSelectionDummy(item.lat, item.lng, {
+    setSelectionByLatLng(item.lat, item.lng, {
       name: item.name,
       address: item.address,
     });
+
     setIsSearchActive(false);
   };
 
@@ -354,23 +313,18 @@ export default function CreateLocatePage() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (!isKakaoReady || !window.kakao?.maps || !mapRef.current) return;
+
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
 
-        // 카카오가 되면 지도 이동
-        if (isKakaoReady && window.kakao && window.kakao.maps && mapRef.current) {
-          const { kakao } = window;
-          const map = mapRef.current;
+        const { kakao } = window;
+        const map = mapRef.current;
 
-          const ll = new kakao.maps.LatLng(lat, lng);
-          map.panTo(ll);
+        const ll = new kakao.maps.LatLng(lat, lng);
+        map.panTo(ll);
 
-          setSelectionByLatLng(lat, lng, { name: '현재 위치', address: '' });
-          return;
-        }
-
-        // 더미 모드면 선택만 변경
-        setSelectionDummy(lat, lng, { name: '현재 위치', address: '' });
+        setSelectionByLatLng(lat, lng, { name: '현재 위치', address: '' });
       },
       () => {
         alert('현재 위치 권한을 허용해야 사용할 수 있습니다.');
@@ -381,30 +335,10 @@ export default function CreateLocatePage() {
 
   // 검색바(접힌 상태)에 보여줄 텍스트
   const collapsedText = useMemo(() => {
+    if (!isKakaoReady) return '지도를 불러오는 중...';
     if (selectedPlace?.name) return selectedPlace.name;
     return '지명/장소를 검색하세요';
-  }, [selectedPlace]);
-
-  // 더미 지도 클릭 시: 컨테이너 좌표를 위경도로 “그럴듯하게” 변환(대략)
-  const handleDummyMapClick = (e) => {
-    if (isKakaoReady) return; // 카카오 지도면 클릭 이벤트는 SDK가 처리
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left; // 0..w
-    const y = e.clientY - rect.top; // 0..h
-
-    const w = rect.width || 1;
-    const h = rect.height || 1;
-
-    // 전북대 중심을 기준으로 +- 약간 흔들리는 범위(대략)
-    const latRange = 0.008; // 위도 약 0.008도
-    const lngRange = 0.01; // 경도 약 0.010도
-
-    const lat = DEFAULT_CENTER.lat + (0.5 - y / h) * latRange;
-    const lng = DEFAULT_CENTER.lng + (x / w - 0.5) * lngRange;
-
-    setSelectionDummy(lat, lng, { name: '선택한 위치', address: '' });
-  };
+  }, [selectedPlace, isKakaoReady]);
 
   return (
     <div className="create-locate-page">
@@ -426,6 +360,7 @@ export default function CreateLocatePage() {
                   type="button"
                   className="create-locate-search-collapsed"
                   onClick={openSearch}
+                  disabled={!isKakaoReady}
                 >
                   <span className="create-locate-search-icon-large" />
                   <span className="create-locate-search-collapsed-text">{collapsedText}</span>
@@ -452,6 +387,7 @@ export default function CreateLocatePage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="장소 검색"
+                      disabled={!isKakaoReady}
                     />
 
                     <button
@@ -497,40 +433,22 @@ export default function CreateLocatePage() {
                 </div>
               )}
 
-              {/* 지도 영역: 카카오가 되면 실제 지도, 안되면 더미 지도 클릭으로 선택 */}
-              <div
-                ref={mapContainerRef}
-                className="create-locate-map-placeholder"
-                onClick={handleDummyMapClick}
-                role={!isKakaoReady ? 'button' : undefined}
-                tabIndex={!isKakaoReady ? 0 : undefined}
-                onKeyDown={(e) => {
-                  if (!isKakaoReady && e.key === 'Enter') {
-                    // Enter는 가운데 선택 처리
-                    setSelectionDummy(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, {
-                      name: '선택한 위치',
-                      address: '',
-                    });
-                  }
-                }}
-              >
-                {/* 카카오가 없을 때만 “가짜 핀/원”을 DOM으로 보여줌 */}
-                {!isKakaoReady && (
-                  <>
-                    <div className="create-locate-map-circle" />
-                    <div className="create-locate-map-pin" />
-                    <div className="create-locate-dummy-hint">
-                      지도 로딩 불가: 임시로 클릭 위치를 선택합니다
-                    </div>
-                  </>
-                )}
-              </div>
+              {/* 카카오 지도 컨테이너(더미 UI 삭제) */}
+              <div ref={mapContainerRef} className="create-locate-map-placeholder" />
+
+              {/* SDK 로드 실패 안내(더미 대신 에러 안내만) */}
+              {!!kakaoError && (
+                <div className="create-locate-map-error">
+                  {kakaoError}
+                </div>
+              )}
 
               <button
                 type="button"
                 className="create-locate-current-location-button"
                 onClick={moveToCurrentLocation}
                 aria-label="현재 위치로 이동"
+                disabled={!isKakaoReady}
               >
                 <span className="create-locate-current-location-icon" />
               </button>
@@ -539,7 +457,7 @@ export default function CreateLocatePage() {
         </main>
 
         <footer className="create-locate-footer">
-          <NextButton disabled={!hasSelection} onClick={handleNext}>
+          <NextButton disabled={!hasSelection || !isKakaoReady} onClick={handleNext}>
             다음
           </NextButton>
         </footer>

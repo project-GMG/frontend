@@ -93,7 +93,7 @@
   color: #7e7e7e;
 }
 
-/* ✅ 빈 상태 문구 */
+/* 빈 상태 문구 */
 .jpcs-empty {
   width: 353px;
   min-height: 260px;
@@ -168,8 +168,9 @@
 
 .jpcs-label-text {
   margin: 0;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 16px 16px; 
+  font-size: 13px;
+  font-weight: 500;
   color: #333232;
   white-space: nowrap;
 }

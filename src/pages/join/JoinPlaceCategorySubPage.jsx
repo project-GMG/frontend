@@ -26,6 +26,13 @@ function saveDisliked(hashUrl, payload) {
   localStorage.setItem(`gmg_disliked_${hashUrl || 'unknown'}`, JSON.stringify(payload));
 }
 
+function truncatePlaceName(name, max = 9) {
+  const s = String(name || '');
+  const chars = Array.from(s);
+  if (chars.length <= max) return ` ${s}`;
+  return ` ${chars.slice(0, max).join('')}...`;
+}
+
 export default function JoinPlaceCategorySubPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,7 +40,6 @@ export default function JoinPlaceCategorySubPage() {
 
   const hashUrl = (searchParams.get('code') || '').trim();
 
-  // ✅ query 우선 (새로고침/직접진입 대비)
   const categoryIdFromQuery = searchParams.get('categoryId');
   const state = location.state || {};
   const categoryIdFromState = state.categoryId ?? state.itemId;
@@ -44,14 +50,12 @@ export default function JoinPlaceCategorySubPage() {
     return Number.isFinite(n) ? n : null;
   }, [categoryIdFromQuery, categoryIdFromState]);
 
-  // ✅ title은 state.title 우선 (카테고리 페이지에서 label을 넘겼음)
   const title = useMemo(() => {
     return state.title || '카테고리';
   }, [state.title]);
 
   const [query, setQuery] = useState('');
 
-  // 서버 places
   const [places, setPlaces] = useState([]); // [{id:number, name, imageUrl}]
   const [hasNext, setHasNext] = useState(false);
   const [page, setPage] = useState(0);
@@ -59,14 +63,12 @@ export default function JoinPlaceCategorySubPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorText, setErrorText] = useState('');
 
-  // 선택된 place ids (number로 통일)
   const [selectedIds, setSelectedIds] = useState(() => new Set());
 
   const pageSize = 16;
 
   const handleBack = () => navigate(-1);
 
-  // 장소 조회: GET /api/events/{hashUrl}/places
   useEffect(() => {
     let alive = true;
 
@@ -105,7 +107,6 @@ export default function JoinPlaceCategorySubPage() {
         const data = json?.data || {};
         const list = Array.isArray(data.places) ? data.places : [];
 
-        // ✅ page=0이면 교체, 그 외엔 append
         setPlaces((prev) => (page === 0 ? list : [...prev, ...list]));
         setHasNext(!!data.hasNext);
         setIsLoading(false);
@@ -123,14 +124,12 @@ export default function JoinPlaceCategorySubPage() {
     };
   }, [hashUrl, normalizedCategoryId, page]);
 
-  // 검색(기본 유지)
   const filteredPlaces = useMemo(() => {
     const q = query.trim();
     if (!q) return places;
     return places.filter((p) => String(p?.name || '').includes(q));
   }, [places, query]);
 
-  // ✅ 빈 상태 문구 조건
   const isApiEmpty = !isLoading && !errorText && places.length === 0;
   const isSearchEmpty =
     !isLoading && !errorText && places.length > 0 && query.trim() && filteredPlaces.length === 0;
@@ -167,7 +166,6 @@ export default function JoinPlaceCategorySubPage() {
   const handleDone = () => {
     console.log('선택된 place ids:', Array.from(selectedIds));
 
-    // 기본 동작은 유지(뒤로가기) + 로컬 누적 저장만
     if (hashUrl && normalizedCategoryId != null) {
       const prev = loadDisliked(hashUrl);
 
@@ -212,16 +210,12 @@ export default function JoinPlaceCategorySubPage() {
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
           )}
 
-          {/* ✅ API 결과가 아예 없을 때 */}
           {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
 
-          {/* ✅ 검색 결과가 없을 때 */}
           {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
 
-          {/* ✅ grid는 기존 유지하되, 빈 상태에서는 렌더하지 않음 */}
           {!isApiEmpty && !isSearchEmpty && (
             <section className="jpcs-grid">
-              {/* ✅ API에서 아무것도 못 받으면 전체 선택 버튼 제거 */}
               <button
                 type="button"
                 className={
@@ -245,6 +239,8 @@ export default function JoinPlaceCategorySubPage() {
                 const idNum = Number(p.id);
                 const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
 
+                const displayName = truncatePlaceName(p.name, 9);
+
                 return (
                   <button
                     key={p.id}
@@ -262,7 +258,7 @@ export default function JoinPlaceCategorySubPage() {
                     )}
 
                     <div className="jpcs-label">
-                      <p className="jpcs-label-text">{p.name}</p>
+                      <p className="jpcs-label-text">{displayName}</p>
                     </div>
                   </button>
                 );

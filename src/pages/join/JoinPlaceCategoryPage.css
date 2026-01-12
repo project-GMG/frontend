@@ -108,7 +108,7 @@
 .jpc-group-card {
   width: 353px;
 
-  /* ✅ 기본: 353 * 151 */
+  /* 기본: 353 * 151 */
   height: 151px;
 
   border-radius: 22px;
@@ -122,7 +122,7 @@
   gap: 16px;
 }
 
-/* ✅ 식당만: 353 * 241 */
+/*  식당만: 353 * 241 */
 .jpc-group-card--restaurant {
   height: 241px;
 }
@@ -161,7 +161,7 @@
 .jpc-item-icon {
   width: 44px;
   height: 44px;
-  border-radius: 999px;
+  border-radius: 17.33px;
   background: #ededf1;
 
   display: flex;
