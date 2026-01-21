@@ -1,14 +1,13 @@
-// MainPage.jsx
 import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
 import ShareIcon from '../../assets/icons/share.png';
-import ChickenImg from '../../assets/icons/chicken.png';
+import NoImage from '../../assets/icons/no-image.png';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import JoinModalPage from '../join/JoinModalPage';
 
-// ===== utils =====
 function getBaseUrl() {
   const envBase = (import.meta.env.VITE_SHARE_BASE_URL || '').trim();
   return envBase ? envBase.replace(/\/+$/, '') : window.location.origin;
@@ -103,27 +102,52 @@ function slotToHm(slot) {
   return `${String(h).padStart(2, '0')}:${mm}`;
 }
 
-function normalizeRecommendations(data) {
+function normalizeRecommendationsFlatTop3(data) {
   const recs = data?.recommendations;
   if (!Array.isArray(recs)) return [];
 
-  
-  return recs
-    .map((r) => {
-      const name = String(r?.placeTypeName || '').trim();
-      const places = Array.isArray(r?.places) ? r.places.slice(0, 3) : [];
-      if (!name || places.length === 0) return null;
+  const flat = recs
+    .flatMap((r) => (Array.isArray(r?.places) ? r.places : []))
+    .map((p) => ({
+      id: p?.placeId ?? p?.id,
+      name: String(p?.placeName ?? p?.name ?? '').trim(),
+      score: typeof p?.score === 'number' ? p.score : -Infinity,
+    }))
+    .filter((p) => p.id != null && p.name);
 
-      return {
-        placeTypeName: name,
-        places: places.map((p) => ({
-          id: p?.id,
-          name: String(p?.name || '').trim(),
-          imageUrl: String(p?.imageUrl || '').trim(),
-        })),
-      };
-    })
-    .filter(Boolean);
+  const uniq = new Map();
+  for (const p of flat) {
+    const key = String(p.id);
+    if (!uniq.has(key)) uniq.set(key, p);
+    else {
+      const prev = uniq.get(key);
+      if ((p.score ?? -Infinity) > (prev.score ?? -Infinity)) uniq.set(key, p);
+    }
+  }
+
+  return Array.from(uniq.values())
+    .sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity))
+    .slice(0, 3);
+}
+
+async function fetchKakaoImageUrl(query) {
+  const q = String(query || '').trim();
+  if (!q) return '';
+
+  try {
+    const res = await fetch(`/api/kakao/image?query=${encodeURIComponent(q)}`, {
+      headers: { accept: 'application/json' },
+      cache: 'no-store',
+    });
+
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return '';
+
+    const url = String(json?.data?.imageUrl || json?.imageUrl || '').trim();
+    return url;
+  } catch {
+    return '';
+  }
 }
 
 export default function MainPage() {
@@ -140,9 +164,13 @@ export default function MainPage() {
   const [eventData, setEventData] = useState(null);
 
   const [recoLoading, setRecoLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recoPlaces, setRecoPlaces] = useState([]);
 
-  // ===== 이벤트 조회: GET /api/events/{hashUrl} =====
+  const [placeImageMap, setPlaceImageMap] = useState({});
+  const requestedIdsRef = useRef(new Set());
+
+  const [isJoinOpen, setIsJoinOpen] = useState(false);
+
   useEffect(() => {
     let alive = true;
 
@@ -163,8 +191,8 @@ export default function MainPage() {
           headers: { accept: 'application/json' },
           cache: 'no-store',
         });
-        const json = await res.json().catch(() => null);
 
+        const json = await res.json().catch(() => null);
         if (!alive) return;
 
         if (!res.ok) {
@@ -197,7 +225,6 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // ===== 추천 장소 조회: GET /api/events/{hashUrl}/places/recommendations =====
   useEffect(() => {
     let alive = true;
 
@@ -207,30 +234,26 @@ export default function MainPage() {
       setRecoLoading(true);
 
       try {
-        const res = await fetch(
-          `/api/events/${encodeURIComponent(hashUrl)}/places/recommendations`,
-          {
-            headers: { accept: 'application/json' },
-            cache: 'no-store',
-          },
-        );
+        const res = await fetch(`/api/events/${encodeURIComponent(hashUrl)}/places/recommendations`, {
+          headers: { accept: 'application/json' },
+          cache: 'no-store',
+        });
 
         const json = await res.json().catch(() => null);
-
         if (!alive) return;
 
         if (!res.ok) {
-          setRecommendations([]);
+          setRecoPlaces([]);
           setRecoLoading(false);
           return;
         }
 
-        const normalized = normalizeRecommendations(json?.data);
-        setRecommendations(normalized);
+        const list = normalizeRecommendationsFlatTop3(json?.data);
+        setRecoPlaces(list);
         setRecoLoading(false);
       } catch {
         if (!alive) return;
-        setRecommendations([]);
+        setRecoPlaces([]);
         setRecoLoading(false);
       }
     })();
@@ -239,6 +262,44 @@ export default function MainPage() {
       alive = false;
     };
   }, [hashUrl]);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      if (!Array.isArray(recoPlaces) || recoPlaces.length === 0) return;
+
+      const targets = recoPlaces
+        .filter((p) => p?.id != null)
+        .filter((p) => !placeImageMap[String(p.id)])
+        .filter((p) => !requestedIdsRef.current.has(String(p.id)));
+
+      if (targets.length === 0) return;
+
+      targets.forEach((p) => requestedIdsRef.current.add(String(p.id)));
+
+      const results = await Promise.all(
+        targets.map(async (p) => {
+          const url = await fetchKakaoImageUrl(p.name);
+          return [String(p.id), url];
+        }),
+      );
+
+      if (!alive) return;
+
+      setPlaceImageMap((prev) => {
+        const next = { ...prev };
+        for (const [id, url] of results) {
+          if (url) next[id] = url;
+        }
+        return next;
+      });
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [recoPlaces, placeImageMap]);
 
   const title = eventData?.title || '';
 
@@ -256,26 +317,31 @@ export default function MainPage() {
 
   const canRenderGrid = dates.length > 0 && timeSlots.length > 0;
 
-  // heatmapData (dateLabel + HH:MM) -> 매핑
   const heatmapMap = useMemo(() => {
     const map = new Map();
     const list = Array.isArray(eventData?.heatmapData) ? eventData.heatmapData : [];
     for (const h of list) {
       const dt = parseYmd(h?.date);
       const dateLabel = dt ? formatDateKorean(dt) : '';
-      const timeHm = String(h?.timeSlot || '').slice(0, 5); // "13:30"
+      const timeHm = String(h?.timeSlot || '').slice(0, 5);
       if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) continue;
       map.set(`${dateLabel}|${timeHm}`, h);
     }
     return map;
   }, [eventData]);
 
+  const displayRecoPlaces = useMemo(() => {
+    return (recoPlaces || []).map((p) => {
+      const img = p?.id != null ? placeImageMap[String(p.id)] : '';
+      return { ...p, imageUrl: String(img || '').trim() };
+    });
+  }, [recoPlaces, placeImageMap]);
+
   const syncFromGrid = () => {
     const grid = gridScrollRef.current;
     const date = dateScrollRef.current;
     const time = timeScrollRef.current;
     if (!grid || !date || !time) return;
-
     date.scrollLeft = grid.scrollLeft;
     time.scrollTop = grid.scrollTop;
   };
@@ -300,11 +366,7 @@ export default function MainPage() {
 
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: 'GMG 모임 링크',
-          text: '모임 일정 페이지',
-          url,
-        });
+        await navigator.share({ title: 'GMG 모임 링크', text: '모임 일정 페이지', url });
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
         alert('링크를 클립보드에 복사했습니다.');
@@ -316,7 +378,14 @@ export default function MainPage() {
 
   const handleParticipate = () => {
     if (!hashUrl) return;
-    navigate(`/join?code=${encodeURIComponent(hashUrl)}`);
+    setIsJoinOpen(true);
+  };
+
+  const handleCloseJoin = () => setIsJoinOpen(false);
+
+  const handleJoinedGoTime = () => {
+    setIsJoinOpen(false);
+    navigate(`/join/time?code=${encodeURIComponent(hashUrl)}`);
   };
 
   const isReady = !isLoading && !errorText && !!eventData;
@@ -328,39 +397,23 @@ export default function MainPage() {
           <img src={Logo} alt="GMG 로고" className="main-logo" />
 
           <div className="main-share-area">
-            <button
-              type="button"
-              className="main-share-bubble"
-              onClick={handleShare}
-              disabled={!hashUrl}
-            >
+            <button type="button" className="main-share-bubble" onClick={handleShare} disabled={!hashUrl}>
               <span className="main-share-bubble-text">공유하고 모임을 잡아보세요!</span>
             </button>
 
-            <button
-              type="button"
-              className="main-share-icon-button"
-              onClick={handleShare}
-              disabled={!hashUrl}
-            >
+            <button type="button" className="main-share-icon-button" onClick={handleShare} disabled={!hashUrl}>
               <img src={ShareIcon} alt="공유" className="main-share-icon-image" />
             </button>
           </div>
         </header>
 
         <main className="main-content">
-          {isLoading && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-              모임 정보를 불러오는 중...
-            </p>
-          )}
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
-          )}
+          {isLoading && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>}
+          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
 
           {isReady && (
             <>
-              {title ? <h1 className="main-title">{title}</h1> : <h1 className="main-title">제목이 없습니다.</h1>}
+              <h1 className="main-title">{title || '제목이 없습니다.'}</h1>
 
               <section className="main-section">
                 <div className="schedule-container">
@@ -372,7 +425,6 @@ export default function MainPage() {
                     </p>
                   ) : (
                     <div className="schedule-frame">
-                      {/* 날짜 레일 */}
                       <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
                         <div className="schedule-date-row">
                           {dates.map((date) => (
@@ -383,7 +435,6 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      {/* 시간 레일 */}
                       <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
                         <div className="schedule-time-col">
                           {timeSlots.map((slot, rowIndex) => (
@@ -394,34 +445,31 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      {/* 그리드 */}
-                      <div
-                        ref={gridScrollRef}
-                        className="schedule-grid-scroll gmg-scrollbar-both"
-                        onScroll={syncFromGrid}
-                      >
-                        <div
-                          className="schedule-grid-slots"
-                          style={{
-                            gridTemplateColumns: `repeat(${dates.length}, 87.666664px)`,
-                            gridTemplateRows: `repeat(${timeSlots.length}, 20px)`,
-                          }}
-                        >
-                          {timeSlots.map((slot) =>
-                            dates.map((date) => {
-                              const key = `${date}-${slot}`;
-                              const hmKey = slotToHm(slot);
-                              const heat = hmKey ? heatmapMap.get(`${date}|${hmKey}`) : null;
+                      <div ref={gridScrollRef} className="schedule-grid-scroll gmg-scrollbar-both" onScroll={syncFromGrid}>
+                        <div className="schedule-grid-scroll-inner">
+                          <div
+                            className="schedule-grid-slots"
+                            style={{
+                              gridTemplateColumns: `repeat(${dates.length}, 87.666664px)`,
+                              gridTemplateRows: `repeat(${timeSlots.length}, 20px)`,
+                            }}
+                          >
+                            {timeSlots.map((slot, rowIndex) =>
+                              dates.map((date) => {
+                                const key = `${date}-${slot}`;
+                                const hmKey = slotToHm(slot);
+                                const heat = hmKey ? heatmapMap.get(`${date}|${hmKey}`) : null;
 
-                              const intensity = typeof heat?.intensity === 'number' ? heat.intensity : null;
-                              const style =
-                                intensity == null
-                                  ? undefined
-                                  : { opacity: Math.max(0.15, Math.min(1, intensity)) };
+                                // ✅ 색/강도 변경 로직 제거: 기본 스타일로만 렌더
+                                const isTop = rowIndex % 2 === 0;
+                                const cellClass = isTop
+                                  ? 'schedule-slot schedule-slot--top'
+                                  : 'schedule-slot schedule-slot--bottom';
 
-                              return <div key={key} className="schedule-slot" style={style} />;
-                            }),
-                          )}
+                                return <div key={key} className={cellClass} />;
+                              }),
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -429,62 +477,60 @@ export default function MainPage() {
                 </div>
               </section>
 
-              {/* ===== 추천 장소(PlaceType별 1박스, 박스 안에 최대 3개) ===== */}
               <section className="main-section">
                 <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
-                  <div className="restaurant-container">
-                    <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+                  {recoLoading ? (
+                    <div className="restaurant-container">
+                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소를 불러오는 중...</p>
+                    </div>
+                  ) : displayRecoPlaces.length === 0 ? (
+                    <div className="restaurant-container">
+                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소가 없습니다.</p>
+                    </div>
+                  ) : (
+                    <div className="restaurant-container">
+                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
 
-                    {recoLoading ? (
-                      <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-                        추천 장소를 불러오는 중...
-                      </p>
-                    ) : recommendations.length === 0 ? (
-                      <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-                        추천 장소가 없습니다. (참여자 선호도가 충분하지 않을 수 있습니다)
-                      </p>
-                    ) : (
-                      <div className="restaurant-box-list">
-                        {recommendations.map((group) => (
-                          <div key={group.placeTypeName} className="restaurant-box">
-                            <h3 className="restaurant-box-title">{group.placeTypeName}</h3>
-
-                            <div className="restaurant-set">
-                              {group.places.map((place) => (
-                                <article key={place.id ?? place.name} className="restaurant-card">
-                                  <img
-                                    src={place.imageUrl || ChickenImg}
-                                    alt={place.name}
-                                    className="restaurant-thumb"
-                                    loading="lazy"
-                                  />
-                                  <div className="restaurant-label">
-                                    <p className="restaurant-label-text">{place.name}</p>
-                                  </div>
-                                </article>
-                              ))}
-
-                              {/* 3개 미만이면 레이아웃 유지용 빈칸(원래 파일 스타일 복구 목적) */}
-                              {Array.from({ length: Math.max(0, 3 - group.places.length) }).map((_, idx) => (
-                                <div key={`empty-${group.placeTypeName}-${idx}`} className="restaurant-card restaurant-card--empty" />
-                              ))}
+                      <div className="restaurant-set">
+                        {displayRecoPlaces.map((place) => (
+                          <article key={place.id ?? place.name} className="restaurant-card">
+                            <img
+                              src={place.imageUrl || NoImage}
+                              alt={place.name}
+                              className="restaurant-thumb"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = NoImage;
+                              }}
+                            />
+                            <div className="restaurant-label">
+                              <p className="restaurant-label-text">{place.name}</p>
                             </div>
-                          </div>
+                          </article>
+                        ))}
+
+                        {Array.from({ length: Math.max(0, 3 - displayRecoPlaces.length) }).map((_, emptyIdx) => (
+                          <div key={`reco-empty-${emptyIdx}`} className="restaurant-card restaurant-card--empty" />
                         ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </section>
-
-              <footer className="main-footer">
-                <NextButton disabled={!hashUrl || isLoading || !!errorText} onClick={handleParticipate}>
-                  참여 · 수정하기
-                </NextButton>
-              </footer>
             </>
           )}
         </main>
+
+        <footer className="main-footer">
+          <NextButton disabled={!hashUrl || isLoading || !!errorText} onClick={handleParticipate}>
+            참여 · 수정하기
+          </NextButton>
+        </footer>
+
+        <JoinModalPage open={isJoinOpen} hashUrl={hashUrl} onClose={handleCloseJoin} onSuccessGoTime={handleJoinedGoTime} />
       </div>
     </div>
   );

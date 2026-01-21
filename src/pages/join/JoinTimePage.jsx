@@ -1,4 +1,3 @@
-// src/pages/join/JoinTimePage.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -8,7 +7,6 @@ const LONG_PRESS_MS = 250;
 const MOVE_CANCEL_PX = 8;
 const KEY_SEP = '::';
 
-// YYYY-MM-DD (로컬)
 function parseYmd(s) {
   if (!s) return null;
   const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -28,7 +26,6 @@ function toYmdLocal(date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// "01/09 금"
 function formatDateKorean(date) {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
@@ -56,7 +53,6 @@ function buildDatesFromRange(startYmd, endYmd, limit = 35) {
   return { labels, ymds };
 }
 
-// "HH:mm" -> minutes
 function hmToMin(hm) {
   const s = String(hm || '').slice(0, 5);
   if (!/^\d{2}:\d{2}$/.test(s)) return null;
@@ -64,7 +60,6 @@ function hmToMin(hm) {
   return h * 60 + m;
 }
 
-// timeRange -> 슬롯(30분단위) + 라벨(정시만) + apiHm("HH:mm")
 function buildTimeSlotsFromRange(startHm, endHm) {
   const startMin = hmToMin(startHm);
   const endMin = hmToMin(endHm);
@@ -90,7 +85,6 @@ function buildTimeSlotsFromRange(startHm, endHm) {
     slots.push(`${hour12}:${mm} ${ampm}`);
 
     labels.push(m === 0 ? `${hour12} ${ampm}` : '');
-
     cur += 30;
   }
 
@@ -109,6 +103,11 @@ function parseKey(key) {
   return { dateIndex: di, slotIndex: si };
 }
 
+function isWeekendLabel(label) {
+  const wd = String(label || '').trim().slice(-1);
+  return wd === '토' || wd === '일';
+}
+
 export default function JoinTimePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -120,16 +119,13 @@ export default function JoinTimePage() {
   const timeScrollRef = useRef(null);
   const touchStartRef = useRef({ x: 0, y: 0 });
 
-  // 이벤트 로딩
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [eventError, setEventError] = useState('');
   const [eventData, setEventData] = useState(null);
 
-  // 제출 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // 1) 이벤트 정보 로딩
   useEffect(() => {
     let alive = true;
 
@@ -173,7 +169,6 @@ export default function JoinTimePage() {
     };
   }, [hashUrl]);
 
-  // 2) 날짜/시간 슬롯 구성
   const { labels: allDateLabels, ymds: allDateYmds } = useMemo(() => {
     const s = eventData?.dateRange?.startDate;
     const e = eventData?.dateRange?.endDate;
@@ -186,7 +181,6 @@ export default function JoinTimePage() {
     return buildTimeSlotsFromRange(s, e);
   }, [eventData?.timeRange?.startTime, eventData?.timeRange?.endTime]);
 
-  // 페이지네이션(기존 유지)
   const PAGE_SIZE = 3;
   const totalPages = Math.max(1, Math.ceil(allDateLabels.length / PAGE_SIZE));
   const [page, setPage] = useState(0);
@@ -215,29 +209,8 @@ export default function JoinTimePage() {
   const goPrev = () => setPage((p) => Math.max(0, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
 
-  const onTouchStart = (e) => {
-    if (selectStateRef.current.mode !== 'idle') return;
-    const t = e.touches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
-  };
-
-  const onTouchEnd = (e) => {
-    if (selectStateRef.current.mode !== 'idle') return;
-    const start = touchStartRef.current;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - start.x;
-    const dy = t.clientY - start.y;
-
-    if (Math.abs(dy) > Math.abs(dx)) return;
-
-    const TH = 40;
-    if (dx <= -TH) goNext();
-    else if (dx >= TH) goPrev();
-  };
-
   const handleBack = () => navigate(-1);
 
-  // 선택 키 -> API unavailableTimes
   const buildUnavailableTimes = () => {
     const out = [];
 
@@ -259,17 +232,12 @@ export default function JoinTimePage() {
       const eh = String(Math.floor(endMin / 60)).padStart(2, '0');
       const em = String(endMin % 60).padStart(2, '0');
 
-      out.push({
-        date: ymd,
-        startTime,
-        endTime: `${eh}:${em}`,
-      });
+      out.push({ date: ymd, startTime, endTime: `${eh}:${em}` });
     }
 
     return out;
   };
 
-  // POST /api/event/{hashUrl}/participants/{participantId}/unavailble-times
   const handleNext = async () => {
     if (!hashUrl) return;
     if (selectedKeys.size === 0) return;
@@ -295,9 +263,7 @@ export default function JoinTimePage() {
 
     try {
       const res = await fetch(
-        `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(
-          participantId,
-        )}/unavailble-times`,
+        `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/unavailble-times`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -320,12 +286,8 @@ export default function JoinTimePage() {
     }
   };
 
-  const isNextDisabled =
-    selectedKeys.size === 0 || isLoadingEvent || !!eventError || isSubmitting;
+  const isNextDisabled = selectedKeys.size === 0 || isLoadingEvent || !!eventError || isSubmitting;
 
-  // =========================
-  // 롱프레스 드래그 선택/해제
-  // =========================
   const [selectModeUI, setSelectModeUI] = useState('idle');
 
   const selectStateRef = useRef({
@@ -448,9 +410,7 @@ export default function JoinTimePage() {
     clearLongPressTimer();
 
     if (wasMode === 'idle') {
-      if (!st.movedBeforeLongPress && startKey) {
-        toggleSingle(startKey);
-      }
+      if (!st.movedBeforeLongPress && startKey) toggleSingle(startKey);
       st.startKey = null;
       st.lastKey = null;
       return;
@@ -463,14 +423,33 @@ export default function JoinTimePage() {
 
     st.startKey = null;
     st.lastKey = null;
+
     try {
       e.currentTarget?.releasePointerCapture?.(e.pointerId);
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   const onPointerCancel = (e) => finishPointer(e);
+
+  const onTouchStart = (e) => {
+    if (selectStateRef.current.mode !== 'idle') return;
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const onTouchEnd = (e) => {
+    if (selectStateRef.current.mode !== 'idle') return;
+    const start = touchStartRef.current;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+
+    if (Math.abs(dy) > Math.abs(dx)) return;
+
+    const TH = 40;
+    if (dx <= -TH) goNext();
+    else if (dx >= TH) goPrev();
+  };
 
   return (
     <div className="join-time-page">
@@ -490,15 +469,9 @@ export default function JoinTimePage() {
         <main className="join-time-content">
           <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
 
-          {isLoadingEvent && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>
-          )}
-          {!!eventError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
-          )}
-          {!!submitError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
-          )}
+          {isLoadingEvent && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>}
+          {!!eventError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>}
+          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
 
           <section
             className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
@@ -509,7 +482,7 @@ export default function JoinTimePage() {
               <div className="jt-date-rail">
                 <div className="jt-date-row">
                   {pageDates.map((d, i) => (
-                    <div key={`${page}-${d}-${i}`} className="jt-date-header">
+                    <div key={`${page}-${d}-${i}`} className={`jt-date-header ${isWeekendLabel(d) ? 'is-weekend' : ''}`}>
                       {d}
                     </div>
                   ))}
@@ -530,7 +503,7 @@ export default function JoinTimePage() {
                 <div
                   className="jt-grid"
                   style={{
-                    gridTemplateColumns: `repeat(${pageDates.length}, var(--cell-w))`,
+                    gridTemplateColumns: `repeat(${pageDates.length}, 1fr)`,
                     gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
                   }}
                 >
@@ -540,12 +513,14 @@ export default function JoinTimePage() {
                       const key = makeKey(dateIndex, slotIndex);
                       const isActive = selectedKeys.has(key);
 
+                      const pairClass = slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
+
                       return (
                         <button
                           type="button"
                           key={`${page}-${key}`}
                           data-slot-key={key}
-                          className={`jt-slot ${isActive ? 'jt-slot--active' : ''}`}
+                          className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
                           aria-label={`${dateLabel} ${slot}`}
                           onPointerDown={(e) => onSlotPointerDown(e, key)}
                           onPointerMove={onSlotPointerMove}

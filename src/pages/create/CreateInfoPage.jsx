@@ -10,7 +10,6 @@ import editPen from '../../assets/icons/edit_pen.png';
 
 const DEFAULT_NAME = '전북대에서 밥먹자';
 
-// dateLike -> "YYYY-MM-DD"
 function toYmd(dateLike) {
   if (!dateLike) return '';
   const d = new Date(dateLike);
@@ -21,30 +20,17 @@ function toYmd(dateLike) {
   return `${y}-${m}-${day}`;
 }
 
-// timeLike -> "HH:mm"
 function toHm(timeLike) {
   if (!timeLike) return '';
   const s = String(timeLike).trim();
-
-  // "HH:mm:ss" -> "HH:mm"
   if (/^\d{2}:\d{2}:\d{2}$/.test(s)) return s.slice(0, 5);
-
-  // "HH:mm" -> keep
   if (/^\d{2}:\d{2}$/.test(s)) return s;
-
-  // "H:mm" -> pad hour
   if (/^\d{1}:\d{2}$/.test(s)) return `0${s}`;
-
-  // "HH" or "H" -> "HH:00"
   if (/^\d{1,2}$/.test(s)) return String(s).padStart(2, '0') + ':00';
-
-  // "HH:00" already included by "HH:mm" regex, but keep safe
   if (/^\d{2}:\d{2}/.test(s)) return s.slice(0, 5);
-
   return '';
 }
 
-// Set/Array로 넘어온 날짜들로 start/end 뽑기
 function normalizeDateRange(input) {
   const arr = Array.isArray(input) ? input : input ? Array.from(input) : [];
   const dates = arr
@@ -72,12 +58,6 @@ export default function CreateInfoPage() {
   const location = useLocation();
   const inputRef = useRef(null);
 
-  // 이전 페이지에서 누적된 데이터
-  // 기대:
-  // placeTypeCodes: ["CAFE", ...]
-  // dateRange: { startDate, endDate }
-  // timeRange: { startTime, endTime }
-  // location: { centerLatitude, centerLongitude, locationName }
   const prev = location.state || {};
 
   const [groupName, setGroupName] = useState(DEFAULT_NAME);
@@ -170,7 +150,6 @@ export default function CreateInfoPage() {
       return;
     }
 
-    // 시간 검증(안전장치)
     if (timeRange.startTime >= timeRange.endTime) {
       setSubmitError('시작 시간은 종료 시간보다 이전이어야 합니다.');
       return;
@@ -207,7 +186,6 @@ export default function CreateInfoPage() {
         body: JSON.stringify(payload),
       });
 
-      // 응답이 비어있거나 JSON이 아닐 수도 있으니 텍스트로 받고 파싱
       const text = await res.text();
       const data = text ? safeJsonParse(text) : null;
 
@@ -225,7 +203,6 @@ export default function CreateInfoPage() {
 
       const eventData = data?.data || {};
 
-      // 성공했는데 data가 이상하면 그래도 다음 화면으로는 보냄(디버깅 가능)
       navigate('/create/final', {
         state: {
           ...prev,

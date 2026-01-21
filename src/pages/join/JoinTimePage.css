@@ -1,21 +1,17 @@
-/* 전체 레이아웃 */
 .join-time-page {
   width: 100vw;
   height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 }
 
 .join-time-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
-
-  background-color: #F1F2F5;
+  background-color: #f1f2f5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -25,19 +21,20 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  overflow: hidden;
 }
 
-/* 헤더 */
 .join-time-header {
   display: grid;
   grid-template-columns: 36px 1fr 36px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .join-time-back {
   width: 36px;
   height: 36px;
-
   border: none;
   background: transparent;
   cursor: pointer;
@@ -54,7 +51,6 @@
 
 .join-time-step-pill {
   justify-self: center;
-
   height: 18px;
   padding: 0 10px;
   border-radius: 999px;
@@ -72,11 +68,12 @@
   height: 36px;
 }
 
-/* 본문 */
 .join-time-content {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .join-time-title {
@@ -87,77 +84,89 @@
   color: #333232;
 }
 
-/* 그리드 카드 */
 .join-time-grid-card {
   width: 353px;
   height: 520px;
-  border-radius: 24px;
-  background: #F1F2F5;
 
-  padding: 16px;
+  border-radius: 5px;
+  background: #f1f2f5;
+
+  padding: 0;
   box-sizing: border-box;
 
-  /* 기본(Idle): 세로 스크롤 제스처 허용 */
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
+
+  overflow: hidden;
 }
 
-/* 선택/해제 모드: 스크롤/스와이프 방지 */
 .join-time-grid-card.is-selecting {
   touch-action: none;
 }
 
-/* ====== 그리드 프레임 ====== */
 .jt-frame {
   position: relative;
   width: 100%;
   height: 100%;
 
-  --time-col: 30px;
-  --date-row: 20px;
+  --date-row: 22px;
+  --cell-h: 36px;
+  --gap: 1px;
 
-  --cell-w: 100px;
-  --cell-h: 35px;
+  --time-col: 46px;
+  --time-gap: 10px;
 
-  --gap-x: 2px;
-  --gap-y: 4px;
+  --rail-top: 8px;
+  --grid-top: 36px;
+
+  --time-rail-top: 28px;
+
+  --radius: 5px;
+
+  --rail-left: 0px;
+  --grid-right: 0px;
+  --grid-bottom: 0px;
 }
 
 /* 상단 날짜 */
 .jt-date-rail {
   position: absolute;
-  top: 0;
-  left: calc(var(--time-col) + 4px);
-  right: 4px;
-
+  top: var(--rail-top);
+  left: calc(var(--time-col) + var(--time-gap));
+  right: var(--grid-right);
   height: var(--date-row);
   overflow: hidden;
 }
 
 .jt-date-row {
-  display: flex;
-  gap: var(--gap-x);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--gap);
 }
 
 .jt-date-header {
-  width: var(--cell-w);
   height: var(--date-row);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   line-height: var(--date-row);
   color: #333232;
   text-align: center;
 }
 
-/* 좌측 시간(세로 스크롤) */
+.jt-date-header.is-weekend {
+  color: #e03616;
+}
+
+/* 시간 레일(그리드보다 위로) */
 .jt-time-rail {
   position: absolute;
-  top: calc(var(--date-row) + 4px);
-  left: 0;
-  bottom: 8px;
+  top: var(--time-rail-top);
+  left: var(--rail-left);
+  bottom: var(--grid-bottom);
 
   width: var(--time-col);
+
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -168,7 +177,6 @@
   display: none;
 }
 
-/* 선택모드에서는 시간 레일 스크롤 막기 */
 .jt-time-rail.is-selecting {
   overflow: hidden;
 }
@@ -176,85 +184,94 @@
 .jt-time-col {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-y);
+  gap: var(--gap);
 }
 
 .jt-time-label {
   width: var(--time-col);
   height: var(--cell-h);
 
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: #333232;
 
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
-  padding-right: 6px;
+
+  padding-right: 8px;
+  padding-top: 2px;
+
   box-sizing: border-box;
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* 슬롯 영역(세로 스크롤) */
 .jt-grid-scroll {
   position: absolute;
-  top: calc(var(--date-row) + 4px);
-  left: calc(var(--time-col) + 4px);
-  right: 4px;
-  bottom: 8px;
+  top: var(--grid-top);
+  left: calc(var(--time-col) + var(--time-gap));
+  right: var(--grid-right);
+  bottom: var(--grid-bottom);
 
   overflow-y: auto;
   overflow-x: hidden;
 
-  border-radius: 12px;
+  /* 핵심: 투명 배경이면 카드(22px) 라운드가 비쳐서 우하단이 크게 둥글어 보임 */
   background: #f1f2f5;
+
+  /* 핵심: 스크롤 유지하면서 라운드(5px)만 보이게 클리핑 */
+  border-radius: var(--radius);
+  clip-path: inset(0 round var(--radius));
 }
 
-/* 선택모드에서는 그리드 스크롤 막기 */
 .jt-grid-scroll.is-selecting {
   overflow: hidden;
 }
 
 .jt-grid {
+  width: 100%;
   display: grid;
-  column-gap: var(--gap-x);
-  row-gap: var(--gap-y);
-  width: fit-content;
+  column-gap: var(--gap);
+  row-gap: var(--gap);
 }
 
 .jt-slot {
-  width: 100px;
-  height: 35px;
+  width: 100%;
+  height: var(--cell-h);
   box-sizing: border-box;
 
   background: #dddddd;
-  border: 1px solid #dddddd;
-
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+  border: 0;
+  border-radius: 0;
 
   cursor: pointer;
 
-  /* 모바일 터치 시 하이라이트/롱탭 메뉴 방지 */
   -webkit-tap-highlight-color: transparent;
-  touch-action: none; /* 버튼 자체는 포인터 이벤트로 제어 */
+  touch-action: none;
 }
 
-.jt-slot:hover {
-  background: #e9e9eb;
+.jt-slot--top {
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.jt-slot--bottom {
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .jt-slot--active {
   background: #ff5315;
-  border-color: #ff5315;
 }
 
-/* 페이지네이션(도트) */
 .join-time-pagination {
   margin-top: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .join-time-dots {
@@ -274,9 +291,16 @@
   background: #333232;
 }
 
-/* 하단 버튼 */
 .join-time-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
-  white-space: nowrap;
+}
+
+.join-time-footer > * {
+  width: 100%;
+}
+
+.join-time-footer button {
+  height: 70px;
 }

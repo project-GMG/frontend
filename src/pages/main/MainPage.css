@@ -1,24 +1,17 @@
-/* MainPage.css */
-
-/* 화면 전체에서 컨테이너 중앙 배치 */
 .main-page {
   width: 100vw;
   height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 }
 
-/* 전체 레이아웃: 고정 393x852 + 내부 스크롤 */
 .main-page-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
-
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -29,19 +22,17 @@
   flex-direction: column;
   gap: 10px;
 
-  overflow-y: auto;
+  overflow: hidden;
   border-radius: 16px;
 }
 
-/* ================= 헤더(로고/공유) ================= */
-/* 요청: width 353 / height 49 / space-between */
 .main-header {
   width: 353px;
   height: 49px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .main-logo {
@@ -60,17 +51,11 @@
 .main-share-bubble {
   display: inline-flex;
   align-items: center;
-
   padding: 5px 16px;
   border: none;
   background-color: #ffffff;
-
   border-radius: 999px 0 999px 999px;
-
-  box-shadow:
-    0px 1px 2px -1px #0000001a,
-    0px 1px 3px 0px #0000001a;
-
+  box-shadow: 0px 1px 2px -1px #0000001a, 0px 1px 3px 0px #0000001a;
   cursor: pointer;
 }
 
@@ -84,11 +69,9 @@
 .main-share-icon-button {
   width: 36px;
   height: 36px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: none;
   padding: 0;
   background: transparent;
@@ -101,11 +84,13 @@
   object-fit: contain;
 }
 
-/* ================= 콘텐츠 ================= */
 .main-content {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   margin-top: 24px;
+  overflow-y: auto;
 }
 
 .main-title {
@@ -120,12 +105,11 @@
   margin-bottom: 24px;
 }
 
-/* ================= 일정 컨테이너 ================= */
-/* 요청: width 353 / height 322 / gap 16 / padding top 20 right 20 left 20 / radius 22 */
+/* 일정 */
+
 .schedule-container {
   width: 353px;
   height: 322px;
-
   border-radius: 22px;
   background-color: #ffffff;
 
@@ -141,55 +125,76 @@
   gap: 16px;
 
   margin: 0 auto;
-
-  /* ✅ 핵심 수정: 프레임이 컨테이너 밖으로 안 새게 */
   overflow: hidden;
+}
+
+.schedule-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .schedule-title {
   margin: 0;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 16.8px;
   color: #333232;
 }
 
-/*
-  프레임 구성:
-  - 상단 날짜줄 20px
-  - 아래 영역(시간레일+그리드) 높이 241px
-  - 시간레일 width 24, padding-top 5, padding-bottom 15
-*/
+.schedule-best-time {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
+}
+
 .schedule-frame {
   position: relative;
   width: 100%;
-  height: 261px; /* 20(date) + 241(grid) */
-
-  /* ✅ 핵심 수정:
-     기존 8px inset + grid-left에서 -10px 때문에 왼쪽으로 빠져나갔음
-     → inset을 0으로 두고, grid-left는 '컨테이너 안'에서만 계산되게 고정 */
-  --frame-inset-x: 0px;
+  height: 220px;
 
   --date-row: 20px;
-  --grid-h: 241px;
-
-  --time-rail-w: 24px;
-  --rail-gap: 8px;
 
   --cell-w: 87.666664px;
   --cell-h: 20px;
 
-  /* ✅ 핵심 수정: -10px 제거, 항상 0 이상 */
-  --grid-left: calc(var(--frame-inset-x) + var(--time-rail-w) + var(--rail-gap));
+  --visible-cols: 3;
+  --visible-rows: 10;
+
+  --col-gap: 1px;
+  --row-gap: 1px;
+
+  --scroll-inset: 6px;
+
+  --time-rail-w: 46px;
+  --time-gap: 4px;
+
+  --frame-shift-x: -8px;
+
+  --grid-w: calc(
+    (var(--cell-w) * var(--visible-cols)) +
+    (var(--col-gap) * (var(--visible-cols) - 1)) +
+    var(--scroll-inset)
+  );
+  --grid-h: calc(
+    (var(--cell-h) * var(--visible-rows)) +
+    (var(--row-gap) * (var(--visible-rows) - 1)) +
+    var(--scroll-inset)
+  );
+
+  --grid-left: calc(var(--frame-shift-x) + var(--time-rail-w) + var(--time-gap));
+  --rail-left: var(--frame-shift-x);
 }
 
-/* 날짜 레일 */
 .schedule-date-rail {
   position: absolute;
   top: 0;
   left: var(--grid-left);
-  right: 0;
 
+  width: var(--grid-w);
   height: var(--date-row);
 
   overflow-x: auto;
@@ -213,7 +218,6 @@
 .schedule-date-header {
   width: var(--cell-w);
   height: var(--date-row);
-
   font-size: 11px;
   font-weight: 500;
   line-height: var(--date-row);
@@ -221,23 +225,19 @@
   text-align: center;
 }
 
-/* 시간 레일 */
 .schedule-time-rail {
   position: absolute;
   top: var(--date-row);
-  left: var(--frame-inset-x);
+  left: var(--rail-left);
 
   width: var(--time-rail-w);
   height: var(--grid-h);
-
-  padding-top: 5px;
-  padding-bottom: 15px;
 
   overflow-y: auto;
   overflow-x: hidden;
 
   background: #ffffff;
-  z-index: 2;
+  z-index: 4;
 
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -263,21 +263,19 @@
   align-items: center;
   justify-content: flex-end;
 
-  padding-right: 2px;
+  padding-right: 6px;
   box-sizing: border-box;
 
   line-height: 1;
-  overflow: hidden;
   white-space: nowrap;
 }
 
-/* 그리드 스크롤 */
 .schedule-grid-scroll {
   position: absolute;
   top: var(--date-row);
   left: var(--grid-left);
-  right: 0;
 
+  width: var(--grid-w);
   height: var(--grid-h);
 
   overflow: auto;
@@ -285,16 +283,21 @@
   background: #ffffff;
 
   z-index: 1;
+}
 
-  padding-right: 2px;
-  padding-bottom: 2px;
+.schedule-grid-scroll-inner {
+  width: fit-content;
+  height: fit-content;
+
+  padding-right: var(--scroll-inset);
+  padding-bottom: var(--scroll-inset);
   box-sizing: border-box;
 }
 
 .schedule-grid-slots {
   display: grid;
-  column-gap: 1px;
-  row-gap: 1px;
+  column-gap: var(--col-gap);
+  row-gap: var(--row-gap);
 
   width: fit-content;
   background: #ffffff;
@@ -306,19 +309,27 @@
 .schedule-slot {
   width: var(--cell-w);
   height: var(--cell-h);
-
   background-color: #edeef1;
-
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
 
   margin-left: -0.5px;
   margin-top: -0.5px;
 
   pointer-events: none;
+  border-radius: 0;
 }
 
-/* ================= 스크롤 바 (일정 그리드) ================= */
+.schedule-slot--top {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.schedule-slot--bottom {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+/* 스크롤바 */
+
 .gmg-scrollbar-both::-webkit-scrollbar,
 .gmg-scrollbar-x::-webkit-scrollbar,
 .gmg-scrollbar-y::-webkit-scrollbar {
@@ -348,37 +359,20 @@
 }
 
 .gmg-scrollbar-both::-webkit-scrollbar-button,
-.gmg-scrollbar-both::-webkit-scrollbar-button:increment,
-.gmg-scrollbar-both::-webkit-scrollbar-button:decrement,
-.gmg-scrollbar-both::-webkit-scrollbar-button:single-button,
-.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:increment,
-.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:decrement,
-.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:increment,
-.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:decrement,
-.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:start:decrement,
-.gmg-scrollbar-both::-webkit-scrollbar-button:horizontal:end:increment,
-.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:start:decrement,
-.gmg-scrollbar-both::-webkit-scrollbar-button:vertical:end:increment {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-}
-
 .gmg-scrollbar-both::-webkit-scrollbar-corner {
+  display: none !important;
   background: transparent !important;
 }
 
-/* ================= 음식점 추천 ================= */
+/* 음식점 */
+
 .restaurant-rail {
   display: flex;
   gap: 12px;
-
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-
-  padding-right: 60px;
+  padding: 0;
 }
 
 .restaurant-rail--hidden-scrollbar {
@@ -392,31 +386,30 @@
 .restaurant-container {
   width: 333px;
   height: 167px;
-  border-radius: 24px;
+  border-radius: 22px;
   background-color: #ffffff;
 
-  padding: 12px;
+  padding: 20px;
   box-sizing: border-box;
 
   flex: 0 0 333px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .restaurant-container-title {
   margin: 0;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 16.8px;
   color: #333232;
 }
 
 .restaurant-set {
   width: 100%;
-  height: 100%;
-
+  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -430,6 +423,11 @@
   background-color: #ffffff;
   position: relative;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.restaurant-card--empty {
+  box-shadow: none;
+  background: transparent;
 }
 
 .restaurant-thumb {
@@ -462,13 +460,21 @@
   white-space: nowrap;
 }
 
-/* ================= 하단 버튼 ================= */
+/* 하단 버튼 */
+
 .main-footer {
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+}
 
-  margin-top: 20px;
-  padding-bottom: 10px;
+.main-footer > * {
+  width: 100%;
+}
 
-  white-space: nowrap;
+.main-footer button {
+  height: 70px;
 }

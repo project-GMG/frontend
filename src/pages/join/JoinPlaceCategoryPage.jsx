@@ -1,4 +1,4 @@
-/* src/pages/join/JoinPlaceCategoryPage.jsx */
+// src/pages/join/JoinPlaceCategoryPage.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinPlaceCategoryPage.css';
@@ -24,21 +24,17 @@ import SoloCafeIcon from '../../assets/icons/category_icon/solo cafe ico.png';
 import StudyCafeIcon from '../../assets/icons/category_icon/study cafe ico.png';
 import WestonFoodIcon from '../../assets/icons/category_icon/weston food ico.png';
 
-// category.code -> 아이콘 매핑
 const CATEGORY_ICON_BY_CODE = {
-  // CAFE
   LOCAL_CAFE: SoloCafeIcon,
   DESSERT_CAFE: DessertCafeIcon,
   FRANCHISE_CAFE: FranchiseCafeIcon,
   BOARDGAME_CAFE: BoardGameCafeIcon,
 
-  // BAR
   COCKTAIL_BAR: CocktailIcon,
   IZAKAYA: JapaneseAlcholIcon,
   INDOOR_POCHA: PochaIcon,
   FOOD_BAR: FoodAlcholIcon,
 
-  // RESTAURANT
   KOREAN_FOOD: KoreaFoodIcon,
   CHINESE_FOOD: ChineseFoodIcon,
   JAPANESE_FOOD: JapaneseFoodIcon,
@@ -51,12 +47,10 @@ const CATEGORY_ICON_BY_CODE = {
   CHICKEN: ChickenIcon,
   MEAT: MeatIcon,
 
-  // STUDY
   LIBRARY: LibraryIcon,
   STUDY_CAFE: StudyCafeIcon,
 };
 
-// placeType별 문구
 function buildTitleParts(placeTypeCode, placeTypeLabel) {
   const label = placeTypeLabel || '장소';
 
@@ -64,7 +58,7 @@ function buildTitleParts(placeTypeCode, placeTypeLabel) {
     case 'RESTAURANT':
       return [
         { text: '이 ', highlight: false },
-        { text: label, highlight: true },
+        { text: '음식점', highlight: true },
         { text: '은 애매해요', highlight: false },
       ];
     case 'CAFE':
@@ -105,7 +99,6 @@ export default function JoinPlaceCategoryPage() {
 
   const handleBack = () => navigate(-1);
 
-  // API: GET /api/events/{hashUrl}/categories
   useEffect(() => {
     let alive = true;
 
@@ -152,7 +145,6 @@ export default function JoinPlaceCategoryPage() {
     };
   }, [hashUrl]);
 
-  // 화면에 맞게 그룹 구조로 변환 (API 기준만 사용)
   const GROUPS = useMemo(() => {
     return (placeTypes || []).map((pt) => ({
       id: String(pt.code || pt.id || ''),
@@ -169,14 +161,11 @@ export default function JoinPlaceCategoryPage() {
 
   const goSub = (group, item) => {
     navigate(
-      `/join/category/sub?code=${encodeURIComponent(hashUrl)}&categoryId=${encodeURIComponent(
-        item.id,
-      )}`,
+      `/join/category/sub?code=${encodeURIComponent(hashUrl)}&categoryId=${encodeURIComponent(item.id)}`,
       {
         state: {
           groupId: group.id,
           title: item.label,
-
           categoryId: item.id,
           categoryCode: item.code,
           placeTypeCode: item.placeTypeCode,
@@ -186,7 +175,6 @@ export default function JoinPlaceCategoryPage() {
     );
   };
 
-  // ✅ 완료 버튼 누르면 JoinFinalPage로 이동
   const handleDone = () => {
     navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
   };
@@ -207,27 +195,18 @@ export default function JoinPlaceCategoryPage() {
         <main className="jpc-content">
           <h1 className="jpc-title">여긴 피했으면 좋겠어요</h1>
 
-          {isLoading && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>불러오는 중...</p>
-          )}
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
-          )}
+          {isLoading && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>불러오는 중...</p>}
+          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
 
           <div className="jpc-groups">
             {GROUPS.map((group) => (
               <section
                 key={group.id}
-                className={
-                  'jpc-group-card' + (group.id === 'RESTAURANT' ? ' jpc-group-card--restaurant' : '')
-                }
+                className={'jpc-group-card' + (group.id === 'RESTAURANT' ? ' jpc-group-card--restaurant' : '')}
               >
                 <h2 className="jpc-group-title">
                   {group.titleParts.map((p, idx) => (
-                    <span
-                      key={`${group.id}-t-${idx}`}
-                      className={p.highlight ? 'jpc-highlight' : undefined}
-                    >
+                    <span key={`${group.id}-t-${idx}`} className={p.highlight ? 'jpc-highlight' : undefined}>
                       {p.text}
                     </span>
                   ))}
@@ -251,8 +230,12 @@ export default function JoinPlaceCategoryPage() {
                             <img
                               src={iconSrc}
                               alt=""
-                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                              draggable={false}
+                                  style={{
+                                    width: '47px',
+                                    height: '47px',
+                                    objectFit: 'contain',
+                                  }}                             
+                                   draggable={false}
                             />
                           ) : null}
                         </div>
@@ -266,9 +249,7 @@ export default function JoinPlaceCategoryPage() {
             ))}
 
             {!isLoading && !errorText && GROUPS.length === 0 && (
-              <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-                선택 가능한 카테고리가 없습니다.
-              </p>
+              <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>선택 가능한 카테고리가 없습니다.</p>
             )}
           </div>
         </main>

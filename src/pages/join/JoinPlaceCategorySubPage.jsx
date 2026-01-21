@@ -1,13 +1,13 @@
 // src/pages/join/JoinPlaceCategorySubPage.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinPlaceCategorySubPage.css';
 
 import BackButton from '../components/common/BackButton';
 import NextButton from '../components/common/NextButton';
 
-import ChickenImg from '../../assets/icons/chicken.png';
 import SearchIcon from '../../assets/icons/search.png';
+import NoImage from '../../assets/icons/no-image.png';
 
 function loadDisliked(hashUrl) {
   try {
@@ -33,6 +33,29 @@ function truncatePlaceName(name, max = 9) {
   return ` ${chars.slice(0, max).join('')}...`;
 }
 
+function getParticipantId(hashUrl) {
+  const raw = localStorage.getItem(`gmg_participant_${hashUrl}`);
+  const n = raw ? Number(raw) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
+async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislikedPlaceIds) {
+  const res = await fetch(
+    `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/disliked`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dislikedCategoryIds, dislikedPlaceIds }),
+    },
+  );
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(json?.message || '비선호 장소 등록에 실패했습니다.');
+  }
+  return json;
+}
+
 export default function JoinPlaceCategorySubPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,73 +79,100 @@ export default function JoinPlaceCategorySubPage() {
 
   const [query, setQuery] = useState('');
 
-  const [places, setPlaces] = useState([]); // [{id:number, name, imageUrl}]
+  const [places, setPlaces] = useState([]);
   const [hasNext, setHasNext] = useState(false);
   const [page, setPage] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorText, setErrorText] = useState('');
 
   const [selectedIds, setSelectedIds] = useState(() => new Set());
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const pageSize = 16;
 
   const handleBack = () => navigate(-1);
 
-  useEffect(() => {
-    let alive = true;
+  const scrollRef = useRef(null);
+  const lastLoadedPageRef = useRef(-1);
+  const pendingRef = useRef(false);
 
-    (async () => {
-      if (!hashUrl || normalizedCategoryId == null) {
-        if (!alive) return;
-        setIsLoading(false);
-        setErrorText('필수 값이 누락되었습니다. (code 또는 categoryId)');
+  const fetchPage = async (nextPage) => {
+    if (!hashUrl || normalizedCategoryId == null) return;
+
+    if (pendingRef.current) return;
+    if (lastLoadedPageRef.current === nextPage) return;
+
+    pendingRef.current = true;
+    if (nextPage === 0) setIsLoading(true);
+    else setIsLoadingMore(true);
+
+    try {
+      const res = await fetch(
+        `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
+          normalizedCategoryId,
+        )}&page=${encodeURIComponent(nextPage)}&size=${encodeURIComponent(pageSize)}`,
+        { headers: { accept: 'application/json' } },
+      );
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setErrorText(json?.message || '장소 목록을 불러오지 못했습니다.');
         setPlaces([]);
         setHasNext(false);
+        lastLoadedPageRef.current = -1;
+        setPage(0);
         return;
       }
 
-      setIsLoading(true);
+      const data = json?.data || {};
+      const list = Array.isArray(data.places) ? data.places : [];
+
+      setPlaces((prev) => (nextPage === 0 ? list : [...prev, ...list]));
+      setHasNext(!!data.hasNext);
+
+      lastLoadedPageRef.current = nextPage;
+      setPage(nextPage);
       setErrorText('');
+    } catch {
+      setErrorText('네트워크 오류로 장소 목록을 불러오지 못했습니다.');
+      setPlaces([]);
+      setHasNext(false);
+      lastLoadedPageRef.current = -1;
+      setPage(0);
+    } finally {
+      pendingRef.current = false;
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
 
-      try {
-        const res = await fetch(
-          `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
-            normalizedCategoryId,
-          )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(pageSize)}`,
-          { headers: { accept: 'application/json' } },
-        );
+  useEffect(() => {
+    if (!hashUrl || normalizedCategoryId == null) {
+      setIsLoading(false);
+      setErrorText('필수 값이 누락되었습니다. (code 또는 categoryId)');
+      setPlaces([]);
+      setHasNext(false);
+      setPage(0);
+      lastLoadedPageRef.current = -1;
+      pendingRef.current = false;
+      return;
+    }
 
-        const json = await res.json().catch(() => null);
-        if (!alive) return;
+    setPlaces([]);
+    setHasNext(false);
+    setPage(0);
+    setErrorText('');
+    setSubmitError('');
+    lastLoadedPageRef.current = -1;
+    pendingRef.current = false;
 
-        if (!res.ok) {
-          setErrorText(json?.message || '장소 목록을 불러오지 못했습니다.');
-          setIsLoading(false);
-          setPlaces([]);
-          setHasNext(false);
-          return;
-        }
-
-        const data = json?.data || {};
-        const list = Array.isArray(data.places) ? data.places : [];
-
-        setPlaces((prev) => (page === 0 ? list : [...prev, ...list]));
-        setHasNext(!!data.hasNext);
-        setIsLoading(false);
-      } catch {
-        if (!alive) return;
-        setErrorText('네트워크 오류로 장소 목록을 불러오지 못했습니다.');
-        setIsLoading(false);
-        setPlaces([]);
-        setHasNext(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [hashUrl, normalizedCategoryId, page]);
+    fetchPage(0);
+  }, [hashUrl, normalizedCategoryId]);
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim();
@@ -163,27 +213,57 @@ export default function JoinPlaceCategorySubPage() {
     });
   };
 
-  const handleDone = () => {
-    console.log('선택된 place ids:', Array.from(selectedIds));
+  const handleDone = async () => {
+    if (!hashUrl || normalizedCategoryId == null) return;
 
-    if (hashUrl && normalizedCategoryId != null) {
-      const prev = loadDisliked(hashUrl);
+    setSubmitError('');
+    setIsSubmitting(true);
 
-      const nextCategoryIds = Array.from(
-        new Set([...(prev.dislikedCategoryIds || []), normalizedCategoryId]),
-      );
+    // 1) 로컬 저장 (기존 동작 유지)
+    const prev = loadDisliked(hashUrl);
 
-      const nextPlaceIds = Array.from(
-        new Set([...(prev.dislikedPlaceIds || []), ...Array.from(selectedIds)]),
-      );
+    const nextCategoryIds = Array.from(
+      new Set([...(prev.dislikedCategoryIds || []), normalizedCategoryId]),
+    );
 
-      saveDisliked(hashUrl, {
-        dislikedCategoryIds: nextCategoryIds,
-        dislikedPlaceIds: nextPlaceIds,
-      });
+    const nextPlaceIds = Array.from(
+      new Set([...(prev.dislikedPlaceIds || []), ...Array.from(selectedIds)]),
+    );
+
+    saveDisliked(hashUrl, {
+      dislikedCategoryIds: nextCategoryIds,
+      dislikedPlaceIds: nextPlaceIds,
+    });
+
+    // 2) 서버 업로드 (Participant API)
+    const participantId = getParticipantId(hashUrl);
+    if (!participantId) {
+      setIsSubmitting(false);
+      setSubmitError('참여자 정보가 없습니다. 먼저 이름 등록을 다시 진행해주세요.');
+      return;
     }
 
-    navigate(-1);
+    try {
+      await postDisliked(hashUrl, participantId, nextCategoryIds, nextPlaceIds);
+      navigate(-1);
+    } catch (e) {
+      setSubmitError(e?.message || '비선호 장소 등록에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onScrollContent = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (isLoading || isLoadingMore) return;
+    if (!!errorText) return;
+    if (!hasNext) return;
+    if (query.trim()) return;
+
+    const threshold = 160;
+    const remain = el.scrollHeight - (el.scrollTop + el.clientHeight);
+    if (remain <= threshold) fetchPage(page + 1);
   };
 
   return (
@@ -195,7 +275,7 @@ export default function JoinPlaceCategorySubPage() {
           <div className="jpcs-header-spacer" />
         </header>
 
-        <main className="jpcs-content">
+        <main ref={scrollRef} className="jpcs-content" onScroll={onScrollContent}>
           <div className="jpcs-search">
             <img src={SearchIcon} alt="검색" className="jpcs-search-icon" />
             <input
@@ -210,6 +290,10 @@ export default function JoinPlaceCategorySubPage() {
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
           )}
 
+          {!!submitError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+          )}
+
           {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
 
           {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
@@ -219,12 +303,11 @@ export default function JoinPlaceCategorySubPage() {
               <button
                 type="button"
                 className={
-                  'jpcs-tile jpcs-tile--all' +
-                  (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
+                  'jpcs-tile jpcs-tile--all' + (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
                 }
                 onClick={toggleAll}
                 aria-label="전체 선택"
-                disabled={!!errorText || isLoading || filteredPlaces.length === 0}
+                disabled={!!errorText || isLoading || isSubmitting || filteredPlaces.length === 0}
               >
                 <span className="jpcs-all-text">전체 선택</span>
 
@@ -238,7 +321,6 @@ export default function JoinPlaceCategorySubPage() {
               {filteredPlaces.map((p) => {
                 const idNum = Number(p.id);
                 const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
-
                 const displayName = truncatePlaceName(p.name, 9);
 
                 return (
@@ -247,9 +329,17 @@ export default function JoinPlaceCategorySubPage() {
                     type="button"
                     className="jpcs-tile jpcs-tile--place"
                     onClick={() => toggleOne(p.id)}
-                    disabled={!!errorText || isLoading}
+                    disabled={!!errorText || isLoading || isSubmitting}
                   >
-                    <img src={p.imageUrl || ChickenImg} alt={p.name} className="jpcs-thumb" />
+                    <img
+                      src={p.imageUrl || NoImage}
+                      alt={p.name}
+                      className="jpcs-thumb"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = NoImage;
+                      }}
+                    />
 
                     {selected && (
                       <div className="jpcs-overlay">
@@ -266,29 +356,16 @@ export default function JoinPlaceCategorySubPage() {
             </section>
           )}
 
-          {hasNext && !isApiEmpty && !isSearchEmpty && (
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
-              <button
-                type="button"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={isLoading || !!errorText}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: 10,
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  background: '#fff',
-                  fontSize: 14,
-                }}
-              >
-                더 보기
-              </button>
-            </div>
+          {isLoadingMore && !query.trim() && (
+            <p style={{ margin: '12px 0 0', color: '#666', fontSize: 14, textAlign: 'center' }}>
+              불러오는 중...
+            </p>
           )}
         </main>
 
         <footer className="jpcs-footer">
-          <NextButton disabled={false} onClick={handleDone}>
-            완료
+          <NextButton disabled={!!errorText || isLoading || isSubmitting} onClick={handleDone}>
+            {isSubmitting ? '등록 중...' : '완료'}
           </NextButton>
         </footer>
       </div>

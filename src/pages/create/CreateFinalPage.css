@@ -1,4 +1,5 @@
-/* 화면 전체에서 컨테이너를 가로·세로 중앙 배치 */
+/* gmg-front/src/pages/create/CreateFinalPage.css */
+
 .create-final-page {
   width: 100vw;
   height: 100vh;
@@ -7,16 +8,15 @@
   justify-content: center;
   align-items: center;
 
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 }
 
-/* 고정 크기 컨테이너 */
 .create-final-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
 
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -27,43 +27,46 @@
   flex-direction: column;
   gap: 10px;
 
-    /* 반응형 */
   width: min(393px, calc(100vw - 40px));
   height: min(852px, calc(100vh - 40px));
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 40px);
-  overflow-y: auto;
+
+  overflow: hidden;
   border-radius: 16px;
 }
 
-/* 헤더: BackButton */
 .create-final-header {
   margin-top: 12px;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
-/* 콘텐츠 영역 */
 .create-final-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+
   margin-top: 24px;
   text-align: center;
+
+  overflow-y: auto;
+  min-height: 0;
 }
 
-/* "모임이 생성됐어요" */
 .create-final-title {
-  margin: 100px 0 32px; 
+  margin: 100px 0 32px;
 
-  font-size: 26px;
+  font-family: Pretendard;
   font-weight: 600;
+  font-size: 26px;
   line-height: 100%;
+  letter-spacing: 0%;
   color: #333232;
 }
 
-/* 안내 문구 */
 .create-final-subtitle {
   margin: 0 0 32px;
 
@@ -73,28 +76,28 @@
   color: #333232;
 }
 
-/* 링크 + 복사 버튼 박스  */
 .create-final-link-box {
-  width: 330.23px;
-  height: 40px;
+  width: 330.2289px;
+    max-width: 100%;
 
+  height: 67.4456px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 
-  padding: 12px 12px 12px 16px;
+  padding-top: 10px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+  padding-left: 20px;
 
   background-color: #ffffff;
-  border-radius: 999px;
+  border-radius: 50px;
 
-  /* 그림자 2개 */
-  box-shadow:
-    0px 1px 2px -1px #0000001a,
-    0px 1px 3px 0px #0000001a;
+  box-shadow: 0px 1px 2px -1px #0000001a, 0px 1px 3px 0px #0000001a;
 }
 
-/* 링크 텍스트 */
 .create-final-link-text {
   flex: 1;
   font-size: 14px;
@@ -106,7 +109,6 @@
   text-overflow: ellipsis;
 }
 
-/* "복사" 버튼 */
 .create-final-copy-button {
   display: inline-flex;
   align-items: center;
@@ -120,26 +122,22 @@
   cursor: pointer;
 }
 
+.create-final-copy-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .create-final-copy-icon {
-  width: 14px;       
+  width: 14px;
   height: 14px;
   object-fit: contain;
 }
 
-
-/* 복사 텍스트 */
 .create-final-copy-label {
   font-size: 13px;
   font-weight: 500;
   line-height: 15.6px;
   color: #ffffff;
-}
-
-/* 이미지 영역 래퍼 */
-.create-final-image-wrapper {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
 }
 
 .create-final-image {
@@ -149,10 +147,80 @@
   margin-top: 40px;
 }
 
-
-/* 하단 버튼 영역 */
 .create-final-footer {
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 24px;
+  gap: 10px;
+
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.create-final-share-button {
+  width: 80px;
+  height: 70px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+
+  border: none;
+  border-radius: 70px;
+
+  background-color: #ffffff;
+  cursor: pointer;
+
+  box-shadow: 0px 1px 10px 2px #00000026;
+}
+
+.create-final-share-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.create-final-share-icon {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+}
+
+.create-final-share-text {
+  font-family: Pretendard;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: #333232;
+}
+
+.create-final-register-button {
+  width: 273px;
+  height: 70px;
+
+  border: none;
+  border-radius: 70px;
+
+  background-color: #ff5315;
+  cursor: pointer;
+
+  font-family: Pretendard;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-final-register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

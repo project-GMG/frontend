@@ -8,18 +8,15 @@
   justify-content: center;
   align-items: center;
 
-
-  background-color: var(--bg-default);
+  background-color: #F1F2F5;
 }
-
 
 .create-place-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
 
-
-  background-color: var(--bg-default);
+  background-color: #F1F2F5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -34,28 +31,34 @@
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 40px);
 
-  
   width: min(393px, calc(100vw - 40px));
   height: min(852px, calc(100vh - 40px));
 
-  overflow-y: auto;
+  overflow: hidden;
 
   border-radius: 16px;
 }
 
-/* 헤더: BackButton + TopBar */
+.create-place-nav {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .create-place-header {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* 콘텐츠 영역 */
 .create-place-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-top: 24px;
+
+  overflow-y: auto; 
 }
 
 /* "어디를 갈까요?" */
@@ -115,10 +118,9 @@
   border-color: #000000;
 }
 
-/* 선택 */
 .create-place-category-card--selected {
   background-color: #ffede6;
-  border-color: #ff5315;
+  border-color: #DDDDDD; 
 }
 
 .create-place-category-card:focus,
@@ -134,7 +136,6 @@
   object-fit: contain;
   flex-shrink: 0;
 }
-
 
 /* 텍스트 컨테이너 */
 .create-place-category-texts {
@@ -161,8 +162,8 @@
   color: #333232;
 }
 
-/* 하단 버튼 영역 */
 .create-place-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   margin-top: 24px;

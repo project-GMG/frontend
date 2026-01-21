@@ -1,3 +1,4 @@
+/* gmg-front/src/pages/create/CreateInfoPage.css */
 
 .create-info-page {
   width: 100vw;
@@ -7,16 +8,15 @@
   justify-content: center;
   align-items: center;
 
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 }
 
-/* 고정 크기 컨테이너 */
 .create-info-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
 
-  background-color: var(--bg-default);
+  background-color: #f1f2f5;
 
   padding-top: 56px;
   padding-right: 20px;
@@ -27,31 +27,32 @@
   flex-direction: column;
   gap: 10px;
 
-  /* 반응형 */
   width: min(393px, calc(100vw - 40px));
   height: min(852px, calc(100vh - 40px));
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 40px);
-  overflow-y: auto;
+
+  overflow: hidden;
   border-radius: 16px;
 }
 
-/* 헤더: BackButton */
 .create-info-header {
   margin-top: 12px;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
-/* 콘텐츠 영역 */
 .create-info-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-top: 24px;
+
+  overflow-y: auto;
+  min-height: 0;
 }
 
-/* 제목 */
 .create-info-title {
   margin: 0 0 32px;
 
@@ -61,14 +62,12 @@
   color: #333232;
 }
 
-/* 개별 필드 섹션 */
 .info-field {
   display: flex;
   flex-direction: column;
   margin-bottom: 32px;
 }
 
-/* 라벨(기본 상태: 검정) */
 .info-field-label {
   font-size: 14px;
   font-weight: 500;
@@ -77,36 +76,30 @@
   margin-bottom: 8px;
 }
 
-/* 2) 클릭/수정 상태 */
 .info-field-label--active {
   color: #ff5315;
 }
 
-/* 3) 오류 상태 */
 .info-field-label--error {
   color: #fd5839;
 }
 
-/* 입력 래퍼(밑줄) */
 .info-input-wrapper {
-  border-bottom: 1px solid #333232; 
+  border-bottom: 1px solid #333232;
   padding: 6px 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* 2) 클릭/수정 상태: 밑줄 주황 */
 .info-input-wrapper--active {
   border-color: #ff5315;
 }
 
-/* 3) 오류 상태: 밑줄 빨강 */
 .info-input-wrapper--error {
   border-color: #fd5839;
 }
 
-/* 입력 텍스트 */
 .info-input {
   width: 100%;
   border: none;
@@ -134,19 +127,15 @@
   justify-content: center;
 }
 
-/* 연필 아이콘 */
 .info-pencil {
   width: 30px;
   height: 30px;
   flex: 0 0 16px;
   object-fit: contain;
-
-  opacity: 1; 
- 
+  opacity: 1;
   filter: grayscale(1) brightness(0.6);
 }
 
-/* 에러 문구 */
 .info-error-text {
   margin-top: 6px;
   font-size: 12px;
@@ -155,9 +144,9 @@
   color: #fd5839;
 }
 
-/* 하단 버튼 영역 */
 .create-info-footer {
   display: flex;
   justify-content: center;
   margin-top: 24px;
+  flex-shrink: 0;
 }

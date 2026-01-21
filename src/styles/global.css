@@ -1,3 +1,4 @@
+
 :root {
   /* 기본 색깔  */
   --color-orange-100: #ff5315;
@@ -64,6 +65,6 @@
 /* 기본 폰트 설정 */
 body {
   font-family: "Pretendard", sans-serif;
-  background-color: var(--bg-default);
+  background-color: #F1F2F5; /* 수정: 전체 배경색 강제 */
   color: var(--text-primary);
 }

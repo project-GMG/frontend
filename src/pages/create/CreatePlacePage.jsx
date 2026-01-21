@@ -66,7 +66,9 @@ export default function CreatePlacePage() {
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
 
   const toggleCategory = (id) => {
-    setSelectedIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+    setSelectedIds((p) =>
+      p.includes(id) ? p.filter((x) => x !== id) : [...p, id],
+    );
   };
 
   const handleBack = () => window.history.back();
@@ -80,10 +82,9 @@ export default function CreatePlacePage() {
   const handleNext = () => {
     if (!placeTypeCodes.length) return;
 
-    // 다음 페이지로 누적 데이터 전달
     navigate('/create/date', {
       state: {
-        ...prev, // 나중에 확장될 데이터도 유지
+        ...prev, 
         placeTypeCodes,
       },
     });
@@ -92,13 +93,15 @@ export default function CreatePlacePage() {
   return (
     <div className="create-place-page">
       <div className="create-place-container">
-        <div className="create-place-topbar">
-          <TopBar currentStep={1} totalSteps={4} />
-        </div>
+        <header className="create-place-nav">
+          <div className="create-place-topbar">
+            <TopBar currentStep={1} totalSteps={4} />
+          </div>
 
-        <div className="create-place-back">
-          <BackButton onClick={handleBack} />
-        </div>
+          <div className="create-place-back">
+            <BackButton onClick={handleBack} />
+          </div>
+        </header>
 
         <main className="create-place-content">
           <h1 className="create-place-title">어디를 갈까요?</h1>

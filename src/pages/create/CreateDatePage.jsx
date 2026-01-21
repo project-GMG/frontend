@@ -1,6 +1,6 @@
 // gmg-front/src/pages/create/CreateDatePage.jsx
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import './CreateDatePage.css';
 import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
@@ -16,10 +16,9 @@ function useCalendarCells() {
     today.setHours(0, 0, 0, 0);
 
     const endDate = new Date(today);
-    endDate.setMonth(endDate.getMonth() + 1); // 한 달 후
+    endDate.setMonth(endDate.getMonth() + 1);
 
-    // 월요일 기준 요일 인덱스 (Mon=0 ... Sun=6)
-    const jsDay = today.getDay(); // Sun=0 ... Sat=6
+    const jsDay = today.getDay();
     const mondayBasedIndex = (jsDay + 6) % 7;
 
     let currentDate = new Date(today);
@@ -43,7 +42,6 @@ function useCalendarCells() {
   }, []);
 }
 
-// 00:00 ~ 24:00 (30분 단위, 49개)
 const TIME_OPTIONS = Array.from({ length: 49 }, (_, i) => {
   const totalMin = i * 30;
   const hh = String(Math.floor(totalMin / 60)).padStart(2, '0');
@@ -51,7 +49,6 @@ const TIME_OPTIONS = Array.from({ length: 49 }, (_, i) => {
   return `${hh}:${mm}`;
 });
 
-// Date -> "YYYY-MM-DD" (로컬 기준)
 function toYmdLocal(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -62,11 +59,10 @@ function toYmdLocal(date) {
 export default function CreateDatePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const prev = location.state || {}; // CreatePlacePage에서 넘어온 placeTypeCodes 등
+  const prev = location.state || {};
 
   const calendarCells = useCalendarCells();
 
-  // 뒤로 갔다가 다시 진입 시 복원: prev.dateRange, prev.timeRange
   const initialSelectedDateKeys = useMemo(() => {
     const set = new Set();
 
@@ -77,7 +73,6 @@ export default function CreateDatePage() {
     const end = new Date(`${dr.endDate}T00:00:00`);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return set;
 
-    // 캘린더 셀 key는 ISO 문자열이므로, 해당 날짜들의 ISO key를 찾아서 set에 넣음
     const ymdToKey = new Map();
     calendarCells.forEach((cell) => {
       if (cell.type === 'date') ymdToKey.set(toYmdLocal(cell.date), cell.key);
@@ -96,18 +91,22 @@ export default function CreateDatePage() {
   const initialStartTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.startTime;
     const idx = TIME_OPTIONS.indexOf(t);
-    return idx >= 0 ? idx : 2; // 기본 01:00 근처
+    return idx >= 0 ? idx : 2;
   }, [prev?.timeRange?.startTime]);
 
   const initialEndTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.endTime;
     const idx = TIME_OPTIONS.indexOf(t);
-    return idx >= 0 ? idx : 4; // 기본 02:00 근처
+    return idx >= 0 ? idx : 4;
   }, [prev?.timeRange?.endTime]);
 
   const [selectedDateKeys, setSelectedDateKeys] = useState(initialSelectedDateKeys);
   const [startTimeIndex, setStartTimeIndex] = useState(initialStartTimeIndex);
   const [endTimeIndex, setEndTimeIndex] = useState(initialEndTimeIndex);
+
+  const wheelAccStartRef = useRef(0);
+  const wheelAccEndRef = useRef(0);
+  const WHEEL_THRESHOLD = 180;
 
   const toggleDate = (cell) => {
     if (cell.type !== 'date') return;
@@ -130,7 +129,6 @@ export default function CreateDatePage() {
       return;
     }
 
-    // 선택된 날짜 객체 배열
     const selectedDates = calendarCells
       .filter((cell) => cell.type === 'date' && selectedDateKeys.has(cell.key))
       .map((cell) => cell.date);
@@ -155,22 +153,38 @@ export default function CreateDatePage() {
   const hasSelection = selectedDateKeys.size > 0;
 
   const isWeekend = (date) => {
-    const day = date.getDay(); // Sun=0, Sat=6
+    const day = date.getDay();
     return day === 0 || day === 6;
   };
 
   const handleStartWheel = (event) => {
     event.preventDefault();
+
+    wheelAccStartRef.current += event.deltaY;
+
+    if (Math.abs(wheelAccStartRef.current) < WHEEL_THRESHOLD) return;
+
+    const dir = wheelAccStartRef.current > 0 ? 1 : -1;
+    wheelAccStartRef.current = 0;
+
     setStartTimeIndex((prevIndex) => {
-      if (event.deltaY > 0) return Math.min(prevIndex + 1, TIME_OPTIONS.length - 1);
+      if (dir > 0) return Math.min(prevIndex + 1, TIME_OPTIONS.length - 1);
       return Math.max(prevIndex - 1, 0);
     });
   };
 
   const handleEndWheel = (event) => {
     event.preventDefault();
+
+    wheelAccEndRef.current += event.deltaY;
+
+    if (Math.abs(wheelAccEndRef.current) < WHEEL_THRESHOLD) return;
+
+    const dir = wheelAccEndRef.current > 0 ? 1 : -1;
+    wheelAccEndRef.current = 0;
+
     setEndTimeIndex((prevIndex) => {
-      if (event.deltaY > 0) return Math.min(prevIndex + 1, TIME_OPTIONS.length - 1);
+      if (dir > 0) return Math.min(prevIndex + 1, TIME_OPTIONS.length - 1);
       return Math.max(prevIndex - 1, 0);
     });
   };
@@ -201,9 +215,7 @@ export default function CreateDatePage() {
               ? ' create-date-time-wheel-item--active'
               : ' create-date-time-wheel-item--inactive')
           }
-          onClick={() =>
-            type === 'start' ? setStartTimeIndex(index) : setEndTimeIndex(index)
-          }
+          onClick={() => (type === 'start' ? setStartTimeIndex(index) : setEndTimeIndex(index))}
         >
           {label}
         </button>
@@ -213,16 +225,17 @@ export default function CreateDatePage() {
   return (
     <div className="create-date-page">
       <div className="create-date-container">
-        <TopBar currentStep={2} totalSteps={4} />
+        <div className="create-date-topbar">
+          <TopBar currentStep={2} totalSteps={4} />
+        </div>
 
-        <header className="create-date-header">
+        <div className="create-date-back">
           <BackButton onClick={handleBack} />
-        </header>
+        </div>
 
         <main className="create-date-content">
           <h1 className="create-date-title">언제쯤 만날까요?</h1>
 
-          {/* 날짜 선택 */}
           <section className="create-date-section">
             <p className="create-date-section-title">
               <span className="create-date-section-title-strong">날짜</span> 선택하기
@@ -276,7 +289,6 @@ export default function CreateDatePage() {
             </div>
           </section>
 
-          {/* 시간대 선택 (휠 형태) */}
           <section className="create-date-section create-date-time-section">
             <p className="create-date-section-title">
               <span className="create-date-section-title-strong">시간대</span> 선택하기
