@@ -28,16 +28,27 @@
 
 .jpcs-header {
   flex-shrink: 0;
-  display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  position: relative;
+  height: 56px;
+  display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.jpcs-header > :first-child {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .jpcs-header-title {
   margin: 0;
-  justify-self: center;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
+    position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   color: #333232;
 }
 
@@ -171,24 +182,18 @@
 
   display: flex;
   align-items: center;
-  justify-content: center;  
+  justify-content: center;
 
-  padding: 0 8px;            
+  padding: 0 8px;
   box-sizing: border-box;
 }
-
 
 .jpcs-label::before {
   content: '';
   position: absolute;
   inset: 0;
-
-
-
   pointer-events: none;
 }
-
-
 
 .jpcs-label-text {
   margin: 0;

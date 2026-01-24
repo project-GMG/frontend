@@ -8,7 +8,7 @@ import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
 import editPen from '../../assets/icons/edit_pen.png';
 
-const DEFAULT_NAME = '전북대에서 밥먹자';
+const DEFAULT_NAME = '다같이 만나요';
 
 function toYmd(dateLike) {
   if (!dateLike) return '';
@@ -75,7 +75,11 @@ export default function CreateInfoPage() {
   };
 
   const handleNameBlur = () => setNameFocused(false);
-  const handleNameChange = (e) => setGroupName(e.target.value);
+
+  const handleNameChange = (e) => {
+    setNameTouched(true);
+    setGroupName(e.target.value);
+  };
 
   const trimmed = groupName.trim();
   const isNameTooLong = trimmed.length > 12;
@@ -115,7 +119,9 @@ export default function CreateInfoPage() {
   const hasTimeRange = !!timeRange.startTime && !!timeRange.endTime;
 
   const isPayloadReady = hasPlaceTypes && hasLocation && hasDateRange && hasTimeRange;
-  const isFormValid = isNameValid && isPayloadReady && !isSubmitting;
+
+  const isUserInteracted = nameTouched || nameFocused;
+  const isFormValid = isNameValid && isPayloadReady && !isSubmitting && isUserInteracted;
 
   const labelClass = useMemo(() => {
     const base = 'info-field-label';
@@ -226,10 +232,13 @@ export default function CreateInfoPage() {
   return (
     <div className="create-info-page">
       <div className="create-info-container">
-        <TopBar currentStep={4} totalSteps={4} />
-
-        <header className="create-info-header">
-          <BackButton onClick={handleBack} />
+        <header className="create-info-nav">
+          <div className="create-info-topbar">
+            <TopBar currentStep={4} totalSteps={4} />
+          </div>
+          <div className="create-info-back">
+            <BackButton onClick={handleBack} />
+          </div>
         </header>
 
         <main className="create-info-content">

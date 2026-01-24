@@ -9,9 +9,41 @@ import NextButton from '../components/common/NextButton';
 import SearchIcon from '../../assets/icons/search.png';
 import NoImage from '../../assets/icons/no-image.png';
 
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: {
+      accept: 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await res.text().catch(() => '');
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = null;
+  }
+
+  if (!res.ok) {
+    const msg =
+      json?.message ||
+      json?.error ||
+      (typeof json === 'string' ? json : null) ||
+      `요청 실패 (${res.status})`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json;
+}
+
 function loadDisliked(hashUrl) {
   try {
-    const raw = localStorage.getItem(`gmg_disliked_${hashUrl || 'unknown'}`);
+    const raw = sessionStorage.getItem(`gmg_disliked_${hashUrl || 'unknown'}`);
     const obj = raw ? JSON.parse(raw) : {};
     return {
       dislikedCategoryIds: Array.isArray(obj.dislikedCategoryIds) ? obj.dislikedCategoryIds : [],
@@ -23,7 +55,7 @@ function loadDisliked(hashUrl) {
 }
 
 function saveDisliked(hashUrl, payload) {
-  localStorage.setItem(`gmg_disliked_${hashUrl || 'unknown'}`, JSON.stringify(payload));
+  sessionStorage.setItem(`gmg_disliked_${hashUrl || 'unknown'}`, JSON.stringify(payload));
 }
 
 function truncatePlaceName(name, max = 9) {
@@ -34,13 +66,13 @@ function truncatePlaceName(name, max = 9) {
 }
 
 function getParticipantId(hashUrl) {
-  const raw = localStorage.getItem(`gmg_participant_${hashUrl}`);
+  const raw = sessionStorage.getItem(`gmg_participant_${hashUrl}`);
   const n = raw ? Number(raw) : NaN;
   return Number.isFinite(n) ? n : null;
 }
 
 async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislikedPlaceIds) {
-  const res = await fetch(
+  return apiFetch(
     `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/disliked`,
     {
       method: 'POST',
@@ -48,12 +80,6 @@ async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislike
       body: JSON.stringify({ dislikedCategoryIds, dislikedPlaceIds }),
     },
   );
-
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(json?.message || '비선호 장소 등록에 실패했습니다.');
-  }
-  return json;
 }
 
 export default function JoinPlaceCategorySubPage() {
@@ -111,23 +137,13 @@ export default function JoinPlaceCategorySubPage() {
     else setIsLoadingMore(true);
 
     try {
-      const res = await fetch(
-        `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
-          normalizedCategoryId,
-        )}&page=${encodeURIComponent(nextPage)}&size=${encodeURIComponent(pageSize)}`,
-        { headers: { accept: 'application/json' } },
+      const json = await apiFetch(
+        `/api/events/${encodeURIComponent(
+          hashUrl,
+        )}/places?categoryId=${encodeURIComponent(normalizedCategoryId)}&page=${encodeURIComponent(
+          nextPage,
+        )}&size=${encodeURIComponent(pageSize)}`,
       );
-
-      const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        setErrorText(json?.message || '장소 목록을 불러오지 못했습니다.');
-        setPlaces([]);
-        setHasNext(false);
-        lastLoadedPageRef.current = -1;
-        setPage(0);
-        return;
-      }
 
       const data = json?.data || {};
       const list = Array.isArray(data.places) ? data.places : [];
@@ -138,8 +154,8 @@ export default function JoinPlaceCategorySubPage() {
       lastLoadedPageRef.current = nextPage;
       setPage(nextPage);
       setErrorText('');
-    } catch {
-      setErrorText('네트워크 오류로 장소 목록을 불러오지 못했습니다.');
+    } catch (e) {
+      setErrorText(e?.message || '장소 목록을 불러오지 못했습니다.');
       setPlaces([]);
       setHasNext(false);
       lastLoadedPageRef.current = -1;
@@ -172,6 +188,7 @@ export default function JoinPlaceCategorySubPage() {
     pendingRef.current = false;
 
     fetchPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hashUrl, normalizedCategoryId]);
 
   const filteredPlaces = useMemo(() => {
@@ -219,7 +236,6 @@ export default function JoinPlaceCategorySubPage() {
     setSubmitError('');
     setIsSubmitting(true);
 
-    // 1) 로컬 저장 (기존 동작 유지)
     const prev = loadDisliked(hashUrl);
 
     const nextCategoryIds = Array.from(
@@ -235,7 +251,6 @@ export default function JoinPlaceCategorySubPage() {
       dislikedPlaceIds: nextPlaceIds,
     });
 
-    // 2) 서버 업로드 (Participant API)
     const participantId = getParticipantId(hashUrl);
     if (!participantId) {
       setIsSubmitting(false);
@@ -286,16 +301,10 @@ export default function JoinPlaceCategorySubPage() {
             />
           </div>
 
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
-          )}
-
-          {!!submitError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
-          )}
+          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
+          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
 
           {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
-
           {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
 
           {!isApiEmpty && !isSearchEmpty && (
@@ -321,7 +330,7 @@ export default function JoinPlaceCategorySubPage() {
               {filteredPlaces.map((p) => {
                 const idNum = Number(p.id);
                 const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
-                const displayName = truncatePlaceName(p.name, 9);
+                const displayName = truncatePlaceName(p.name, 7);
 
                 return (
                   <button

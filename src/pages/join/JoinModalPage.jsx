@@ -1,10 +1,11 @@
+// src/pages/join/JoinModalPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './JoinModalPage.css';
 import NextButton from '../components/common/NextButton';
 
 function loadMembers(hashUrl) {
   try {
-    const raw = localStorage.getItem(`gmg_members_${hashUrl || 'unknown'}`);
+    const raw = sessionStorage.getItem(`gmg_members_${hashUrl || 'unknown'}`);
     const arr = raw ? JSON.parse(raw) : [];
     return Array.isArray(arr) ? arr : [];
   } catch {
@@ -13,7 +14,15 @@ function loadMembers(hashUrl) {
 }
 
 function saveMembers(hashUrl, next) {
-  localStorage.setItem(`gmg_members_${hashUrl || 'unknown'}`, JSON.stringify(next));
+  sessionStorage.setItem(`gmg_members_${hashUrl || 'unknown'}`, JSON.stringify(next));
+}
+
+function extractParticipantId(json) {
+  const data = json?.data;
+  if (!data) return null;
+  const pid = data.participantId ?? data.id ?? data.participantID;
+  const n = Number(pid);
+  return Number.isFinite(n) ? n : null;
 }
 
 export default function JoinModalPage({ open, hashUrl, onClose, onSuccessGoTime }) {
@@ -65,19 +74,18 @@ export default function JoinModalPage({ open, hashUrl, onClose, onSuccessGoTime 
     try {
       const res = await fetch(`/api/event/${encodeURIComponent(hashUrl)}/participants`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', accept: 'application/json' },
         body: JSON.stringify({ name: trimmedName }),
       });
 
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setJoinError(json?.message || '참여에 실패했습니다.');
+        setJoinError(json?.message || `참여에 실패했습니다. (${res.status})`);
         return;
       }
 
-      const participant = json?.data || {};
-      const participantId = participant.participantId;
+      const participantId = extractParticipantId(json);
 
       if (!isExistingMember) {
         const members = loadMembers(hashUrl);
@@ -85,8 +93,11 @@ export default function JoinModalPage({ open, hashUrl, onClose, onSuccessGoTime 
       }
 
       if (participantId != null) {
-        localStorage.setItem(`gmg_participant_${hashUrl}`, String(participantId));
-        localStorage.setItem(`gmg_participant_name_${hashUrl}`, trimmedName);
+        sessionStorage.setItem(`gmg_participant_${hashUrl}`, String(participantId));
+        sessionStorage.setItem(`gmg_participant_name_${hashUrl}`, trimmedName);
+      } else {
+        setJoinError('참여자 ID를 받지 못했습니다. 서버 응답을 확인해주세요.');
+        return;
       }
 
       onSuccessGoTime?.();

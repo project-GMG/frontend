@@ -7,12 +7,14 @@ import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import SearchIcon from '../../assets/icons/search.png';
+import LocationMarkerIcon from '../../assets/icons/location marker.svg';
+import CurrentLocationIcon from '../../assets/icons/category_icon/current-location.svg';
+
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 
-// 기본 중심(전북대 근처)
 const DEFAULT_CENTER = { lat: 35.8467, lng: 127.1293 };
 
-// 기본 선택값(전북대학교)
 const DEFAULT_PLACE = {
   name: '전북대학교',
   address: '전북특별자치도 전주시 덕진구 백제대로 567',
@@ -20,11 +22,9 @@ const DEFAULT_PLACE = {
   lng: 127.1293,
 };
 
-const DEFAULT_RADIUS_M = 500;
+const DEFAULT_RADIUS_M = 250;
 
-// ===== marker image (ff5315) =====
 function createOrangePinDataUrl(colorHex = '#ff5315') {
-  // 간단한 핀 SVG (fill=ff5315, stroke=white)
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="44" viewBox="0 0 40 44">
       <path d="M20 43.5C20 43.5 35 29.3 35 16.5C35 7.9 28.3 1 20 1C11.7 1 5 7.9 5 16.5C5 29.3 20 43.5 20 43.5Z"
@@ -33,15 +33,10 @@ function createOrangePinDataUrl(colorHex = '#ff5315') {
     </svg>
   `.trim();
 
-  // Kakao MarkerImage는 URL 필요 → data URL 사용
-  const encoded = encodeURIComponent(svg)
-    .replace(/'/g, '%27')
-    .replace(/"/g, '%22');
-
+  const encoded = encodeURIComponent(svg).replace(/'/g, '%27').replace(/"/g, '%22');
   return `data:image/svg+xml;charset=UTF-8,${encoded}`;
 }
 
-// SDK 로더 (autoload=false면 maps.load() 필수)
 const loadKakaoSdk = () => {
   const ensureMapsLoaded = (resolve, reject) => {
     if (!window.kakao || !window.kakao.maps) {
@@ -136,7 +131,6 @@ export default function CreateLocatePage() {
     setResults([]);
   };
 
-  // 카카오 지도에서 "선택" 처리
   const setSelectionByLatLng = (lat, lng, info) => {
     const { kakao } = window;
     const map = mapRef.current;
@@ -160,9 +154,13 @@ export default function CreateLocatePage() {
       const safeAddr = String(address).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
       const content = `
-        <div style="padding:8px 10px;font-size:12px;line-height:1.2;">
-          <div style="font-weight:600;margin-bottom:4px;">${safeTitle}</div>
-          ${safeAddr ? `<div style="color:#666;">${safeAddr}</div>` : ''}
+        <div style="padding:8px 10px;font-size:12px;line-height:1.2;max-width:240px;">
+          <div style="font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeTitle}</div>
+          ${
+            safeAddr
+              ? `<div style="color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeAddr}</div>`
+              : ''
+          }
         </div>
       `;
       infowindowRef.current.setContent(content);
@@ -170,7 +168,6 @@ export default function CreateLocatePage() {
     }
   };
 
-  // 지도 초기화 (더미 제거: 카카오만)
   useEffect(() => {
     let isMounted = true;
 
@@ -195,10 +192,9 @@ export default function CreateLocatePage() {
         });
         mapRef.current = map;
 
-        // === 커스텀 마커 이미지(#ff5315) 적용 ===
         const markerImageUrl = createOrangePinDataUrl('#ff5315');
         const markerImageSize = new kakao.maps.Size(40, 44);
-        const markerImageOption = { offset: new kakao.maps.Point(20, 44) }; // 하단 끝이 좌표에 오도록
+        const markerImageOption = { offset: new kakao.maps.Point(20, 44) };
         const markerImage = new kakao.maps.MarkerImage(
           markerImageUrl,
           markerImageSize,
@@ -225,7 +221,6 @@ export default function CreateLocatePage() {
         infowindowRef.current = new kakao.maps.InfoWindow({ zIndex: 10 });
         placesRef.current = new kakao.maps.services.Places();
 
-        // 초기 선택(전북대)
         setSelectionByLatLng(DEFAULT_PLACE.lat, DEFAULT_PLACE.lng, {
           name: DEFAULT_PLACE.name,
           address: DEFAULT_PLACE.address,
@@ -259,7 +254,6 @@ export default function CreateLocatePage() {
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearchSubmit = (e) => {
@@ -309,7 +303,10 @@ export default function CreateLocatePage() {
   };
 
   const moveToCurrentLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      alert('이 브라우저에서는 위치 기능을 사용할 수 없습니다.');
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -326,14 +323,14 @@ export default function CreateLocatePage() {
 
         setSelectionByLatLng(lat, lng, { name: '현재 위치', address: '' });
       },
-      () => {
-        alert('현재 위치 권한을 허용해야 사용할 수 있습니다.');
+      (err) => {
+        if (err?.code === 1) alert('현재 위치 권한을 허용해야 사용할 수 있습니다.');
+        else alert('현재 위치를 불러오지 못했습니다.');
       },
-      { enableHighAccuracy: true, timeout: 8000 },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
     );
   };
 
-  // 검색바(접힌 상태)에 보여줄 텍스트
   const collapsedText = useMemo(() => {
     if (!isKakaoReady) return '지도를 불러오는 중...';
     if (selectedPlace?.name) return selectedPlace.name;
@@ -343,10 +340,13 @@ export default function CreateLocatePage() {
   return (
     <div className="create-locate-page">
       <div className="create-locate-container">
-        <TopBar currentStep={3} totalSteps={4} />
-
-        <header className="create-locate-header">
-          <BackButton onClick={handleBack} />
+        <header className="create-locate-nav">
+          <div className="create-locate-topbar">
+            <TopBar currentStep={3} totalSteps={4} />
+          </div>
+          <div className="create-locate-back">
+            <BackButton onClick={handleBack} />
+          </div>
         </header>
 
         <main className="create-locate-content">
@@ -362,7 +362,7 @@ export default function CreateLocatePage() {
                   onClick={openSearch}
                   disabled={!isKakaoReady}
                 >
-                  <span className="create-locate-search-icon-large" />
+                  <img className="create-locate-search-icon-img" src={SearchIcon} alt="검색" />
                   <span className="create-locate-search-collapsed-text">{collapsedText}</span>
                 </button>
               )}
@@ -414,12 +414,11 @@ export default function CreateLocatePage() {
                           if (ev.key === 'Enter') selectResult(item);
                         }}
                       >
-                        <div className="create-locate-search-result-icon-wrap">
-                          <span className="create-locate-search-result-pin" />
-                          <span className="create-locate-search-result-distance">
-                            {item.distance || ''}
-                          </span>
-                        </div>
+                        <img
+                          src={LocationMarkerIcon}
+                          alt=""
+                          className="create-locate-search-result-pin-img"
+                        />
                         <span className="create-locate-search-result-name">{item.name}</span>
                       </li>
                     ))}
@@ -433,15 +432,9 @@ export default function CreateLocatePage() {
                 </div>
               )}
 
-              {/* 카카오 지도 컨테이너(더미 UI 삭제) */}
               <div ref={mapContainerRef} className="create-locate-map-placeholder" />
 
-              {/* SDK 로드 실패 안내(더미 대신 에러 안내만) */}
-              {!!kakaoError && (
-                <div className="create-locate-map-error">
-                  {kakaoError}
-                </div>
-              )}
+              {!!kakaoError && <div className="create-locate-map-error">{kakaoError}</div>}
 
               <button
                 type="button"
@@ -450,7 +443,11 @@ export default function CreateLocatePage() {
                 aria-label="현재 위치로 이동"
                 disabled={!isKakaoReady}
               >
-                <span className="create-locate-current-location-icon" />
+                <img
+                  src={CurrentLocationIcon}
+                  alt=""
+                  className="create-locate-current-location-icon-img"
+                />
               </button>
             </div>
           </section>

@@ -3,124 +3,115 @@
 .create-place-page {
   width: 100vw;
   height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background-color: #F1F2F5;
+  background-color: var(--bg-default);
 }
 
 .create-place-container {
   width: 393px;
   height: 852px;
   box-sizing: border-box;
-
-  background-color: #F1F2F5;
-
-  padding-top: 56px;
-  padding-right: 20px;
-  padding-bottom: 34px;
-  padding-left: 20px;
-
+  background-color: var(--bg-default);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-
-  /* 반응형 */
-  max-width: calc(100vw - 40px);
-  max-height: calc(100vh - 40px);
-
-  width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100vh - 40px));
-
-  overflow: hidden;
-
+  padding-top: 56px;
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  overflow-y: auto;
   border-radius: 16px;
 }
 
 .create-place-nav {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  width: 353px;
+  height: 44px;
+  position: relative;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.create-place-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.create-place-topbar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0;
+}
+
+.create-place-back {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.create-place-back .back-button {
+  width: 44px;
+  height: 22px;
 }
 
 .create-place-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-top: 24px;
-
-  overflow-y: auto; 
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-top: 38px;
 }
 
-/* "어디를 갈까요?" */
 .create-place-title {
-  margin: 0 0 20px;
-
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 31.2px;
+  margin: 0;
+  font-size: var(--font-title-h2-size, 26px);
+  font-weight: var(--font-title-h2-weight, 600);
+  line-height: var(--font-title-h2-line, 31.2px);
   color: #333232;
 }
 
-/* "방문할 장소들을 모두 선택해 주세요" */
 .create-place-subtitle {
-  margin: 0 0 24px;
-
+  margin: 30px 0 0;
   font-size: 14px;
   font-weight: 400;
   line-height: 16.8px;
   color: #333232;
 }
 
-/* "모두"  강조 */
 .create-place-subtitle-em {
   font-weight: 600;
 }
 
-/* 리스트 */
 .create-place-category-list {
+  margin-top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
-/* 카테고리 카드 */
 .create-place-category-card {
   width: 100%;
   padding: 16px;
   box-sizing: border-box;
-
   display: flex;
   align-items: center;
   gap: 12px;
-
   background-color: #ffffff;
   border-radius: 16px;
-
   border: 1px solid transparent;
-
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-/* hover */
 .create-place-category-card:hover {
   background-color: #fff7f4;
-  border-color: #000000;
+  border-color: #ff5315;
 }
 
 .create-place-category-card--selected {
   background-color: #ffede6;
-  border-color: #DDDDDD; 
+  border-color: #ff5315;
 }
 
 .create-place-category-card:focus,
@@ -137,7 +128,6 @@
   flex-shrink: 0;
 }
 
-/* 텍스트 컨테이너 */
 .create-place-category-texts {
   display: flex;
   flex-direction: column;
@@ -146,7 +136,6 @@
   text-align: left;
 }
 
-/* 라벨 */
 .create-place-category-label {
   font-size: 14px;
   font-weight: 400;
@@ -154,17 +143,27 @@
   color: #ff5315;
 }
 
-/* 설명 */
 .create-place-category-description {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 19.2px;
   color: #333232;
 }
 
 .create-place-footer {
-  flex-shrink: 0;
   display: flex;
   justify-content: center;
-  margin-top: 24px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 34px;
+}
+
+.create-place-footer .next-button {
+  width: 353px;
+  height: 70px;
+  font-family: Pretendard, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0%;
 }

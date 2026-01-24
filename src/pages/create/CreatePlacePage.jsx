@@ -66,9 +66,7 @@ export default function CreatePlacePage() {
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
 
   const toggleCategory = (id) => {
-    setSelectedIds((p) =>
-      p.includes(id) ? p.filter((x) => x !== id) : [...p, id],
-    );
+    setSelectedIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   };
 
   const handleBack = () => window.history.back();
@@ -84,7 +82,7 @@ export default function CreatePlacePage() {
 
     navigate('/create/date', {
       state: {
-        ...prev, 
+        ...prev,
         placeTypeCodes,
       },
     });
@@ -130,9 +128,7 @@ export default function CreatePlacePage() {
                   />
                   <div className="create-place-category-texts">
                     <span className="create-place-category-label">{category.label}</span>
-                    <span className="create-place-category-description">
-                      {category.description}
-                    </span>
+                    <span className="create-place-category-description">{category.description}</span>
                   </div>
                 </button>
               );

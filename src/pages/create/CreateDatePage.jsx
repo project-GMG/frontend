@@ -1,5 +1,4 @@
 // gmg-front/src/pages/create/CreateDatePage.jsx
-
 import React, { useMemo, useRef, useState } from 'react';
 import './CreateDatePage.css';
 import BackButton from '../components/common/BackButton';
@@ -106,7 +105,7 @@ export default function CreateDatePage() {
 
   const wheelAccStartRef = useRef(0);
   const wheelAccEndRef = useRef(0);
-  const WHEEL_THRESHOLD = 180;
+  const WHEEL_THRESHOLD = 100;
 
   const toggleDate = (cell) => {
     if (cell.type !== 'date') return;
@@ -158,7 +157,6 @@ export default function CreateDatePage() {
   };
 
   const handleStartWheel = (event) => {
-    event.preventDefault();
 
     wheelAccStartRef.current += event.deltaY;
 
@@ -174,7 +172,6 @@ export default function CreateDatePage() {
   };
 
   const handleEndWheel = (event) => {
-    event.preventDefault();
 
     wheelAccEndRef.current += event.deltaY;
 
@@ -225,13 +222,14 @@ export default function CreateDatePage() {
   return (
     <div className="create-date-page">
       <div className="create-date-container">
-        <div className="create-date-topbar">
-          <TopBar currentStep={2} totalSteps={4} />
-        </div>
-
-        <div className="create-date-back">
-          <BackButton onClick={handleBack} />
-        </div>
+        <header className="create-date-nav">
+          <div className="create-date-topbar">
+            <TopBar currentStep={2} totalSteps={4} />
+          </div>
+          <div className="create-date-back">
+            <BackButton onClick={handleBack} />
+          </div>
+        </header>
 
         <main className="create-date-content">
           <h1 className="create-date-title">언제쯤 만날까요?</h1>

@@ -8,31 +8,14 @@
   justify-content: flex-start;
 
   padding: 0;
+  margin: 0;
   border: none;
   background: transparent;
   cursor: pointer;
 }
 
-
 .back-button-icon {
-  position: relative;
-  width: 12px;
+  width: 44px;
   height: 22px;
-}
-
-
-.back-button-icon::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-
-  width: 12px;
-  height: 12px;
-
-  border-left: 3px solid #333232;
-  border-bottom: 3px solid #333232;
-
-  transform: translate(-50%, -50%) rotate(45deg);
-  border-radius: 1px;
+  display: block;
 }

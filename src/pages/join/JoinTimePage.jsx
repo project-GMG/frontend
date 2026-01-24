@@ -1,11 +1,51 @@
+// gmg-front/src/pages/join/JoinTimePage.jsx
+
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
+import BackButton from '../components/common/BackButton';
 import './JoinTimePage.css';
 
 const LONG_PRESS_MS = 250;
 const MOVE_CANCEL_PX = 8;
 const KEY_SEP = '::';
+
+const SWIPE_TH_PX = 40;
+const SWIPE_MAX_VERTICAL_PX = 60;
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: {
+      accept: 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await res.text().catch(() => '');
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = null;
+  }
+
+  if (!res.ok) {
+    const msg =
+      json?.message ||
+      json?.error ||
+      (typeof json === 'string' ? json : null) ||
+      (text && text.slice(0, 120)) ||
+      `요청 실패 (${res.status})`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json;
+}
 
 function parseYmd(s) {
   if (!s) return null;
@@ -71,7 +111,7 @@ function buildTimeSlotsFromRange(startHm, endHm) {
   const apiHm = [];
 
   let cur = startMin;
-  while (cur <= endMin) {
+  while (cur < endMin) {
     const h = Math.floor(cur / 60);
     const m = cur % 60;
 
@@ -117,7 +157,8 @@ export default function JoinTimePage() {
 
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
-  const touchStartRef = useRef({ x: 0, y: 0 });
+
+  const swipeRef = useRef({ x: 0, y: 0 });
 
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [eventError, setEventError] = useState('');
@@ -140,25 +181,14 @@ export default function JoinTimePage() {
       setEventError('');
 
       try {
-        const res = await fetch(`/api/events/${encodeURIComponent(hashUrl)}`, {
-          headers: { accept: 'application/json' },
-        });
-        const json = await res.json().catch(() => null);
-
+        const json = await apiFetch(`/api/events/${encodeURIComponent(hashUrl)}`);
         if (!alive) return;
-
-        if (!res.ok) {
-          setEventError(json?.message || '이벤트 정보를 불러오지 못했습니다.');
-          setEventData(null);
-          setIsLoadingEvent(false);
-          return;
-        }
 
         setEventData(json?.data || null);
         setIsLoadingEvent(false);
-      } catch {
+      } catch (e) {
         if (!alive) return;
-        setEventError('네트워크 오류로 이벤트 정보를 불러오지 못했습니다.');
+        setEventError(e?.message || '네트워크 오류로 이벤트 정보를 불러오지 못했습니다.');
         setEventData(null);
         setIsLoadingEvent(false);
       }
@@ -211,7 +241,7 @@ export default function JoinTimePage() {
 
   const handleBack = () => navigate(-1);
 
-  const buildUnavailableTimes = () => {
+  const buildUnavailableTimesRaw = () => {
     const out = [];
 
     for (const key of selectedKeys) {
@@ -222,7 +252,6 @@ export default function JoinTimePage() {
 
       const ymd = allDateYmds[dateIndex];
       const startTime = timeApiHm[slotIndex];
-
       if (!ymd || !startTime) continue;
 
       const startMin = hmToMin(startTime);
@@ -236,6 +265,37 @@ export default function JoinTimePage() {
     }
 
     return out;
+  };
+
+  const filterUnavailableTimesByEvent = (list) => {
+    const ds = eventData?.dateRange?.startDate;
+    const de = eventData?.dateRange?.endDate;
+    const ts = eventData?.timeRange?.startTime;
+    const te = eventData?.timeRange?.endTime;
+
+    const startDate = parseYmd(ds);
+    const endDate = parseYmd(de);
+    const startMin = hmToMin(ts);
+    const endMin = hmToMin(te);
+
+    if (!startDate || !endDate || startMin == null || endMin == null) return list;
+
+    return list.filter((it) => {
+      const d = parseYmd(it.date);
+      if (!d) return false;
+      if (d.getTime() < startDate.getTime() || d.getTime() > endDate.getTime()) return false;
+
+      const sMin = hmToMin(it.startTime);
+      const eMin = hmToMin(it.endTime);
+      if (sMin == null || eMin == null) return false;
+
+      if (sMin < startMin) return false;
+      if (eMin > endMin) return false;
+      if (eMin - sMin !== 30) return false;
+      if (sMin % 30 !== 0) return false;
+
+      return true;
+    });
   };
 
   const handleNext = async () => {
@@ -254,16 +314,24 @@ export default function JoinTimePage() {
       return;
     }
 
-    const unavailableTimes = buildUnavailableTimes();
+    const raw = buildUnavailableTimesRaw();
+    const unavailableTimes = filterUnavailableTimesByEvent(raw);
+
+    console.log('[unavailableTimes][raw]', raw);
+    console.log('[unavailableTimes][filtered]', unavailableTimes);
+    console.log('[event][range]', eventData?.dateRange, eventData?.timeRange);
+
     if (!unavailableTimes.length) {
       setIsSubmitting(false);
-      setSubmitError('선택한 시간이 유효하지 않습니다. 다시 선택해주세요.');
+      setSubmitError('선택한 시간이 모임 범위를 벗어났습니다. 다시 선택해주세요.');
       return;
     }
 
     try {
-      const res = await fetch(
-        `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/unavailble-times`,
+      await apiFetch(
+        `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(
+          participantId,
+        )}/unavailable-times`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -271,16 +339,9 @@ export default function JoinTimePage() {
         },
       );
 
-      const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        setSubmitError(json?.message || '시간 등록에 실패했습니다.');
-        return;
-      }
-
       navigate(`/join/Category?code=${encodeURIComponent(hashUrl)}`);
-    } catch {
-      setSubmitError('네트워크 오류로 시간 등록에 실패했습니다.');
+    } catch (e) {
+      setSubmitError(e?.message || '네트워크 오류로 시간 등록에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -344,9 +405,12 @@ export default function JoinTimePage() {
   const onSlotPointerDown = (e, key) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
+    const target = e.currentTarget;
+    const pid = e.pointerId;
+
     const st = selectStateRef.current;
     st.pointerDown = true;
-    st.pointerId = e.pointerId;
+    st.pointerId = pid;
     st.startX = e.clientX;
     st.startY = e.clientY;
     st.startKey = key;
@@ -368,7 +432,12 @@ export default function JoinTimePage() {
       timeScrollRef.current?.classList.add('is-selecting');
       gridScrollRef.current?.classList.add('is-selecting');
 
-      e.currentTarget.setPointerCapture?.(e.pointerId);
+      // ✅ null-safe
+      if (target && typeof target.setPointerCapture === 'function') {
+        try {
+          target.setPointerCapture(pid);
+        } catch {}
+      }
     }, LONG_PRESS_MS);
   };
 
@@ -431,47 +500,56 @@ export default function JoinTimePage() {
 
   const onPointerCancel = (e) => finishPointer(e);
 
+
   const onTouchStart = (e) => {
     if (selectStateRef.current.mode !== 'idle') return;
     const t = e.touches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
+    swipeRef.current = { x: t.clientX, y: t.clientY };
   };
 
   const onTouchEnd = (e) => {
     if (selectStateRef.current.mode !== 'idle') return;
-    const start = touchStartRef.current;
+
+    const start = swipeRef.current;
     const t = e.changedTouches[0];
+
     const dx = t.clientX - start.x;
     const dy = t.clientY - start.y;
 
-    if (Math.abs(dy) > Math.abs(dx)) return;
+    // 세로 스크롤이 섞이면 무시
+    if (Math.abs(dy) > SWIPE_MAX_VERTICAL_PX) return;
 
-    const TH = 40;
-    if (dx <= -TH) goNext();
-    else if (dx >= TH) goPrev();
+    // 수평 스와이프만
+    if (dx <= -SWIPE_TH_PX) goNext();
+    else if (dx >= SWIPE_TH_PX) goPrev();
   };
 
   return (
     <div className="join-time-page">
       <div className="join-time-container">
-        <header className="join-time-header">
-          <button type="button" className="join-time-back" onClick={handleBack} aria-label="뒤로가기">
-            ‹
-          </button>
-
+        <header className="join-time-nav">
           <div className="join-time-step-pill">
             {page + 1} / {totalPages}
           </div>
-
-          <div className="join-time-header-spacer" />
+          <div className="join-time-back">
+            <BackButton onClick={handleBack} />
+          </div>
         </header>
 
         <main className="join-time-content">
           <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
 
-          {isLoadingEvent && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>}
-          {!!eventError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>}
-          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
+          {isLoadingEvent && (
+            <div className="join-time-loading">
+              <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
+            </div>
+          )}
+          {!!eventError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
+          )}
+          {!!submitError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+          )}
 
           <section
             className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
@@ -482,7 +560,10 @@ export default function JoinTimePage() {
               <div className="jt-date-rail">
                 <div className="jt-date-row">
                   {pageDates.map((d, i) => (
-                    <div key={`${page}-${d}-${i}`} className={`jt-date-header ${isWeekendLabel(d) ? 'is-weekend' : ''}`}>
+                    <div
+                      key={`${page}-${d}-${i}`}
+                      className={`jt-date-header ${isWeekendLabel(d) ? 'is-weekend' : ''}`}
+                    >
                       {d}
                     </div>
                   ))}

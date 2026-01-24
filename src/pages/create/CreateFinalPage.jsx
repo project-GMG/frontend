@@ -1,3 +1,5 @@
+// gmg-front/src/pages/create/CreateFinalPage.jsx
+
 import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './CreateFinalPage.css';
@@ -53,16 +55,21 @@ export default function CreateFinalPage() {
   };
 
   const handleRegister = () => {
-    navigate(`/main?code=${encodeURIComponent(
-      String(hashUrl).replace(/^https?:\/\/[^/]+\/?/, '').replace(/^\/+/, '')
-    )}`, { replace: true });
+    navigate(
+      `/main?code=${encodeURIComponent(
+        String(hashUrl).replace(/^https?:\/\/[^/]+\/?/, '').replace(/^\/+/, ''),
+      )}`,
+      { replace: true },
+    );
   };
 
   return (
     <div className="create-final-page">
       <div className="create-final-container">
-        <header className="create-final-header">
-          <BackButton onClick={handleBack} />
+        <header className="create-final-nav">
+          <div className="create-final-back">
+            <BackButton onClick={handleBack} />
+          </div>
         </header>
 
         <main className="create-final-content">

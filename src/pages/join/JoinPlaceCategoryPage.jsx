@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinPlaceCategoryPage.css';
 import NextButton from '../components/common/NextButton';
+import BackButton from '../components/common/BackButton';
 
 import AsianFoodIcon from '../../assets/icons/category_icon/asian food ico.png';
 import BoardGameCafeIcon from '../../assets/icons/category_icon/board gamecafe ico.png';
@@ -182,76 +183,92 @@ export default function JoinPlaceCategoryPage() {
   return (
     <div className="jpc-page">
       <div className="jpc-container">
-        <header className="jpc-header">
-          <button type="button" className="jpc-back" onClick={handleBack} aria-label="뒤로가기">
-            ‹
-          </button>
-
+        {/* ✅ JoinTimePage와 동일한 위치 체계(absolute) */}
+        <header className="jpc-nav">
           <div className="jpc-step-pill">2 / 2</div>
-
-          <div className="jpc-header-spacer" />
+          <div className="jpc-back">
+            <BackButton onClick={handleBack} />
+          </div>
         </header>
 
         <main className="jpc-content">
           <h1 className="jpc-title">여긴 피했으면 좋겠어요</h1>
 
-          {isLoading && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>불러오는 중...</p>}
-          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
+          {/* ✅ 로딩 문구 화면 중앙 */}
+          {isLoading && (
+            <div className="jpc-loading">
+              <p className="jpc-loading-text">불러오는 중...</p>
+            </div>
+          )}
 
-          <div className="jpc-groups">
-            {GROUPS.map((group) => (
-              <section
-                key={group.id}
-                className={'jpc-group-card' + (group.id === 'RESTAURANT' ? ' jpc-group-card--restaurant' : '')}
-              >
-                <h2 className="jpc-group-title">
-                  {group.titleParts.map((p, idx) => (
-                    <span key={`${group.id}-t-${idx}`} className={p.highlight ? 'jpc-highlight' : undefined}>
-                      {p.text}
-                    </span>
-                  ))}
-                </h2>
+          {!!errorText && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+          )}
 
-                <div className="jpc-items">
-                  {group.items.map((item) => {
-                    const iconSrc = CATEGORY_ICON_BY_CODE[item.code];
-
-                    return (
-                      <button
-                        key={`${group.id}-${item.id}`}
-                        type="button"
-                        className="jpc-item"
-                        onClick={() => goSub(group, item)}
-                        aria-label={`${item.label} 선택`}
-                        disabled={!hashUrl || !!errorText || isLoading}
+          {!isLoading && (
+            <div className="jpc-groups">
+              {GROUPS.map((group) => (
+                <section
+                  key={group.id}
+                  className={
+                    'jpc-group-card' +
+                    (group.id === 'RESTAURANT' ? ' jpc-group-card--restaurant' : '')
+                  }
+                >
+                  <h2 className="jpc-group-title">
+                    {group.titleParts.map((p, idx) => (
+                      <span
+                        key={`${group.id}-t-${idx}`}
+                        className={p.highlight ? 'jpc-highlight' : undefined}
                       >
-                        <div className="jpc-item-icon">
-                          {iconSrc ? (
-                            <img
-                              src={iconSrc}
-                              alt=""
-                                  style={{
-                                    width: '47px',
-                                    height: '47px',
-                                    objectFit: 'contain',
-                                  }}                             
-                                   draggable={false}
-                            />
-                          ) : null}
-                        </div>
+                        {p.text}
+                      </span>
+                    ))}
+                  </h2>
 
-                        <div className="jpc-item-label">{item.label}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+                  <div className="jpc-items">
+                    {group.items.map((item) => {
+                      const iconSrc = CATEGORY_ICON_BY_CODE[item.code];
 
-            {!isLoading && !errorText && GROUPS.length === 0 && (
-              <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>선택 가능한 카테고리가 없습니다.</p>
-            )}
-          </div>
+                      return (
+                        <button
+                          key={`${group.id}-${item.id}`}
+                          type="button"
+                          className="jpc-item"
+                          onClick={() => goSub(group, item)}
+                          aria-label={`${item.label} 선택`}
+                          disabled={!hashUrl || !!errorText}
+                        >
+                          <div className="jpc-item-icon">
+                            {iconSrc ? (
+                              <img
+                                src={iconSrc}
+                                alt=""
+                                style={{
+                                  width: '47px',
+                                  height: '47px',
+                                  objectFit: 'contain',
+                                }}
+                                draggable={false}
+                              />
+                            ) : null}
+                          </div>
+
+                          <div className="jpc-item-label">{item.label}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+
+              {!errorText && GROUPS.length === 0 && (
+                <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
+                  선택 가능한 카테고리가 없습니다.
+                </p>
+              )}
+            </div>
+          )}
         </main>
 
         <footer className="jpc-footer">

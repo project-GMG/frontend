@@ -1,4 +1,3 @@
-/* 전체 레이아웃 */
 .join-final-page {
   width: 100vw;
   height: 100vh;
@@ -30,7 +29,6 @@
   border-radius: 16px;
 }
 
-/* 콘텐츠 중앙 정렬 */
 .join-final-content {
   flex: 1;
 
@@ -42,25 +40,23 @@
   text-align: center;
 }
 
-/* 타이틀 */
 .join-final-title {
-  margin: 0 0 10px;
-  font-size: 18px;
+  margin: 100px 0 0;
+  font-size: 26px;
   font-weight: 600;
   line-height: 21.6px;
   color: #333232;
 }
 
-/* 서브 텍스트 */
 .join-final-subtitle {
-  margin: 0 0 28px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  color: #7e7e7e;
+  margin: 28px 0 28px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 22px;
+  gap: 5px;
+  color: #333232;
 }
 
-/* 일러스트 영역 */
 .join-final-illustration {
   width: 180px;
   height: 180px;
@@ -70,7 +66,6 @@
   justify-content: center;
 }
 
-/* 일러스트 이미지 */
 .join-final-image {
   width: 100%;
   height: 100%;
@@ -78,8 +73,22 @@
   display: block;
 }
 
-/* 하단 버튼 */
 .join-final-footer {
   display: flex;
   justify-content: center;
+
+  position: sticky;
+  bottom: 10px;
+
+  padding: 0;
+  background: none;
+}
+
+.join-final-footer > * {
+  width: 329px;
+}
+
+.join-final-footer button {
+  width: 329px;
+  height: 70px;
 }

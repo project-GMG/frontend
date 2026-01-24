@@ -1,3 +1,6 @@
+// src/pages/main/MainPage.jsx
+
+
 import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
@@ -102,17 +105,22 @@ function slotToHm(slot) {
   return `${String(h).padStart(2, '0')}:${mm}`;
 }
 
-function normalizeRecommendationsFlatTop3(data) {
+// recommendations 실제 응답(placeId/placeName/score) 대응 -> 평탄화 + score desc
+function normalizeRecommendations(data) {
   const recs = data?.recommendations;
   if (!Array.isArray(recs)) return [];
 
   const flat = recs
-    .flatMap((r) => (Array.isArray(r?.places) ? r.places : []))
-    .map((p) => ({
-      id: p?.placeId ?? p?.id,
-      name: String(p?.placeName ?? p?.name ?? '').trim(),
-      score: typeof p?.score === 'number' ? p.score : -Infinity,
-    }))
+    .flatMap((r) => {
+      const typeName = String(r?.placeTypeName || '').trim();
+      const places = Array.isArray(r?.places) ? r.places : [];
+      return places.map((p) => ({
+        id: p?.placeId ?? p?.id,
+        name: String(p?.placeName ?? p?.name ?? '').trim(),
+        score: typeof p?.score === 'number' ? p.score : -Infinity,
+        placeTypeName: typeName,
+      }));
+    })
     .filter((p) => p.id != null && p.name);
 
   const uniq = new Map();
@@ -125,29 +133,43 @@ function normalizeRecommendationsFlatTop3(data) {
     }
   }
 
-  return Array.from(uniq.values())
-    .sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity))
-    .slice(0, 3);
+  return Array.from(uniq.values()).sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity));
 }
 
-async function fetchKakaoImageUrl(query) {
-  const q = String(query || '').trim();
-  if (!q) return '';
+async function apiFetchJson(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: {
+      accept: 'application/json',
+      ...(options.headers || {}),
+    },
+    cache: 'no-store',
+  });
 
+  const text = await res.text().catch(() => '');
+  let json = null;
   try {
-    const res = await fetch(`/api/kakao/image?query=${encodeURIComponent(q)}`, {
-      headers: { accept: 'application/json' },
-      cache: 'no-store',
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok) return '';
-
-    const url = String(json?.data?.imageUrl || json?.imageUrl || '').trim();
-    return url;
+    json = text ? JSON.parse(text) : null;
   } catch {
-    return '';
+    json = null;
   }
+
+  if (!res.ok) {
+    const msg = json?.message || `요청 실패 (${res.status})`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json;
+}
+
+function getSlotBgByRank(rank) {
+  if (rank === 1) return '#FF5315';
+  if (rank === 2) return 'rgba(253, 88, 57, 0.6)';
+  if (rank === 3) return 'rgba(255, 83, 21, 0.3)';
+  return '';
 }
 
 export default function MainPage() {
@@ -166,11 +188,13 @@ export default function MainPage() {
   const [recoLoading, setRecoLoading] = useState(false);
   const [recoPlaces, setRecoPlaces] = useState([]);
 
+  // 이미지 매핑: placeId -> imageUrl (A안: categories + places로 채움)
   const [placeImageMap, setPlaceImageMap] = useState({});
-  const requestedIdsRef = useRef(new Set());
+  const placeImageRequestedRef = useRef(new Set());
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
 
+  // ✅ Event API 연결 (heatmapData 포함)
   useEffect(() => {
     let alive = true;
 
@@ -225,6 +249,7 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
+  // ✅ recommendations API 연결
   useEffect(() => {
     let alive = true;
 
@@ -248,7 +273,7 @@ export default function MainPage() {
           return;
         }
 
-        const list = normalizeRecommendationsFlatTop3(json?.data);
+        const list = normalizeRecommendations(json?.data);
         setRecoPlaces(list);
         setRecoLoading(false);
       } catch {
@@ -263,43 +288,33 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  useEffect(() => {
-    let alive = true;
+  const topRankMap = useMemo(() => {
+    const list = Array.isArray(eventData?.heatmapData) ? eventData.heatmapData : [];
 
-    (async () => {
-      if (!Array.isArray(recoPlaces) || recoPlaces.length === 0) return;
+    const norm = list
+      .map((h) => {
+        const dt = parseYmd(h?.date);
+        const dateLabel = dt ? formatDateKorean(dt) : '';
+        const timeHm = String(h?.timeSlot || '').slice(0, 5);
+        if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) return null;
 
-      const targets = recoPlaces
-        .filter((p) => p?.id != null)
-        .filter((p) => !placeImageMap[String(p.id)])
-        .filter((p) => !requestedIdsRef.current.has(String(p.id)));
+        const c = Number(h?.availableCount);
+        if (!Number.isFinite(c)) return null;
 
-      if (targets.length === 0) return;
+        return { key: `${dateLabel}|${timeHm}`, count: c };
+      })
+      .filter(Boolean);
 
-      targets.forEach((p) => requestedIdsRef.current.add(String(p.id)));
+    const distinctCounts = Array.from(new Set(norm.map((x) => x.count))).sort((a, b) => a - b);
+    const topCounts = distinctCounts.slice(0, 3);
 
-      const results = await Promise.all(
-        targets.map(async (p) => {
-          const url = await fetchKakaoImageUrl(p.name);
-          return [String(p.id), url];
-        }),
-      );
-
-      if (!alive) return;
-
-      setPlaceImageMap((prev) => {
-        const next = { ...prev };
-        for (const [id, url] of results) {
-          if (url) next[id] = url;
-        }
-        return next;
-      });
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [recoPlaces, placeImageMap]);
+    const out = new Map();
+    for (const item of norm) {
+      const idx = topCounts.indexOf(item.count);
+      if (idx !== -1) out.set(item.key, idx + 1);
+    }
+    return out;
+  }, [eventData]);
 
   const title = eventData?.title || '';
 
@@ -317,23 +332,114 @@ export default function MainPage() {
 
   const canRenderGrid = dates.length > 0 && timeSlots.length > 0;
 
-  const heatmapMap = useMemo(() => {
-    const map = new Map();
-    const list = Array.isArray(eventData?.heatmapData) ? eventData.heatmapData : [];
-    for (const h of list) {
-      const dt = parseYmd(h?.date);
-      const dateLabel = dt ? formatDateKorean(dt) : '';
-      const timeHm = String(h?.timeSlot || '').slice(0, 5);
-      if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) continue;
-      map.set(`${dateLabel}|${timeHm}`, h);
-    }
-    return map;
-  }, [eventData]);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      if (!hashUrl) return;
+      if (!Array.isArray(recoPlaces) || recoPlaces.length === 0) return;
+
+      const top3 = recoPlaces.slice(0, 3);
+
+      const needIds = top3
+        .map((p) => p?.id)
+        .filter((id) => id != null)
+        .map((id) => String(id))
+        .filter((id) => !placeImageMap[id])
+        .filter((id) => !placeImageRequestedRef.current.has(id));
+
+      if (needIds.length === 0) return;
+
+      needIds.forEach((id) => placeImageRequestedRef.current.add(id));
+
+      // 1) categories 가져오기 (categoryId 수집)
+      let categoryIds = [];
+      try {
+        const catJson = await apiFetchJson(`/api/events/${encodeURIComponent(hashUrl)}/categories`);
+        const pts = Array.isArray(catJson?.data?.placeTypes) ? catJson.data.placeTypes : [];
+
+        categoryIds = pts
+          .flatMap((pt) => (Array.isArray(pt?.categories) ? pt.categories : []))
+          .map((c) => c?.id)
+          .filter((id) => Number.isFinite(Number(id)))
+          .map((id) => Number(id));
+      } catch {
+        return;
+      }
+
+      if (!alive) return;
+      if (categoryIds.length === 0) return;
+
+      const remaining = new Set(needIds);
+
+      const maxCategories = 25;
+      const maxPagesPerCategory = 5;
+      const size = 16;
+
+      const nextMap = {};
+
+      for (const categoryId of categoryIds.slice(0, maxCategories)) {
+        if (!alive) return;
+        if (remaining.size === 0) break;
+
+        for (let page = 0; page < maxPagesPerCategory; page += 1) {
+          if (!alive) return;
+          if (remaining.size === 0) break;
+
+          let placeJson = null;
+          try {
+            placeJson = await apiFetchJson(
+              `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
+                categoryId,
+              )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`,
+            );
+          } catch {
+            break;
+          }
+
+          const data = placeJson?.data || {};
+          const places = Array.isArray(data?.places) ? data.places : [];
+
+          for (const p of places) {
+            const idStr = p?.id != null ? String(p.id) : '';
+            if (!idStr) continue;
+            if (!remaining.has(idStr)) continue;
+
+            const url = String(p?.imageUrl || '').trim();
+            if (url) {
+              nextMap[idStr] = url;
+              remaining.delete(idStr);
+            }
+          }
+
+          const hasNext = !!data?.hasNext;
+          if (!hasNext) break;
+        }
+      }
+
+      if (!alive) return;
+
+      if (Object.keys(nextMap).length > 0) {
+        setPlaceImageMap((prev) => ({ ...prev, ...nextMap }));
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [hashUrl, recoPlaces, placeImageMap]);
 
   const displayRecoPlaces = useMemo(() => {
-    return (recoPlaces || []).map((p) => {
-      const img = p?.id != null ? placeImageMap[String(p.id)] : '';
-      return { ...p, imageUrl: String(img || '').trim() };
+    const list = Array.isArray(recoPlaces) ? recoPlaces : [];
+    return list.slice(0, 3).map((p) => {
+      const idStr = p?.id != null ? String(p.id) : '';
+      const apiImg = idStr ? String(placeImageMap[idStr] || '').trim() : '';
+      return {
+        id: p?.id,
+        name: p?.name,
+        imageUrl: apiImg || '',
+      };
     });
   }, [recoPlaces, placeImageMap]);
 
@@ -458,15 +564,21 @@ export default function MainPage() {
                               dates.map((date) => {
                                 const key = `${date}-${slot}`;
                                 const hmKey = slotToHm(slot);
-                                const heat = hmKey ? heatmapMap.get(`${date}|${hmKey}`) : null;
 
-                                // ✅ 색/강도 변경 로직 제거: 기본 스타일로만 렌더
                                 const isTop = rowIndex % 2 === 0;
-                                const cellClass = isTop
-                                  ? 'schedule-slot schedule-slot--top'
-                                  : 'schedule-slot schedule-slot--bottom';
+                                const cellClass = isTop ? 'schedule-slot schedule-slot--top' : 'schedule-slot schedule-slot--bottom';
 
-                                return <div key={key} className={cellClass} />;
+                                const rankKey = hmKey ? `${date}|${hmKey}` : '';
+                                const rank = rankKey ? topRankMap.get(rankKey) : null;
+                                const bg = getSlotBgByRank(rank);
+
+                                return (
+                                  <div
+                                    key={key}
+                                    className={cellClass}
+                                    style={bg ? { backgroundColor: bg } : undefined}
+                                  />
+                                );
                               }),
                             )}
                           </div>
