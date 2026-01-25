@@ -1,0 +1,255 @@
+/* gmg-front/src/pages/onboarding/OnboardingPage.css */
+
+.ob-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f1f2f5;
+}
+
+.ob-container {
+  width: 393px;
+  height: 852px;
+
+  background: #f1f2f5;
+  border-radius: 16px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  scroll-snap-type: y mandatory;
+}
+
+.ob-section {
+  width: 393px;
+  scroll-snap-align: start;
+}
+
+/* ===================== 1) HERO ===================== */
+.ob-hero {
+  position: relative;
+  width: 393px;
+  height: 852px;
+  overflow: hidden;
+}
+
+.ob-hero-video {
+  width: 393px;
+  height: 852px;
+  object-fit: cover;
+  display: block;
+}
+
+.ob-hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  color: #ffffff;
+
+  /* 영상 위 텍스트 가독성 */
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.ob-hero-subtitle {
+  margin: 120px 0 0;
+  width: 353px;
+  text-align: center;
+
+  font-size: 26px;
+  font-weight: 200;
+  line-height: 32px;
+  letter-spacing: -0.2px;
+}
+
+.ob-hero-line {
+  width: 353px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.65);
+  margin: 18px 0 22px;
+}
+
+.ob-hero-logo {
+  width: 253px;
+  height: 170px;
+  object-fit: contain;
+  display: block;
+}
+
+.ob-hero-title {
+  margin: 18px 0 0;
+  width: 353px;
+  text-align: center;
+
+  font-size: 46px;
+  line-height: 54px;
+  letter-spacing: -0.6px;
+}
+
+.ob-hero-title-light {
+  font-weight: 500;
+}
+
+.ob-hero-title-bold {
+  font-weight: 800;
+}
+
+.ob-hero-cta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 742px;
+
+  width: 393px;
+  height: 70px;
+
+  border: none;
+  cursor: pointer;
+
+  background: #ff5315;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===================== 2) IMAGE + BLACK BOX ===================== */
+.ob-image-block {
+  width: 393px;
+}
+
+.ob-image {
+  width: 393px;
+  height: 650.73px;
+  object-fit: cover;
+  display: block;
+}
+
+.ob-black-box {
+  width: 393px;
+  height: 203.09px;
+  background: #000000;
+}
+
+/* ===================== 3) INFO ===================== */
+.ob-info {
+  width: 393px;
+  min-height: 852px;
+  background: #f6f6f6;
+}
+
+.ob-info-inner {
+  width: 393px;
+  min-height: 852px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 80px 20px 34px;
+  box-sizing: border-box;
+}
+
+.ob-calender-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  display: block;
+}
+
+.ob-info-title {
+  margin: 30px 0 0;
+  width: 353px;
+  text-align: center;
+
+  font-size: 24px;
+  font-weight: 700;
+  color: #1b1b1b;
+  letter-spacing: -0.2px;
+}
+
+.ob-info-desc {
+  margin: 30px 0 0;
+  width: 353px;
+  text-align: center;
+
+  font-size: 16px;
+  font-weight: 500;
+  color: #4b4b4b;
+
+  line-height: 31px; /* 16px + 줄간격 15px 느낌 */
+  letter-spacing: -0.1px;
+}
+
+.ob-bubble-stage {
+  margin-top: 30px;
+  width: 353px;
+  height: 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ob-bubble-anim {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 353px;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateX(120%);
+  animation: ob-slide-in 1.1s ease-out forwards;
+}
+
+@keyframes ob-slide-in {
+  0% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.ob-bubble {
+  background: #ff5315;
+  color: #ffffff;
+
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.ob-hand {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  margin-left: -6px;
+}
+
+.ob-timetable {
+  margin-top: 30px;
+  width: 353px;
+  height: 322px;
+  object-fit: contain;
+  display: block;
+}

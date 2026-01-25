@@ -111,7 +111,6 @@ function slotToHm(slot) {
   return `${String(h).padStart(2, '0')}:${mm}`;
 }
 
-// ✅ recommendations 응답: placeId/placeName/imageUrl/score 대응 -> 평탄화 + score desc
 function normalizeRecommendations(data) {
   const recs = data?.recommendations;
   if (!Array.isArray(recs)) return [];
@@ -130,7 +129,6 @@ function normalizeRecommendations(data) {
     })
     .filter((p) => p.id != null && p.name);
 
-  // placeId 중복 제거(최고 score 유지)
   const uniq = new Map();
   for (const p of flat) {
     const key = String(p.id);
@@ -280,7 +278,6 @@ export default function MainPage() {
       })
       .filter(Boolean);
 
-    // ✅ 낮을수록 1순위
     const distinctCounts = Array.from(new Set(norm.map((x) => x.count))).sort((a, b) => b - a);
     const topCounts = distinctCounts.slice(0, 3);
 

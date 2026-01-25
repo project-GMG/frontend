@@ -15,6 +15,8 @@ import JoinPlaceCategoryPage from './pages/join/JoinPlaceCategoryPage';
 import JoinPlaceCategorySubPage from './pages/join/JoinPlaceCategorySubPage';
 import JoinFinalPage from './pages/join/JoinFinalPage';
 
+import OnboardingPage from './pages/onboarding/OnboardingPage';
+
 function DebugLocation() {
   const loc = useLocation();
   useEffect(() => {
@@ -45,6 +47,8 @@ function App() {
 
         <Route path="/main" element={<MainPage />} />
         <Route path="*" element={<Navigate to="/create/place" replace />} />
+
+        <Route path="/onboarding" element={<OnboardingPage />} />
       </Routes>
     </>
   );
