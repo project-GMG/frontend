@@ -227,7 +227,7 @@
 
 .schedule-time-rail {
   position: absolute;
-  top: var(--date-row);
+  top: calc(var(--date-row) - 1px);
   left: var(--rail-left);
 
   width: var(--time-rail-w);

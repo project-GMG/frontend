@@ -1,6 +1,5 @@
 // gmg-front/src/pages/join/JoinTimePage.jsx
 
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -45,6 +44,45 @@ async function apiFetch(path, options = {}) {
   }
 
   return json;
+}
+
+// JoinModalPage와 동일한 participantId 추출 로직
+function extractParticipantId(json) {
+  const data = json?.data;
+  if (!data) return null;
+  const pid = data.participantId ?? data.id ?? data.participantID;
+  const n = Number(pid);
+  return Number.isFinite(n) ? n : null;
+}
+
+// JoinModalPage와 동일한 참가자 생성/확보 API 호출
+async function ensureParticipantId(hashUrl) {
+  const keyId = `gmg_participant_${hashUrl}`;
+  const keyName = `gmg_participant_name_${hashUrl}`;
+
+  // 1) 이미 저장된 participantId가 있으면 사용
+  const cached = sessionStorage.getItem(keyId);
+  const cachedNum = cached ? Number(cached) : NaN;
+  if (Number.isFinite(cachedNum)) return cachedNum;
+
+  // 2) 이름이 저장돼 있으면 그걸로 participant 생성/확보
+  const name = (sessionStorage.getItem(keyName) || '').trim();
+  if (!name) return null;
+
+  const json = await apiFetch(`/api/event/${encodeURIComponent(hashUrl)}/participants`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+
+  const pid = extractParticipantId(json);
+  if (pid == null) return null;
+
+  sessionStorage.setItem(keyId, String(pid));
+  // name은 이미 있을 가능성이 높지만, 안전하게 다시 저장
+  sessionStorage.setItem(keyName, name);
+
+  return pid;
 }
 
 function parseYmd(s) {
@@ -305,10 +343,17 @@ export default function JoinTimePage() {
     setSubmitError('');
     setIsSubmitting(true);
 
-    const participantIdRaw = localStorage.getItem(`gmg_participant_${hashUrl}`);
-    const participantId = participantIdRaw ? Number(participantIdRaw) : null;
+    // ✅ JoinModalPage처럼 "participantId 확보"를 먼저 수행
+    let participantId = null;
+    try {
+      participantId = await ensureParticipantId(hashUrl);
+    } catch (e) {
+      setIsSubmitting(false);
+      setSubmitError(e?.message || '참여자 정보를 확인하지 못했습니다. 다시 시도해주세요.');
+      return;
+    }
 
-    if (!participantId || Number.isNaN(participantId)) {
+    if (!participantId) {
       setIsSubmitting(false);
       setSubmitError('참여자 정보가 없습니다. 먼저 이름 등록을 다시 진행해주세요.');
       return;
@@ -316,10 +361,6 @@ export default function JoinTimePage() {
 
     const raw = buildUnavailableTimesRaw();
     const unavailableTimes = filterUnavailableTimesByEvent(raw);
-
-    console.log('[unavailableTimes][raw]', raw);
-    console.log('[unavailableTimes][filtered]', unavailableTimes);
-    console.log('[event][range]', eventData?.dateRange, eventData?.timeRange);
 
     if (!unavailableTimes.length) {
       setIsSubmitting(false);
@@ -432,7 +473,6 @@ export default function JoinTimePage() {
       timeScrollRef.current?.classList.add('is-selecting');
       gridScrollRef.current?.classList.add('is-selecting');
 
-      // ✅ null-safe
       if (target && typeof target.setPointerCapture === 'function') {
         try {
           target.setPointerCapture(pid);
@@ -500,7 +540,6 @@ export default function JoinTimePage() {
 
   const onPointerCancel = (e) => finishPointer(e);
 
-
   const onTouchStart = (e) => {
     if (selectStateRef.current.mode !== 'idle') return;
     const t = e.touches[0];
@@ -516,10 +555,8 @@ export default function JoinTimePage() {
     const dx = t.clientX - start.x;
     const dy = t.clientY - start.y;
 
-    // 세로 스크롤이 섞이면 무시
     if (Math.abs(dy) > SWIPE_MAX_VERTICAL_PX) return;
 
-    // 수평 스와이프만
     if (dx <= -SWIPE_TH_PX) goNext();
     else if (dx >= SWIPE_TH_PX) goPrev();
   };
@@ -544,12 +581,8 @@ export default function JoinTimePage() {
               <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
             </div>
           )}
-          {!!eventError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
-          )}
-          {!!submitError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
-          )}
+          {!!eventError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>}
+          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
 
           <section
             className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}

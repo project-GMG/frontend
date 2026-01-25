@@ -1,6 +1,5 @@
 // src/pages/main/MainPage.jsx
 
-
 import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
@@ -30,6 +29,13 @@ function parseYmd(s) {
   const dt = new Date(y, mo, d);
   dt.setHours(0, 0, 0, 0);
   return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function truncateKorean(name, max = 7) {
+  const s = String(name || '').trim();
+  const chars = Array.from(s);
+  if (chars.length <= max) return s;
+  return `${chars.slice(0, max).join('')}...`;
 }
 
 function formatDateKorean(date) {
@@ -105,7 +111,7 @@ function slotToHm(slot) {
   return `${String(h).padStart(2, '0')}:${mm}`;
 }
 
-// recommendations 실제 응답(placeId/placeName/score) 대응 -> 평탄화 + score desc
+// ✅ recommendations 응답: placeId/placeName/imageUrl/score 대응 -> 평탄화 + score desc
 function normalizeRecommendations(data) {
   const recs = data?.recommendations;
   if (!Array.isArray(recs)) return [];
@@ -117,12 +123,14 @@ function normalizeRecommendations(data) {
       return places.map((p) => ({
         id: p?.placeId ?? p?.id,
         name: String(p?.placeName ?? p?.name ?? '').trim(),
+        imageUrl: String(p?.imageUrl || '').trim(),
         score: typeof p?.score === 'number' ? p.score : -Infinity,
         placeTypeName: typeName,
       }));
     })
     .filter((p) => p.id != null && p.name);
 
+  // placeId 중복 제거(최고 score 유지)
   const uniq = new Map();
   for (const p of flat) {
     const key = String(p.id);
@@ -134,35 +142,6 @@ function normalizeRecommendations(data) {
   }
 
   return Array.from(uniq.values()).sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity));
-}
-
-async function apiFetchJson(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
-    headers: {
-      accept: 'application/json',
-      ...(options.headers || {}),
-    },
-    cache: 'no-store',
-  });
-
-  const text = await res.text().catch(() => '');
-  let json = null;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = null;
-  }
-
-  if (!res.ok) {
-    const msg = json?.message || `요청 실패 (${res.status})`;
-    const err = new Error(msg);
-    err.status = res.status;
-    err.body = json;
-    throw err;
-  }
-
-  return json;
 }
 
 function getSlotBgByRank(rank) {
@@ -187,10 +166,6 @@ export default function MainPage() {
 
   const [recoLoading, setRecoLoading] = useState(false);
   const [recoPlaces, setRecoPlaces] = useState([]);
-
-  // 이미지 매핑: placeId -> imageUrl (A안: categories + places로 채움)
-  const [placeImageMap, setPlaceImageMap] = useState({});
-  const placeImageRequestedRef = useRef(new Set());
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
 
@@ -249,7 +224,7 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // ✅ recommendations API 연결
+  // ✅ recommendations API 연결 (이미지 포함으로 단일 호출)
   useEffect(() => {
     let alive = true;
 
@@ -305,7 +280,8 @@ export default function MainPage() {
       })
       .filter(Boolean);
 
-    const distinctCounts = Array.from(new Set(norm.map((x) => x.count))).sort((a, b) => a - b);
+    // ✅ 낮을수록 1순위
+    const distinctCounts = Array.from(new Set(norm.map((x) => x.count))).sort((a, b) => b - a);
     const topCounts = distinctCounts.slice(0, 3);
 
     const out = new Map();
@@ -332,116 +308,21 @@ export default function MainPage() {
 
   const canRenderGrid = dates.length > 0 && timeSlots.length > 0;
 
-
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      if (!hashUrl) return;
-      if (!Array.isArray(recoPlaces) || recoPlaces.length === 0) return;
-
-      const top3 = recoPlaces.slice(0, 3);
-
-      const needIds = top3
-        .map((p) => p?.id)
-        .filter((id) => id != null)
-        .map((id) => String(id))
-        .filter((id) => !placeImageMap[id])
-        .filter((id) => !placeImageRequestedRef.current.has(id));
-
-      if (needIds.length === 0) return;
-
-      needIds.forEach((id) => placeImageRequestedRef.current.add(id));
-
-      // 1) categories 가져오기 (categoryId 수집)
-      let categoryIds = [];
-      try {
-        const catJson = await apiFetchJson(`/api/events/${encodeURIComponent(hashUrl)}/categories`);
-        const pts = Array.isArray(catJson?.data?.placeTypes) ? catJson.data.placeTypes : [];
-
-        categoryIds = pts
-          .flatMap((pt) => (Array.isArray(pt?.categories) ? pt.categories : []))
-          .map((c) => c?.id)
-          .filter((id) => Number.isFinite(Number(id)))
-          .map((id) => Number(id));
-      } catch {
-        return;
-      }
-
-      if (!alive) return;
-      if (categoryIds.length === 0) return;
-
-      const remaining = new Set(needIds);
-
-      const maxCategories = 25;
-      const maxPagesPerCategory = 5;
-      const size = 16;
-
-      const nextMap = {};
-
-      for (const categoryId of categoryIds.slice(0, maxCategories)) {
-        if (!alive) return;
-        if (remaining.size === 0) break;
-
-        for (let page = 0; page < maxPagesPerCategory; page += 1) {
-          if (!alive) return;
-          if (remaining.size === 0) break;
-
-          let placeJson = null;
-          try {
-            placeJson = await apiFetchJson(
-              `/api/events/${encodeURIComponent(hashUrl)}/places?categoryId=${encodeURIComponent(
-                categoryId,
-              )}&page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`,
-            );
-          } catch {
-            break;
-          }
-
-          const data = placeJson?.data || {};
-          const places = Array.isArray(data?.places) ? data.places : [];
-
-          for (const p of places) {
-            const idStr = p?.id != null ? String(p.id) : '';
-            if (!idStr) continue;
-            if (!remaining.has(idStr)) continue;
-
-            const url = String(p?.imageUrl || '').trim();
-            if (url) {
-              nextMap[idStr] = url;
-              remaining.delete(idStr);
-            }
-          }
-
-          const hasNext = !!data?.hasNext;
-          if (!hasNext) break;
-        }
-      }
-
-      if (!alive) return;
-
-      if (Object.keys(nextMap).length > 0) {
-        setPlaceImageMap((prev) => ({ ...prev, ...nextMap }));
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [hashUrl, recoPlaces, placeImageMap]);
-
-  const displayRecoPlaces = useMemo(() => {
+  const recoGroups = useMemo(() => {
     const list = Array.isArray(recoPlaces) ? recoPlaces : [];
-    return list.slice(0, 3).map((p) => {
-      const idStr = p?.id != null ? String(p.id) : '';
-      const apiImg = idStr ? String(placeImageMap[idStr] || '').trim() : '';
-      return {
+
+    const groups = [];
+    for (let i = 0; i < list.length; i += 3) {
+      const chunk = list.slice(i, i + 3).map((p) => ({
         id: p?.id,
         name: p?.name,
-        imageUrl: apiImg || '',
-      };
-    });
-  }, [recoPlaces, placeImageMap]);
+        imageUrl: String(p?.imageUrl || '').trim(),
+      }));
+      groups.push(chunk);
+    }
+
+    return groups;
+  }, [recoPlaces]);
 
   const syncFromGrid = () => {
     const grid = gridScrollRef.current;
@@ -551,7 +432,11 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      <div ref={gridScrollRef} className="schedule-grid-scroll gmg-scrollbar-both" onScroll={syncFromGrid}>
+                      <div
+                        ref={gridScrollRef}
+                        className="schedule-grid-scroll gmg-scrollbar-both"
+                        onScroll={syncFromGrid}
+                      >
                         <div className="schedule-grid-scroll-inner">
                           <div
                             className="schedule-grid-slots"
@@ -566,7 +451,9 @@ export default function MainPage() {
                                 const hmKey = slotToHm(slot);
 
                                 const isTop = rowIndex % 2 === 0;
-                                const cellClass = isTop ? 'schedule-slot schedule-slot--top' : 'schedule-slot schedule-slot--bottom';
+                                const cellClass = isTop
+                                  ? 'schedule-slot schedule-slot--top'
+                                  : 'schedule-slot schedule-slot--bottom';
 
                                 const rankKey = hmKey ? `${date}|${hmKey}` : '';
                                 const rank = rankKey ? topRankMap.get(rankKey) : null;
@@ -596,39 +483,46 @@ export default function MainPage() {
                       <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
                       <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소를 불러오는 중...</p>
                     </div>
-                  ) : displayRecoPlaces.length === 0 ? (
+                  ) : recoGroups.length === 0 ? (
                     <div className="restaurant-container">
                       <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
                       <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소가 없습니다.</p>
                     </div>
                   ) : (
-                    <div className="restaurant-container">
-                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+                    <>
+                      {recoGroups.map((group, groupIdx) => (
+                        <div key={`reco-group-${groupIdx}`} className="restaurant-container">
+                          <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
 
-                      <div className="restaurant-set">
-                        {displayRecoPlaces.map((place) => (
-                          <article key={place.id ?? place.name} className="restaurant-card">
-                            <img
-                              src={place.imageUrl || NoImage}
-                              alt={place.name}
-                              className="restaurant-thumb"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = NoImage;
-                              }}
-                            />
-                            <div className="restaurant-label">
-                              <p className="restaurant-label-text">{place.name}</p>
-                            </div>
-                          </article>
-                        ))}
+                          <div className="restaurant-set">
+                            {group.map((place) => (
+                              <article key={place.id ?? place.name} className="restaurant-card">
+                                <img
+                                  src={place.imageUrl || NoImage}
+                                  alt={place.name}
+                                  className="restaurant-thumb"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = NoImage;
+                                  }}
+                                />
+                                <div className="restaurant-label">
+                                  <p className="restaurant-label-text">{truncateKorean(place.name, 7)}</p>
+                                </div>
+                              </article>
+                            ))}
 
-                        {Array.from({ length: Math.max(0, 3 - displayRecoPlaces.length) }).map((_, emptyIdx) => (
-                          <div key={`reco-empty-${emptyIdx}`} className="restaurant-card restaurant-card--empty" />
-                        ))}
-                      </div>
-                    </div>
+                            {Array.from({ length: Math.max(0, 3 - group.length) }).map((_, emptyIdx) => (
+                              <div
+                                key={`reco-${groupIdx}-empty-${emptyIdx}`}
+                                className="restaurant-card restaurant-card--empty"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
               </section>
