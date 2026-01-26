@@ -1,5 +1,7 @@
 // gmg-front/src/pages/onboarding/OnboardingPage.jsx
 
+//섹션 4,5 제작중 
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OnboardingPage.css';
