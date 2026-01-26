@@ -1,9 +1,6 @@
 // gmg-front/src/pages/onboarding/OnboardingPage.jsx
 
-//만드는중!!!
-
-
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OnboardingPage.css';
 
@@ -15,6 +12,8 @@ import CafeVideo from '../../assets/icons/category_icon/cafe.mov';
 
 import OnboardingLogo from '../../assets/icons/category_icon/onboarding-logo.png';
 import Onboarding2 from '../../assets/icons/category_icon/onboarding2.png';
+import Onboarding22Icon from '../../assets/icons/category_icon/onboarding2-2.png';
+
 
 import CalenderIcon from '../../assets/icons/category_icon/onboarding-calender.png';
 import HandImg from '../../assets/icons/category_icon/onboarding-hand.png';
@@ -33,6 +32,25 @@ export default function OnboardingPage() {
   const goCreatePlace = () => {
     navigate('/create/place');
   };
+
+  const infoRef = useRef(null);
+  const [infoInView, setInfoInView] = useState(false);
+
+  useEffect(() => {
+    const el = infoRef.current;
+    if (!el) return;
+
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInfoInView(true);
+        else setInfoInView(false); 
+      },
+      { threshold: 0.35 },
+    );
+
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     <div className="ob-page">
@@ -79,11 +97,30 @@ export default function OnboardingPage() {
         {/* 2) Orange image + Black box */}
         <section className="ob-section ob-image-block">
           <img className="ob-image" src={Onboarding2} alt="온보딩 이미지 2" draggable={false} />
-          <div className="ob-black-box" />
+
+          <div className="ob-black-box">
+            <div className="ob-black-inner">
+                  <div className="ob-black-cta">
+                    <img
+                      src={Onboarding22Icon}
+                      alt=""
+                      className="ob-black-cta-icon"
+                      draggable={false}
+                    />
+                    <span>이제 간편하게 정해요</span>
+                  </div>
+
+              <p className="ob-black-desc">
+                모두의 불가능한 시간과 비선호 장소를 모아
+                <br />
+                최적의 시간과 장소를 추천해 드릴게요
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* 3) F6F6F6 Section */}
-        <section className="ob-section ob-info">
+        <section ref={infoRef} className="ob-section ob-info">
           <div className="ob-info-inner">
             <img
               className="ob-calender-icon"
@@ -101,18 +138,13 @@ export default function OnboardingPage() {
             </p>
 
             <div className="ob-bubble-stage" aria-label="말풍선 애니메이션">
-              <div className="ob-bubble-anim">
-                <div className="ob-bubble">다들 2시 괜찮아</div>
+              <div className={`ob-bubble-anim ${infoInView ? 'is-inview' : ''}`}>
+                <div className="ob-bubble">다들 2시 괜찮아?</div>
                 <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
               </div>
             </div>
 
-            <img
-              className="ob-timetable"
-              src={TimetableImg}
-              alt="시간표 예시"
-              draggable={false}
-            />
+            <img className="ob-timetable" src={TimetableImg} alt="시간표 예시" draggable={false} />
           </div>
         </section>
       </div>
