@@ -8,9 +8,10 @@ import NextButton from '../components/common/NextButton';
 
 import SearchIcon from '../../assets/icons/search.png';
 import NoImage from '../../assets/icons/no-image.png';
+import { buildApiUrl } from '../../lib/api';
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       accept: 'application/json',
@@ -217,9 +218,7 @@ export default function JoinPlaceCategorySubPage() {
   const toggleAll = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      const visibleIds = filteredPlaces
-        .map((p) => Number(p.id))
-        .filter((n) => Number.isFinite(n));
+      const visibleIds = filteredPlaces.map((p) => Number(p.id)).filter((n) => Number.isFinite(n));
 
       const isAllSelected = visibleIds.length > 0 && visibleIds.every((id) => next.has(id));
 
@@ -272,7 +271,7 @@ export default function JoinPlaceCategorySubPage() {
     const el = scrollRef.current;
     if (!el) return;
     if (isLoading || isLoadingMore) return;
-    if (!!errorText) return;
+    if (errorText) return;
     if (!hasNext) return;
     if (query.trim()) return;
 
@@ -301,8 +300,12 @@ export default function JoinPlaceCategorySubPage() {
             />
           </div>
 
-          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
-          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
+          {!!errorText && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+          )}
+          {!!submitError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+          )}
 
           {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
           {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
@@ -312,7 +315,8 @@ export default function JoinPlaceCategorySubPage() {
               <button
                 type="button"
                 className={
-                  'jpcs-tile jpcs-tile--all' + (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
+                  'jpcs-tile jpcs-tile--all' +
+                  (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
                 }
                 onClick={toggleAll}
                 aria-label="전체 선택"

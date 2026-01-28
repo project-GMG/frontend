@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
 import BackButton from '../components/common/BackButton';
 import './JoinTimePage.css';
+import { buildApiUrl } from '../../lib/api';
 
 const LONG_PRESS_MS = 250;
 const MOVE_CANCEL_PX = 8;
@@ -14,7 +15,7 @@ const SWIPE_TH_PX = 40;
 const SWIPE_MAX_VERTICAL_PX = 60;
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       accept: 'application/json',
@@ -182,7 +183,9 @@ function parseKey(key) {
 }
 
 function isWeekendLabel(label) {
-  const wd = String(label || '').trim().slice(-1);
+  const wd = String(label || '')
+    .trim()
+    .slice(-1);
   return wd === '토' || wd === '일';
 }
 
@@ -243,7 +246,11 @@ export default function JoinTimePage() {
     return buildDatesFromRange(s, e, 35);
   }, [eventData?.dateRange?.startDate, eventData?.dateRange?.endDate]);
 
-  const { slots: TIME_SLOTS, labels: TIME_LABELS, apiHm: timeApiHm } = useMemo(() => {
+  const {
+    slots: TIME_SLOTS,
+    labels: TIME_LABELS,
+    apiHm: timeApiHm,
+  } = useMemo(() => {
     const s = eventData?.timeRange?.startTime;
     const e = eventData?.timeRange?.endTime;
     return buildTimeSlotsFromRange(s, e);
@@ -476,7 +483,9 @@ export default function JoinTimePage() {
       if (target && typeof target.setPointerCapture === 'function') {
         try {
           target.setPointerCapture(pid);
-        } catch {}
+        } catch {
+          // ignore pointer capture failure
+        }
       }
     }, LONG_PRESS_MS);
   };
@@ -535,7 +544,9 @@ export default function JoinTimePage() {
 
     try {
       e.currentTarget?.releasePointerCapture?.(e.pointerId);
-    } catch {}
+    } catch {
+      // ignore pointer release failure
+    }
   };
 
   const onPointerCancel = (e) => finishPointer(e);
@@ -581,8 +592,12 @@ export default function JoinTimePage() {
               <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
             </div>
           )}
-          {!!eventError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>}
-          {!!submitError && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>}
+          {!!eventError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
+          )}
+          {!!submitError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+          )}
 
           <section
             className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}

@@ -7,6 +7,7 @@ import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
 import editPen from '../../assets/icons/edit_pen.png';
+import { buildApiUrl } from '../../lib/api';
 
 const DEFAULT_NAME = '다같이 만나요';
 
@@ -183,7 +184,7 @@ export default function CreateInfoPage() {
     };
 
     try {
-      const res = await fetch('/api/events', {
+      const res = await fetch(buildApiUrl('/api/events'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +223,7 @@ export default function CreateInfoPage() {
           requestPayload: payload,
         },
       });
-    } catch (e) {
+    } catch {
       setSubmitError('네트워크 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);

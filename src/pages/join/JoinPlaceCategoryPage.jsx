@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinPlaceCategoryPage.css';
 import NextButton from '../components/common/NextButton';
 import BackButton from '../components/common/BackButton';
+import { buildApiUrl } from '../../lib/api';
 
 import AsianFoodIcon from '../../assets/icons/category_icon/asian food ico.png';
 import BoardGameCafeIcon from '../../assets/icons/category_icon/board gamecafe ico.png';
@@ -116,9 +117,12 @@ export default function JoinPlaceCategoryPage() {
       setErrorText('');
 
       try {
-        const res = await fetch(`/api/events/${encodeURIComponent(hashUrl)}/categories`, {
-          headers: { accept: 'application/json' },
-        });
+        const res = await fetch(
+          buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}/categories`),
+          {
+            headers: { accept: 'application/json' },
+          },
+        );
         const json = await res.json().catch(() => null);
 
         if (!alive) return;

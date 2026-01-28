@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './JoinModalPage.css';
 import NextButton from '../components/common/NextButton';
+import { buildApiUrl } from '../../lib/api';
 
 function loadMembers(hashUrl) {
   try {
@@ -72,11 +73,14 @@ export default function JoinModalPage({ open, hashUrl, onClose, onSuccessGoTime 
     setIsSubmittingJoin(true);
 
     try {
-      const res = await fetch(`/api/event/${encodeURIComponent(hashUrl)}/participants`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ name: trimmedName }),
-      });
+      const res = await fetch(
+        buildApiUrl(`/api/event/${encodeURIComponent(hashUrl)}/participants`),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify({ name: trimmedName }),
+        },
+      );
 
       const json = await res.json().catch(() => null);
 

@@ -9,6 +9,7 @@ import NoImage from '../../assets/icons/no-image.png';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import JoinModalPage from '../join/JoinModalPage';
+import { buildApiUrl } from '../../lib/api';
 
 function getBaseUrl() {
   const envBase = (import.meta.env.VITE_SHARE_BASE_URL || '').trim();
@@ -184,7 +185,7 @@ export default function MainPage() {
       setErrorText('');
 
       try {
-        const res = await fetch(`/api/events/${encodeURIComponent(hashUrl)}`, {
+        const res = await fetch(buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}`), {
           headers: { accept: 'application/json' },
           cache: 'no-store',
         });
@@ -232,10 +233,13 @@ export default function MainPage() {
       setRecoLoading(true);
 
       try {
-        const res = await fetch(`/api/events/${encodeURIComponent(hashUrl)}/places/recommendations`, {
-          headers: { accept: 'application/json' },
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}/places/recommendations`),
+          {
+            headers: { accept: 'application/json' },
+            cache: 'no-store',
+          },
+        );
 
         const json = await res.json().catch(() => null);
         if (!alive) return;
@@ -381,19 +385,35 @@ export default function MainPage() {
           <img src={Logo} alt="GMG 로고" className="main-logo" />
 
           <div className="main-share-area">
-            <button type="button" className="main-share-bubble" onClick={handleShare} disabled={!hashUrl}>
+            <button
+              type="button"
+              className="main-share-bubble"
+              onClick={handleShare}
+              disabled={!hashUrl}
+            >
               <span className="main-share-bubble-text">공유하고 모임을 잡아보세요!</span>
             </button>
 
-            <button type="button" className="main-share-icon-button" onClick={handleShare} disabled={!hashUrl}>
+            <button
+              type="button"
+              className="main-share-icon-button"
+              onClick={handleShare}
+              disabled={!hashUrl}
+            >
               <img src={ShareIcon} alt="공유" className="main-share-icon-image" />
             </button>
           </div>
         </header>
 
         <main className="main-content">
-          {isLoading && <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>}
-          {!!errorText && <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>}
+          {isLoading && (
+            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
+              모임 정보를 불러오는 중...
+            </p>
+          )}
+          {!!errorText && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+          )}
 
           {isReady && (
             <>
@@ -409,7 +429,11 @@ export default function MainPage() {
                     </p>
                   ) : (
                     <div className="schedule-frame">
-                      <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
+                      <div
+                        ref={dateScrollRef}
+                        className="schedule-date-rail"
+                        onScroll={syncFromDate}
+                      >
                         <div className="schedule-date-row">
                           {dates.map((date) => (
                             <div key={date} className="schedule-date-header">
@@ -419,7 +443,11 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
+                      <div
+                        ref={timeScrollRef}
+                        className="schedule-time-rail"
+                        onScroll={syncFromTime}
+                      >
                         <div className="schedule-time-col">
                           {timeSlots.map((slot, rowIndex) => (
                             <div key={slot} className="schedule-time-label">
@@ -478,12 +506,16 @@ export default function MainPage() {
                   {recoLoading ? (
                     <div className="restaurant-container">
                       <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소를 불러오는 중...</p>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                        추천 장소를 불러오는 중...
+                      </p>
                     </div>
                   ) : recoGroups.length === 0 ? (
                     <div className="restaurant-container">
                       <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소가 없습니다.</p>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                        추천 장소가 없습니다.
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -505,17 +537,21 @@ export default function MainPage() {
                                   }}
                                 />
                                 <div className="restaurant-label">
-                                  <p className="restaurant-label-text">{truncateKorean(place.name, 7)}</p>
+                                  <p className="restaurant-label-text">
+                                    {truncateKorean(place.name, 7)}
+                                  </p>
                                 </div>
                               </article>
                             ))}
 
-                            {Array.from({ length: Math.max(0, 3 - group.length) }).map((_, emptyIdx) => (
-                              <div
-                                key={`reco-${groupIdx}-empty-${emptyIdx}`}
-                                className="restaurant-card restaurant-card--empty"
-                              />
-                            ))}
+                            {Array.from({ length: Math.max(0, 3 - group.length) }).map(
+                              (_, emptyIdx) => (
+                                <div
+                                  key={`reco-${groupIdx}-empty-${emptyIdx}`}
+                                  className="restaurant-card restaurant-card--empty"
+                                />
+                              ),
+                            )}
                           </div>
                         </div>
                       ))}
@@ -533,7 +569,12 @@ export default function MainPage() {
           </NextButton>
         </footer>
 
-        <JoinModalPage open={isJoinOpen} hashUrl={hashUrl} onClose={handleCloseJoin} onSuccessGoTime={handleJoinedGoTime} />
+        <JoinModalPage
+          open={isJoinOpen}
+          hashUrl={hashUrl}
+          onClose={handleCloseJoin}
+          onSuccessGoTime={handleJoinedGoTime}
+        />
       </div>
     </div>
   );
