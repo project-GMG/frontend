@@ -168,7 +168,7 @@ export default function MainPage() {
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
 
-  // ✅ Event API 연결 (heatmapData 포함)
+  // Event API 연결 (heatmapData 포함)
   useEffect(() => {
     let alive = true;
 
@@ -223,7 +223,7 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // ✅ recommendations API 연결 (이미지 포함으로 단일 호출)
+  // recommendations API 연결 (이미지 포함으로 단일 호출)
   useEffect(() => {
     let alive = true;
 
@@ -262,6 +262,58 @@ export default function MainPage() {
 
     return () => {
       alive = false;
+    };
+  }, [hashUrl]);
+
+  // SSE 구독 (히트맵 + 추천 데이터 실시간 업데이트)
+  useEffect(() => {
+    if (!hashUrl) return;
+
+    console.log(`SSE 구독 시작: ${hashUrl}`);
+
+    const eventSource = new EventSource(
+      buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}/stream`),
+    );
+
+    eventSource.onopen = () => {
+      console.log('SSE 연결 성공');
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('SSE 메시지 수신:', data);
+
+        // 히트맵 데이터 실시간 업데이트
+        if (data.heatmapData) {
+          setEventData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              eventId: data.eventId,
+              heatmapData: data.heatmapData,
+            };
+          });
+        }
+
+        // 추천 장소 데이터 실시간 업데이트
+        if (data.recommendations) {
+          const normalized = normalizeRecommendations(data);
+          setRecoPlaces(normalized);
+        }
+      } catch (error) {
+        console.error('SSE 메시지 파싱 실패:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE 연결 오류:', error);
+      eventSource.close();
+    };
+
+    return () => {
+      console.log('SSE 연결 종료');
+      eventSource.close();
     };
   }, [hashUrl]);
 
