@@ -14,7 +14,7 @@
   box-sizing: border-box;
   background-color: #f1f2f5;
 
-  padding-top: 56px;
+  padding-top: 87px;
   padding-right: 20px;
   padding-bottom: 34px;
   padding-left: 20px;
@@ -24,12 +24,13 @@
   gap: 10px;
 
   overflow: hidden;
+  border-radius: 16px;
 }
 
 .jpcs-header {
   flex-shrink: 0;
   position: relative;
-  height: 56px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,7 +47,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-    position: absolute;
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
   color: #333232;
@@ -67,6 +68,8 @@
   gap: 16px;
   margin-top: 14px;
   -webkit-overflow-scrolling: touch;
+
+  padding-bottom: 70px;
 }
 
 .jpcs-search {
@@ -230,4 +233,50 @@
 
 .jpcs-footer button {
   height: 70px;
+}
+
+@media (max-width: 393px) {
+  .jpcs-page {
+    min-height: 100dvh;
+    align-items: flex-start;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+  }
+
+  .jpcs-container {
+    width: min(393px, calc(100vw - 20px));
+    height: min(
+      852px,
+      calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+    border-radius: 16px;
+    overflow: hidden;
+
+    padding-top: 52px;
+    padding-bottom: 24px;
+  }
+
+  .jpcs-search {
+    width: 100%;
+  }
+
+  .jpcs-grid {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .jpcs-tile {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
+  .jpcs-footer {
+    bottom: 18px;
+  }
+
+  .jpcs-footer button {
+    height: 64px;
+  }
 }

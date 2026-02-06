@@ -31,7 +31,7 @@ function App() {
       <DebugLocation />
 
       <Routes>
-        <Route path="/" element={<Navigate to="/create/place" replace />} />
+        <Route path="/" element={<Navigate to="/onboarding" replace />} />
 
         <Route path="/join" element={<JoinModalPage />} />
         <Route path="/join/time" element={<JoinTimePage />} />

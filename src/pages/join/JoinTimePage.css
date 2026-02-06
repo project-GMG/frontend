@@ -2,17 +2,25 @@
 
 .join-time-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+
   background-color: #f1f2f5;
+
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .join-time-container {
-  width: 393px;
-  height: 852px;
   box-sizing: border-box;
+
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+
   background-color: #f1f2f5;
 
   padding-top: 56px;
@@ -33,6 +41,7 @@
   position: relative;
   margin: 0 auto;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .join-time-back {
@@ -72,12 +81,10 @@
   display: flex;
   flex-direction: column;
 
-  padding-left: 20px;
-  padding-right: 20px;
-
   margin-top: 38px;
 
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .join-time-title {
@@ -146,6 +153,7 @@
   --rail-left: 0px;
   --grid-right: 0px;
   --grid-bottom: 0px;
+  --visible-rows: 12;
 }
 
 .jt-date-rail {
@@ -176,20 +184,32 @@
   color: #e03616;
 }
 
+.jt-date-header--empty {
+  color: transparent;
+}
+
 .jt-time-rail {
   position: absolute;
   top: var(--time-rail-top);
   left: var(--rail-left);
-  bottom: var(--grid-bottom);
+
+  bottom: auto;
 
   width: var(--time-col);
+
+  height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
   overflow-y: auto;
   overflow-x: hidden;
 
+  -webkit-overflow-scrolling: touch;
+
   scrollbar-width: none;
   -ms-overflow-style: none;
+
+  touch-action: pan-y;
 }
+
 .jt-time-rail::-webkit-scrollbar {
   display: none;
 }
@@ -223,21 +243,27 @@
   line-height: 1;
   white-space: nowrap;
 }
-
 .jt-grid-scroll {
   position: absolute;
   top: var(--grid-top);
   left: calc(var(--time-col) + var(--time-gap));
   right: var(--grid-right);
-  bottom: var(--grid-bottom);
+
+  bottom: auto;
+
+  height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
   overflow-y: auto;
   overflow-x: hidden;
+
+  -webkit-overflow-scrolling: touch;
 
   background: #f1f2f5;
 
   border-radius: var(--radius);
   clip-path: inset(0 round var(--radius));
+
+  touch-action: pan-y;
 }
 
 .jt-grid-scroll.is-selecting {
@@ -263,7 +289,8 @@
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
-  touch-action: none;
+
+  touch-action: pan-y;
 }
 
 .jt-slot--top {
@@ -280,12 +307,17 @@
   background: #ff5315;
 }
 
+.jt-slot--empty {
+  background: transparent;
+  pointer-events: none;
+}
+
 .join-time-pagination {
-  margin-top: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
+  margin-top: -20px;
 }
 
 .join-time-dots {
@@ -295,23 +327,23 @@
 }
 
 .join-time-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: #d9d9d9;
 }
 
 .join-time-dot.is-active {
-  background: #333232;
+  background: #7c7c7c;
 }
 
 .join-time-footer {
   display: flex;
   justify-content: center;
 
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 34px;
+  padding-bottom: 14px;
+
+  flex-shrink: 0;
 }
 
 .join-time-footer > * {
@@ -320,4 +352,86 @@
 
 .join-time-footer button {
   height: 70px;
+}
+
+@media (max-width: 375px) {
+  .join-time-page {
+    padding-top: calc(10px + env(safe-area-inset-top));
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .join-time-container {
+    width: min(393px, calc(100vw - 20px));
+    height: min(
+      852px,
+      calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+    padding-top: 52px;
+  }
+
+  .join-time-nav {
+    width: calc(100% - 32px);
+  }
+
+  .join-time-content {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-top: 16px;
+  }
+
+  .join-time-grid-card {
+    width: 100%;
+    max-width: 343px;
+    height: clamp(340px, 56dvh, 500px);
+
+    contain: layout paint;
+  }
+
+  .jt-frame {
+    --cell-h: 32px;
+    --time-col: 42px;
+    --time-gap: 8px;
+    --date-row: 20px;
+
+    --rail-top: 6px;
+    --grid-top: 34px;
+    --time-rail-top: 26px;
+    --visible-rows: 12;
+  }
+
+  .jt-date-header {
+    font-size: 13px;
+  }
+
+  .jt-time-label {
+    font-size: 13px;
+    padding-right: 6px;
+    padding-top: 2px;
+  }
+
+  .jt-time-rail,
+  .jt-grid-scroll {
+    overscroll-behavior: contain;
+  }
+
+  .jt-slot {
+    width: 100%;
+    touch-action: pan-y;
+  }
+
+  .join-time-footer {
+    padding-bottom: 12px;
+  }
+
+  .join-time-footer button {
+    height: 64px;
+  }
+
+  .join-time-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    flex-shrink: 0;
+  }
 }

@@ -47,7 +47,6 @@ async function apiFetch(path, options = {}) {
   return json;
 }
 
-// JoinModalPage와 동일한 participantId 추출 로직
 function extractParticipantId(json) {
   const data = json?.data;
   if (!data) return null;
@@ -56,17 +55,14 @@ function extractParticipantId(json) {
   return Number.isFinite(n) ? n : null;
 }
 
-// JoinModalPage와 동일한 참가자 생성/확보 API 호출
 async function ensureParticipantId(hashUrl) {
   const keyId = `gmg_participant_${hashUrl}`;
   const keyName = `gmg_participant_name_${hashUrl}`;
 
-  // 1) 이미 저장된 participantId가 있으면 사용
   const cached = sessionStorage.getItem(keyId);
   const cachedNum = cached ? Number(cached) : NaN;
   if (Number.isFinite(cachedNum)) return cachedNum;
 
-  // 2) 이름이 저장돼 있으면 그걸로 participant 생성/확보
   const name = (sessionStorage.getItem(keyName) || '').trim();
   if (!name) return null;
 
@@ -80,7 +76,6 @@ async function ensureParticipantId(hashUrl) {
   if (pid == null) return null;
 
   sessionStorage.setItem(keyId, String(pid));
-  // name은 이미 있을 가능성이 높지만, 안전하게 다시 저장
   sessionStorage.setItem(keyName, name);
 
   return pid;
@@ -189,6 +184,28 @@ function isWeekendLabel(label) {
   return wd === '토' || wd === '일';
 }
 
+/* =========================
+   ✅ 개발환경 디자인 확인용 더미 데이터 (5일)
+   ========================= */
+function addDaysYmd(baseYmd, days) {
+  const dt = parseYmd(baseYmd);
+  if (!dt) return baseYmd;
+  dt.setDate(dt.getDate() + days);
+  return toYmdLocal(dt);
+}
+
+function buildDummyEvent5Days() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = toYmdLocal(today);
+  const end = addDaysYmd(start, 4);
+  return {
+    title: '다같이 만나요(더미)',
+    dateRange: { startDate: start, endDate: end },
+    timeRange: { startTime: '10:00', endTime: '20:00' },
+  };
+}
+
 export default function JoinTimePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -208,13 +225,25 @@ export default function JoinTimePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const USE_DUMMY_WHEN_NO_CODE = true;
+
   useEffect(() => {
     let alive = true;
 
     (async () => {
       if (!hashUrl) {
+        if (!alive) return;
+
+        if (USE_DUMMY_WHEN_NO_CODE) {
+          setEventError('');
+          setEventData(buildDummyEvent5Days());
+          setIsLoadingEvent(false);
+          return;
+        }
+
         setIsLoadingEvent(false);
         setEventError('링크가 올바르지 않습니다. /join/time?code=해시값 형태로 접속해야 합니다.');
+        setEventData(null);
         return;
       }
 
@@ -229,6 +258,15 @@ export default function JoinTimePage() {
         setIsLoadingEvent(false);
       } catch (e) {
         if (!alive) return;
+
+        // 개발 모드 폴백
+        if (USE_DUMMY_WHEN_NO_CODE) {
+          setEventData(buildDummyEvent5Days());
+          setEventError('개발 모드: 이벤트 API 접근 실패로 더미 데이터를 표시합니다.');
+          setIsLoadingEvent(false);
+          return;
+        }
+
         setEventError(e?.message || '네트워크 오류로 이벤트 정보를 불러오지 못했습니다.');
         setEventData(null);
         setIsLoadingEvent(false);
@@ -260,12 +298,33 @@ export default function JoinTimePage() {
   const totalPages = Math.max(1, Math.ceil(allDateLabels.length / PAGE_SIZE));
   const [page, setPage] = useState(0);
 
+  // ✅ 마지막 페이지까지 도달했을 때 Next 활성화 조건에 사용
+  const [hasReachedLast, setHasReachedLast] = useState(false);
+
+  // ✅ 날짜(=페이지 수)가 바뀌면 "도달 여부"는 다시 false
+  useEffect(() => {
+    setHasReachedLast(false);
+  }, [hashUrl, totalPages]);
+
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages - 1));
   }, [totalPages]);
 
-  const pageDates = allDateLabels.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  // ✅ totalPages가 2 이상일 때만 "끝까지 넘김"으로 인정
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    if (page === totalPages - 1) setHasReachedLast(true);
+  }, [page, totalPages]);
+
+  const pageDatesRaw = allDateLabels.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const pageDateIndexOffset = page * PAGE_SIZE;
+
+  // ✅ 항상 3개 컬럼이 있다고 가정하고(빈 칸 포함) 레일/그리드 정렬 유지
+  const pageDatesFixed = useMemo(() => {
+    const arr = [...pageDatesRaw];
+    while (arr.length < PAGE_SIZE) arr.push(null);
+    return arr;
+  }, [pageDatesRaw]);
 
   const syncFromGrid = () => {
     const grid = gridScrollRef.current;
@@ -345,12 +404,10 @@ export default function JoinTimePage() {
 
   const handleNext = async () => {
     if (!hashUrl) return;
-    if (selectedKeys.size === 0) return;
 
     setSubmitError('');
     setIsSubmitting(true);
 
-    // ✅ JoinModalPage처럼 "participantId 확보"를 먼저 수행
     let participantId = null;
     try {
       participantId = await ensureParticipantId(hashUrl);
@@ -395,7 +452,10 @@ export default function JoinTimePage() {
     }
   };
 
-  const isNextDisabled = selectedKeys.size === 0 || isLoadingEvent || !!eventError || isSubmitting;
+  // ✅ "페이지 끝까지 넘김" 조건: totalPages가 2 이상일 때만 hasReachedLast 요구
+  const shouldRequireLastPage = totalPages > 1;
+  const isNextDisabled =
+    (shouldRequireLastPage && !hasReachedLast) || isLoadingEvent || !!eventError || isSubmitting;
 
   const [selectModeUI, setSelectModeUI] = useState('idle');
 
@@ -479,12 +539,13 @@ export default function JoinTimePage() {
 
       timeScrollRef.current?.classList.add('is-selecting');
       gridScrollRef.current?.classList.add('is-selecting');
+      target?.classList?.add?.('is-selecting');
 
       if (target && typeof target.setPointerCapture === 'function') {
         try {
           target.setPointerCapture(pid);
         } catch {
-          // ignore pointer capture failure
+          // ignore
         }
       }
     }, LONG_PRESS_MS);
@@ -545,7 +606,7 @@ export default function JoinTimePage() {
     try {
       e.currentTarget?.releasePointerCapture?.(e.pointerId);
     } catch {
-      // ignore pointer release failure
+      // ignore
     }
   };
 
@@ -607,12 +668,18 @@ export default function JoinTimePage() {
             <div className="jt-frame">
               <div className="jt-date-rail">
                 <div className="jt-date-row">
-                  {pageDates.map((d, i) => (
+                  {pageDatesFixed.map((d, i) => (
                     <div
-                      key={`${page}-${d}-${i}`}
-                      className={`jt-date-header ${isWeekendLabel(d) ? 'is-weekend' : ''}`}
+                      key={`${page}-${d ?? 'empty'}-${i}`}
+                      className={[
+                        'jt-date-header',
+                        d && isWeekendLabel(d) ? 'is-weekend' : '',
+                        !d ? 'jt-date-header--empty' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
-                      {d}
+                      {d ?? ''}
                     </div>
                   ))}
                 </div>
@@ -632,17 +699,28 @@ export default function JoinTimePage() {
                 <div
                   className="jt-grid"
                   style={{
-                    gridTemplateColumns: `repeat(${pageDates.length}, 1fr)`,
+                    gridTemplateColumns: `repeat(${PAGE_SIZE}, 1fr)`,
                     gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
                   }}
                 >
                   {TIME_SLOTS.map((slot, slotIndex) =>
-                    pageDates.map((dateLabel, localDateIndex) => {
+                    pageDatesFixed.map((dateLabel, localDateIndex) => {
+                      const hasDate = !!dateLabel;
                       const dateIndex = pageDateIndexOffset + localDateIndex;
                       const key = makeKey(dateIndex, slotIndex);
-                      const isActive = selectedKeys.has(key);
 
+                      const isActive = hasDate && selectedKeys.has(key);
                       const pairClass = slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
+
+                      if (!hasDate) {
+                        return (
+                          <div
+                            key={`${page}-empty-${key}`}
+                            className={`jt-slot jt-slot--empty ${pairClass}`}
+                            aria-hidden="true"
+                          />
+                        );
+                      }
 
                       return (
                         <button

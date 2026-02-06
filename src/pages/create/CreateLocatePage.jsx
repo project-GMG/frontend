@@ -91,7 +91,11 @@ export default function CreateLocatePage() {
 
   const [selectedPlace, setSelectedPlace] = useState(DEFAULT_PLACE);
   const [center, setCenter] = useState(DEFAULT_CENTER);
+
   const [results, setResults] = useState([]);
+  const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+
+  const [userLoc, setUserLoc] = useState(null); // { lat, lng }
 
   const [isKakaoReady, setIsKakaoReady] = useState(false);
   const [kakaoError, setKakaoError] = useState('');
@@ -122,6 +126,17 @@ export default function CreateLocatePage() {
 
   const openSearch = () => {
     if (!isKakaoReady) return;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 },
+      );
+    }
+
     setIsSearchActive(true);
   };
 
@@ -129,6 +144,7 @@ export default function CreateLocatePage() {
     setIsSearchActive(false);
     setSearchQuery('');
     setResults([]);
+    setIsSuggestLoading(false);
   };
 
   const setSelectionByLatLng = (lat, lng, info) => {
@@ -256,33 +272,82 @@ export default function CreateLocatePage() {
     };
   }, []);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
+  // ✅ 자동완성/추천: "입력한 키워드" 우선 + 동일 키워드면 (현재 위치/지도 중심) 근처 우선
+  useEffect(() => {
+    if (!isSearchActive) return;
     if (!isKakaoReady || !window.kakao?.maps || !placesRef.current) return;
 
     const keyword = searchQuery.trim();
+
+    if (!keyword) {
+      setResults([]);
+      setIsSuggestLoading(false);
+      return;
+    }
+
+    setIsSuggestLoading(true);
+
+    const timer = window.setTimeout(() => {
+      const { kakao } = window;
+      const places = placesRef.current;
+
+      // 현재 위치가 있으면 userLoc 기준, 없으면 지도 center 기준
+      const baseLoc = userLoc || center;
+
+      // 키워드 매칭 우선 유지: 반경을 너무 작게 잡지 말고 넉넉히(누락 방지)
+      const options = baseLoc
+        ? {
+            location: new kakao.maps.LatLng(baseLoc.lat, baseLoc.lng),
+            radius: 5000, // 5km (필요하면 2000~10000 사이 튜닝)
+          }
+        : undefined;
+
+      places.keywordSearch(
+        keyword,
+        (data, status) => {
+          if (!isSearchActive) return;
+
+          if (status !== kakao.maps.services.Status.OK) {
+            setResults([]);
+            setIsSuggestLoading(false);
+            return;
+          }
+
+          const mapped = (data || []).map((d, idx) => {
+            const distNum = d.distance ? Number(d.distance) : null;
+
+            return {
+              id: `${d.id || idx}`,
+              name: d.place_name,
+              address: d.road_address_name || d.address_name || '',
+              distance: d.distance ? `${d.distance}m` : '',
+              distanceNum: Number.isFinite(distNum) ? distNum : null,
+              lat: Number(d.y),
+              lng: Number(d.x),
+            };
+          });
+
+          // 동일 키워드 결과 내에서만 "근처 우선"
+          const withDist = mapped.filter((x) => x.distanceNum != null);
+          const withoutDist = mapped.filter((x) => x.distanceNum == null);
+
+          withDist.sort((a, b) => a.distanceNum - b.distanceNum);
+
+          setResults([...withDist, ...withoutDist]);
+          setIsSuggestLoading(false);
+        },
+        options,
+      );
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, isSearchActive, isKakaoReady, userLoc, center]);
+
+  // submit은 "확정 검색" 용도로 유지(동일하게 동작)
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const keyword = searchQuery.trim();
     if (!keyword) return;
-
-    const { kakao } = window;
-    const places = placesRef.current;
-
-    places.keywordSearch(keyword, (data, status) => {
-      if (status !== kakao.maps.services.Status.OK) {
-        setResults([]);
-        return;
-      }
-
-      const mapped = (data || []).map((d, idx) => ({
-        id: `${d.id || idx}`,
-        name: d.place_name,
-        address: d.road_address_name || d.address_name || '',
-        distance: d.distance ? `${d.distance}m` : '',
-        lat: Number(d.y),
-        lng: Number(d.x),
-      }));
-
-      setResults(mapped);
-    });
   };
 
   const selectResult = (item) => {
@@ -314,6 +379,9 @@ export default function CreateLocatePage() {
 
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+
+        // ✅ 현재 위치 저장 (추천 정렬에 사용)
+        setUserLoc({ lat, lng });
 
         const { kakao } = window;
         const map = mapRef.current;
@@ -369,10 +437,7 @@ export default function CreateLocatePage() {
 
               {isSearchActive && (
                 <div className="create-locate-search-panel">
-                  <form
-                    className="create-locate-search-panel-header"
-                    onSubmit={handleSearchSubmit}
-                  >
+                  <form className="create-locate-search-panel-header" onSubmit={handleSearchSubmit}>
                     <button
                       type="button"
                       className="create-locate-search-back-button"
@@ -388,6 +453,8 @@ export default function CreateLocatePage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="장소 검색"
                       disabled={!isKakaoReady}
+                      autoComplete="off"
+                      spellCheck={false}
                     />
 
                     <button
@@ -403,29 +470,46 @@ export default function CreateLocatePage() {
                   <div className="create-locate-search-panel-divider" />
 
                   <ul className="create-locate-search-results">
-                    {results.map((item) => (
-                      <li
-                        key={item.id}
-                        className="create-locate-search-result-item"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => selectResult(item)}
-                        onKeyDown={(ev) => {
-                          if (ev.key === 'Enter') selectResult(item);
-                        }}
-                      >
-                        <img
-                          src={LocationMarkerIcon}
-                          alt=""
-                          className="create-locate-search-result-pin-img"
-                        />
-                        <span className="create-locate-search-result-name">{item.name}</span>
+                    {isSuggestLoading && (
+                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                        <span className="create-locate-search-result-name">검색 중...</span>
                       </li>
-                    ))}
+                    )}
 
-                    {results.length === 0 && (
-                      <li className="create-locate-search-result-item">
-                        <span className="create-locate-search-result-name">검색 결과가 없습니다</span>
+                    {!isSuggestLoading &&
+                      results.map((item) => (
+                        <li
+                          key={item.id}
+                          className="create-locate-search-result-item"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => selectResult(item)}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter') selectResult(item);
+                          }}
+                        >
+                          <img
+                            src={LocationMarkerIcon}
+                            alt=""
+                            className="create-locate-search-result-pin-img"
+                          />
+                          <span className="create-locate-search-result-name">{item.name}</span>
+                        </li>
+                      ))}
+
+                    {!isSuggestLoading && searchQuery.trim() && results.length === 0 && (
+                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                        <span className="create-locate-search-result-name">
+                          검색 결과가 없습니다
+                        </span>
+                      </li>
+                    )}
+
+                    {!searchQuery.trim() && (
+                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                        <span className="create-locate-search-result-name">
+                          검색어를 입력하세요
+                        </span>
                       </li>
                     )}
                   </ul>

@@ -1,5 +1,5 @@
 // gmg-front/src/pages/create/CreateDatePage.jsx
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './CreateDatePage.css';
 import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
@@ -87,16 +87,19 @@ export default function CreateDatePage() {
     return set;
   }, [prev?.dateRange, calendarCells]);
 
+  // 초기값: 13:00 ~ 18:00
   const initialStartTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.startTime;
     const idx = TIME_OPTIONS.indexOf(t);
-    return idx >= 0 ? idx : 2;
+    if (idx >= 0) return idx;
+    return TIME_OPTIONS.indexOf('13:00');
   }, [prev?.timeRange?.startTime]);
 
   const initialEndTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.endTime;
     const idx = TIME_OPTIONS.indexOf(t);
-    return idx >= 0 ? idx : 4;
+    if (idx >= 0) return idx;
+    return TIME_OPTIONS.indexOf('18:00');
   }, [prev?.timeRange?.endTime]);
 
   const [selectedDateKeys, setSelectedDateKeys] = useState(initialSelectedDateKeys);
@@ -106,6 +109,110 @@ export default function CreateDatePage() {
   const wheelAccStartRef = useRef(0);
   const wheelAccEndRef = useRef(0);
   const WHEEL_THRESHOLD = 100;
+
+  // ===== 모바일 터치 스크롤(스와이프) 안정화: DOM non-passive 리스너로 처리 =====
+  const startWheelRef = useRef(null);
+  const endWheelRef = useRef(null);
+
+  const startTouchYRef = useRef(null);
+  const endTouchYRef = useRef(null);
+
+  const TOUCH_STEP_PX = 18;
+  const TOUCH_COOLDOWN_MS = 90;
+  const startTouchLockRef = useRef(false);
+  const endTouchLockRef = useRef(false);
+
+  const stepIndex = (setter, dir) => {
+    setter((prevIndex) => {
+      if (dir > 0) return Math.min(prevIndex + 1, TIME_OPTIONS.length - 1);
+      return Math.max(prevIndex - 1, 0);
+    });
+  };
+
+  const lockStep = (lockRef) => {
+    lockRef.current = true;
+    window.setTimeout(() => {
+      lockRef.current = false;
+    }, TOUCH_COOLDOWN_MS);
+  };
+
+  useEffect(() => {
+    const startEl = startWheelRef.current;
+    const endEl = endWheelRef.current;
+
+    if (!startEl || !endEl) return;
+
+    const onStartTouchStart = (e) => {
+      startTouchYRef.current = e.touches?.[0]?.clientY ?? null;
+    };
+
+    const onStartTouchMove = (e) => {
+      const y = e.touches?.[0]?.clientY;
+      if (y == null || startTouchYRef.current == null) return;
+
+      const dy = y - startTouchYRef.current;
+
+      if (!startTouchLockRef.current && Math.abs(dy) >= TOUCH_STEP_PX) {
+        // 위로 스와이프(dy<0) => 다음(+), 아래로(dy>0) => 이전(-)
+        stepIndex(setStartTimeIndex, dy < 0 ? 1 : -1);
+        lockStep(startTouchLockRef);
+        startTouchYRef.current = y;
+      }
+
+      // 핵심: 페이지 스크롤을 확실히 막고 wheel만 반응하게
+      e.preventDefault();
+    };
+
+    const onStartTouchEnd = () => {
+      startTouchYRef.current = null;
+    };
+
+    const onEndTouchStart = (e) => {
+      endTouchYRef.current = e.touches?.[0]?.clientY ?? null;
+    };
+
+    const onEndTouchMove = (e) => {
+      const y = e.touches?.[0]?.clientY;
+      if (y == null || endTouchYRef.current == null) return;
+
+      const dy = y - endTouchYRef.current;
+
+      if (!endTouchLockRef.current && Math.abs(dy) >= TOUCH_STEP_PX) {
+        stepIndex(setEndTimeIndex, dy < 0 ? 1 : -1);
+        lockStep(endTouchLockRef);
+        endTouchYRef.current = y;
+      }
+
+      e.preventDefault();
+    };
+
+    const onEndTouchEnd = () => {
+      endTouchYRef.current = null;
+    };
+
+    // iOS 대응: passive:false 로 등록해야 preventDefault가 먹는다
+    startEl.addEventListener('touchstart', onStartTouchStart, { passive: true });
+    startEl.addEventListener('touchmove', onStartTouchMove, { passive: false });
+    startEl.addEventListener('touchend', onStartTouchEnd, { passive: true });
+    startEl.addEventListener('touchcancel', onStartTouchEnd, { passive: true });
+
+    endEl.addEventListener('touchstart', onEndTouchStart, { passive: true });
+    endEl.addEventListener('touchmove', onEndTouchMove, { passive: false });
+    endEl.addEventListener('touchend', onEndTouchEnd, { passive: true });
+    endEl.addEventListener('touchcancel', onEndTouchEnd, { passive: true });
+
+    return () => {
+      startEl.removeEventListener('touchstart', onStartTouchStart);
+      startEl.removeEventListener('touchmove', onStartTouchMove);
+      startEl.removeEventListener('touchend', onStartTouchEnd);
+      startEl.removeEventListener('touchcancel', onStartTouchEnd);
+
+      endEl.removeEventListener('touchstart', onEndTouchStart);
+      endEl.removeEventListener('touchmove', onEndTouchMove);
+      endEl.removeEventListener('touchend', onEndTouchEnd);
+      endEl.removeEventListener('touchcancel', onEndTouchEnd);
+    };
+  }, []);
 
   const toggleDate = (cell) => {
     if (cell.type !== 'date') return;
@@ -157,7 +264,6 @@ export default function CreateDatePage() {
   };
 
   const handleStartWheel = (event) => {
-
     wheelAccStartRef.current += event.deltaY;
 
     if (Math.abs(wheelAccStartRef.current) < WHEEL_THRESHOLD) return;
@@ -172,7 +278,6 @@ export default function CreateDatePage() {
   };
 
   const handleEndWheel = (event) => {
-
     wheelAccEndRef.current += event.deltaY;
 
     if (Math.abs(wheelAccEndRef.current) < WHEEL_THRESHOLD) return;
@@ -293,13 +398,17 @@ export default function CreateDatePage() {
             </p>
 
             <div className="create-date-time-picker">
-              <div className="create-date-time-wheel" onWheel={handleStartWheel}>
+              <div
+                ref={startWheelRef}
+                className="create-date-time-wheel"
+                onWheel={handleStartWheel}
+              >
                 {renderWheelItems(startTimeIndex, 'start')}
               </div>
 
               <span className="create-date-time-separator">~</span>
 
-              <div className="create-date-time-wheel" onWheel={handleEndWheel}>
+              <div ref={endWheelRef} className="create-date-time-wheel" onWheel={handleEndWheel}>
                 {renderWheelItems(endTimeIndex, 'end')}
               </div>
             </div>

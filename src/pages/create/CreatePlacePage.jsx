@@ -119,7 +119,10 @@ export default function CreatePlacePage() {
                     'create-place-category-card' +
                     (isSelected ? ' create-place-category-card--selected' : '')
                   }
-                  onClick={() => toggleCategory(category.id)}
+                  onClick={(e) => {
+                    toggleCategory(category.id);
+                    e.currentTarget.blur();
+                  }}
                 >
                   <img
                     src={category.image}
@@ -128,7 +131,9 @@ export default function CreatePlacePage() {
                   />
                   <div className="create-place-category-texts">
                     <span className="create-place-category-label">{category.label}</span>
-                    <span className="create-place-category-description">{category.description}</span>
+                    <span className="create-place-category-description">
+                      {category.description}
+                    </span>
                   </div>
                 </button>
               );

@@ -83,6 +83,18 @@ async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislike
   );
 }
 
+/* =========================
+   ✅ 로컬 디자인 테스트용 더미 데이터
+   - /join/category/sub 로 code/categoryId 없이 진입 가능
+   ========================= */
+function buildDummyPlaces(count = 24) {
+  return Array.from({ length: count }).map((_, i) => ({
+    id: i + 1,
+    name: `더미 장소 ${String(i + 1).padStart(2, '0')}`,
+    imageUrl: '',
+  }));
+}
+
 export default function JoinPlaceCategorySubPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,6 +132,8 @@ export default function JoinPlaceCategorySubPage() {
   const [submitError, setSubmitError] = useState('');
 
   const pageSize = 16;
+
+  const USE_DUMMY_LOCAL = true;
 
   const handleBack = () => navigate(-1);
 
@@ -169,6 +183,19 @@ export default function JoinPlaceCategorySubPage() {
   };
 
   useEffect(() => {
+    // ✅ 로컬 디자인 테스트 진입 (code/categoryId 없어도 더미 표시)
+    if ((!hashUrl || normalizedCategoryId == null) && USE_DUMMY_LOCAL) {
+      setIsLoading(false);
+      setErrorText('');
+      setSubmitError('');
+      setPlaces(buildDummyPlaces(27));
+      setHasNext(false);
+      setPage(0);
+      lastLoadedPageRef.current = 0;
+      pendingRef.current = false;
+      return;
+    }
+
     if (!hashUrl || normalizedCategoryId == null) {
       setIsLoading(false);
       setErrorText('필수 값이 누락되었습니다. (code 또는 categoryId)');
@@ -230,6 +257,12 @@ export default function JoinPlaceCategorySubPage() {
   };
 
   const handleDone = async () => {
+    // ✅ 더미 모드에서는 서버 전송 없이 뒤로가기만
+    if ((!hashUrl || normalizedCategoryId == null) && USE_DUMMY_LOCAL) {
+      navigate(-1);
+      return;
+    }
+
     if (!hashUrl || normalizedCategoryId == null) return;
 
     setSubmitError('');

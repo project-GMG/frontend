@@ -1,8 +1,8 @@
 // gmg-front/src/pages/onboarding/OnboardingPage.jsx
 
-//섹션 4,5 제작중 
+//섹션 4,5 제작중
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OnboardingPage.css';
 
@@ -16,7 +16,6 @@ import OnboardingLogo from '../../assets/icons/category_icon/onboarding-logo.png
 import Onboarding2 from '../../assets/icons/category_icon/onboarding2.png';
 import Onboarding22Icon from '../../assets/icons/category_icon/onboarding2-2.png';
 
-
 import CalenderIcon from '../../assets/icons/category_icon/onboarding-calender.png';
 import HandImg from '../../assets/icons/category_icon/onboarding-hand.png';
 import TimetableImg from '../../assets/icons/category_icon/onboarding-timetable.png';
@@ -26,10 +25,10 @@ const HERO_VIDEOS = [StudyVideo, MeetVideo, DrinkVideo, FoodVideo, CafeVideo];
 export default function OnboardingPage() {
   const navigate = useNavigate();
 
-  const heroVideoSrc = useMemo(() => {
+  const [heroVideoSrc] = useState(() => {
     const idx = Math.floor(Math.random() * HERO_VIDEOS.length);
     return HERO_VIDEOS[idx];
-  }, []);
+  });
 
   const goCreatePlace = () => {
     navigate('/create/place');
@@ -45,7 +44,7 @@ export default function OnboardingPage() {
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setInfoInView(true);
-        else setInfoInView(false); 
+        else setInfoInView(false);
       },
       { threshold: 0.35 },
     );
@@ -102,15 +101,15 @@ export default function OnboardingPage() {
 
           <div className="ob-black-box">
             <div className="ob-black-inner">
-                  <div className="ob-black-cta">
-                    <img
-                      src={Onboarding22Icon}
-                      alt=""
-                      className="ob-black-cta-icon"
-                      draggable={false}
-                    />
-                    <span>이제 간편하게 정해요</span>
-                  </div>
+              <div className="ob-black-cta">
+                <img
+                  src={Onboarding22Icon}
+                  alt=""
+                  className="ob-black-cta-icon"
+                  draggable={false}
+                />
+                <span>이제 간편하게 정해요</span>
+              </div>
 
               <p className="ob-black-desc">
                 모두의 불가능한 시간과 비선호 장소를 모아

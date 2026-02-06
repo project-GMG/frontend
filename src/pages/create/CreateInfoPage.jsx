@@ -121,8 +121,8 @@ export default function CreateInfoPage() {
 
   const isPayloadReady = hasPlaceTypes && hasLocation && hasDateRange && hasTimeRange;
 
-  const isUserInteracted = nameTouched || nameFocused;
-  const isFormValid = isNameValid && isPayloadReady && !isSubmitting && isUserInteracted;
+  // ===== 변경: 버튼은 항상 활성(disabled=false) =====
+  // 단, 생성 중에는 중복 클릭 방지로 onClick 내부에서 막음(요청이 "항상 활성"이므로 disabled는 건드리지 않음)
 
   const labelClass = useMemo(() => {
     const base = 'info-field-label';
@@ -150,10 +150,17 @@ export default function CreateInfoPage() {
   };
 
   const handleCreate = async () => {
-    if (!isFormValid) {
-      if (!isPayloadReady) {
-        setSubmitError('이전 단계(장소/날짜/시간/위치) 선택값이 누락되었습니다.');
-      }
+    // 버튼은 활성 상태지만, 클릭 시 유효성은 그대로 검사
+    if (isSubmitting) return;
+
+    if (!isPayloadReady) {
+      setSubmitError('이전 단계(장소/날짜/시간/위치) 선택값이 누락되었습니다.');
+      return;
+    }
+
+    if (!isNameValid) {
+      if (isNameEmpty) setSubmitError('모임 이름을 입력해주세요.');
+      else if (isNameTooLong) setSubmitError('모임 이름은 12글자 이내로 입력해주세요.');
       return;
     }
 
@@ -285,7 +292,8 @@ export default function CreateInfoPage() {
         </main>
 
         <footer className="create-info-footer">
-          <NextButton disabled={!isFormValid} onClick={handleCreate}>
+          {/* 변경: disabled는 항상 false */}
+          <NextButton disabled={false} onClick={handleCreate}>
             {isSubmitting ? '생성 중...' : '생성하기'}
           </NextButton>
         </footer>

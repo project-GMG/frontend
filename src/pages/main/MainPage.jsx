@@ -1,5 +1,4 @@
 // src/pages/main/MainPage.jsx
-
 import './MainPage.css';
 import NextButton from '../components/common/NextButton';
 import Logo from '../../assets/icons/logo.png';
@@ -150,10 +149,40 @@ function getSlotBgByRank(rank) {
   return '';
 }
 
+/* =========================
+   로컬 UI 확인용 더미 데이터
+   ========================= */
+const DUMMY_EVENT = {
+  title: '다같이 만나요',
+  dateRange: { startDate: '2026-02-10', endDate: '2026-02-15' },
+  timeRange: { startTime: '10:00', endTime: '20:00' },
+  heatmapData: [
+    { date: '2026-02-10', timeSlot: '10:00', availableCount: 2 },
+    { date: '2026-02-10', timeSlot: '10:30', availableCount: 3 },
+    { date: '2026-02-10', timeSlot: '11:00', availableCount: 5 },
+    { date: '2026-02-11', timeSlot: '12:00', availableCount: 4 },
+    { date: '2026-02-12', timeSlot: '18:00', availableCount: 6 },
+    { date: '2026-02-13', timeSlot: '18:30', availableCount: 6 },
+    { date: '2026-02-14', timeSlot: '19:00', availableCount: 7 },
+    { date: '2026-02-15', timeSlot: '16:00', availableCount: 1 },
+  ],
+};
+
+const DUMMY_RECO = [
+  { id: 'd1', name: '을밀대 평양냉면', imageUrl: '' },
+  { id: 'd2', name: '성심당 본점', imageUrl: '' },
+  { id: 'd3', name: '스시 오마카세', imageUrl: '' },
+  { id: 'd4', name: '동네 파스타집', imageUrl: '' },
+  { id: 'd5', name: '카츠 전문점', imageUrl: '' },
+  { id: 'd6', name: '샐러드&샌드위치', imageUrl: '' },
+];
+
 export default function MainPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hashUrl = (searchParams.get('code') || '').trim();
+
+  const USE_DUMMY_WHEN_NO_CODE = true;
 
   const gridScrollRef = useRef(null);
   const dateScrollRef = useRef(null);
@@ -168,13 +197,21 @@ export default function MainPage() {
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
 
-  // ✅ Event API 연결 (heatmapData 포함)
   useEffect(() => {
     let alive = true;
 
     (async () => {
       if (!hashUrl) {
         if (!alive) return;
+
+        if (USE_DUMMY_WHEN_NO_CODE) {
+          setErrorText('');
+          setEventData(DUMMY_EVENT);
+          setRecoPlaces(DUMMY_RECO);
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(false);
         setErrorText('링크가 올바르지 않습니다. (code 없음)');
         setEventData(null);
@@ -194,16 +231,18 @@ export default function MainPage() {
         if (!alive) return;
 
         if (!res.ok) {
-          setErrorText(json?.message || '이벤트 정보를 불러오지 못했습니다.');
-          setEventData(null);
+          setEventData(DUMMY_EVENT);
+          setRecoPlaces(DUMMY_RECO);
+          setErrorText('개발 모드: API 접근 실패로 더미 데이터를 표시합니다.');
           setIsLoading(false);
           return;
         }
 
         const data = json?.data || null;
         if (!data) {
-          setErrorText('이벤트 데이터가 비어 있습니다.');
-          setEventData(null);
+          setEventData(DUMMY_EVENT);
+          setRecoPlaces(DUMMY_RECO);
+          setErrorText('개발 모드: 이벤트 데이터가 비어 있어 더미 데이터를 표시합니다.');
           setIsLoading(false);
           return;
         }
@@ -212,8 +251,9 @@ export default function MainPage() {
         setIsLoading(false);
       } catch {
         if (!alive) return;
-        setErrorText('네트워크 오류로 이벤트 정보를 불러오지 못했습니다.');
-        setEventData(null);
+        setEventData(DUMMY_EVENT);
+        setRecoPlaces(DUMMY_RECO);
+        setErrorText('개발 모드: 네트워크 오류로 더미 데이터를 표시합니다.');
         setIsLoading(false);
       }
     })();
@@ -223,7 +263,6 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // ✅ recommendations API 연결 (이미지 포함으로 단일 호출)
   useEffect(() => {
     let alive = true;
 
@@ -245,7 +284,6 @@ export default function MainPage() {
         if (!alive) return;
 
         if (!res.ok) {
-          setRecoPlaces([]);
           setRecoLoading(false);
           return;
         }
@@ -255,13 +293,56 @@ export default function MainPage() {
         setRecoLoading(false);
       } catch {
         if (!alive) return;
-        setRecoPlaces([]);
         setRecoLoading(false);
       }
     })();
 
     return () => {
       alive = false;
+    };
+  }, [hashUrl]);
+
+  // SSE: 히트맵 실시간 스트림 구독 (/api/events/{hashUrl}/stream)
+
+  useEffect(() => {
+    if (!hashUrl) return;
+
+    const streamUrl = buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}/stream`);
+    const es = new EventSource(streamUrl);
+
+    const safeJsonParse = (s) => {
+      try {
+        return s ? JSON.parse(s) : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const applyHeatmapPatch = (payload) => {
+      const data = payload?.data ?? payload ?? null;
+
+      const nextHeatmap = data?.heatmapData ?? data?.heatmap ?? data?.items ?? data?.values ?? null;
+
+      if (!Array.isArray(nextHeatmap)) return;
+
+      setEventData((prev) => {
+        if (!prev) return prev;
+        return { ...prev, heatmapData: nextHeatmap };
+      });
+    };
+
+    es.onmessage = (e) => {
+      const payload = safeJsonParse(e?.data);
+      if (!payload) return;
+      applyHeatmapPatch(payload);
+    };
+
+    es.onerror = () => {
+      console.warn('SSE stream error:', streamUrl);
+    };
+
+    return () => {
+      es.close();
     };
   }, [hashUrl]);
 
@@ -376,7 +457,7 @@ export default function MainPage() {
     navigate(`/join/time?code=${encodeURIComponent(hashUrl)}`);
   };
 
-  const isReady = !isLoading && !errorText && !!eventData;
+  const isReady = !isLoading && !!eventData;
 
   return (
     <div className="main-page">
@@ -411,8 +492,9 @@ export default function MainPage() {
               모임 정보를 불러오는 중...
             </p>
           )}
+
           {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+            <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>
           )}
 
           {isReady && (
@@ -564,7 +646,7 @@ export default function MainPage() {
         </main>
 
         <footer className="main-footer">
-          <NextButton disabled={!hashUrl || isLoading || !!errorText} onClick={handleParticipate}>
+          <NextButton disabled={false} onClick={handleParticipate}>
             참여 · 수정하기
           </NextButton>
         </footer>

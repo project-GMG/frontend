@@ -2,26 +2,33 @@
 
 .jpc-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+
   background-color: #f1f2f5;
+
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .jpc-container {
-  width: 393px;
-  height: 852px;
   box-sizing: border-box;
+
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+
   background-color: #f1f2f5;
 
   padding-top: 56px;
+
   padding-bottom: 34px;
-  padding-left: 15px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
 
   overflow: hidden;
   border-radius: 16px;
@@ -70,14 +77,19 @@
 .jpc-content {
   flex: 1;
   min-height: 0;
+
   display: flex;
   flex-direction: column;
+
   overflow-y: auto;
-  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+
+  padding-bottom: 30px;
 }
 
 .jpc-title {
-  margin: 34px 2px 30px;
+  margin: 34px 0 30px;
+
   font-family: Pretendard;
   font-weight: 600;
   font-size: 26px;
@@ -105,6 +117,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 10px;
 }
 
 .jpc-group-card {
@@ -112,10 +125,7 @@
   height: 151px;
 
   border-radius: 22px;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 20px;
   box-sizing: border-box;
 
   background: #ffffff;
@@ -159,6 +169,11 @@
   gap: 5px;
 }
 
+.jpc-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .jpc-item-icon {
   width: 52px;
   height: 52px;
@@ -182,12 +197,78 @@
 }
 
 .jpc-footer {
-  position: sticky;
-  bottom: 28px;
-  padding: 0;
-  background: none;
+  flex-shrink: 0;
 }
 
 .jpc-footer button {
   height: 70px;
+  width: 100%;
+}
+
+/* ===============================
+   375px 이하 반응형
+   =============================== */
+@media (max-width: 375px) {
+  .jpc-page {
+    padding-top: calc(10px + env(safe-area-inset-top));
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .jpc-container {
+    width: calc(100vw - 20px);
+    height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding-top: 52px;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-bottom: 24px;
+  }
+
+  .jpc-nav {
+    width: calc(100% - 4px);
+  }
+
+  .jpc-title {
+    margin: 22px 0 20px;
+    font-size: 22px;
+  }
+
+  .jpc-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .jpc-group-card {
+    width: 100%;
+    height: auto;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .jpc-group-card--restaurant {
+    height: auto;
+  }
+
+  .jpc-group-title {
+    font-size: 16px;
+  }
+
+  .jpc-items {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .jpc-item-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
+
+  .jpc-item-label {
+    font-size: 12px;
+    line-height: 14px;
+  }
+
+  .jpc-footer button {
+    height: 64px;
+  }
 }

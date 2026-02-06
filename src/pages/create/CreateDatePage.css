@@ -2,60 +2,78 @@
 
 .create-date-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+
   background-color: var(--bg-default);
+
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .create-date-container {
-  width: 393px;
-  height: 852px;
   box-sizing: border-box;
+
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+
+  margin: 0 auto;
+
   background-color: var(--bg-default);
+
   display: flex;
   flex-direction: column;
+
   padding-top: 56px;
   padding-left: 0;
   padding-right: 0;
   padding-bottom: 0;
+
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
   border-radius: 16px;
 }
 
 .create-date-nav {
   width: 353px;
-  height: 44px;
-  position: relative;
+  height: 56px;
+
   margin: 0 auto;
   padding: 0;
+
+  display: grid;
+  grid-template-rows: 4px 1fr;
+  row-gap: 14px;
+  align-items: start;
 }
 
 .create-date-topbar {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .create-date-back {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.create-date-back .back-button {
+  width: 44px;
+  height: 22px;
 }
 
 .create-date-content {
   flex: 1;
-  padding-top: 42px;
+  padding-top: 38px;
   display: flex;
   flex-direction: column;
-  padding-left: 20px;
-  padding-right: 20px;
   overflow-y: auto;
 }
 
@@ -113,7 +131,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .create-date-calendar-cell--selected {
@@ -173,7 +193,8 @@
   align-items: center;
   overflow: hidden;
   position: relative;
-    overscroll-behavior: contain;
+  overscroll-behavior: contain;
+
   touch-action: none;
 }
 
@@ -215,12 +236,24 @@
 .create-date-footer {
   display: flex;
   justify-content: center;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 0;
+  padding-right: 0;
   padding-bottom: 34px;
 }
 
 .create-date-footer .next-button {
   width: 353px;
   height: 70px;
+  font-family: Pretendard, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0%;
+}
+
+@media (max-width: 365px) {
+  .create-date-nav {
+    width: 100%;
+    margin: 0;
+  }
 }

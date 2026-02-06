@@ -2,59 +2,80 @@
 
 .create-info-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+
   background-color: var(--bg-default);
+
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .create-info-container {
-  width: 393px;
-  height: 852px;
   box-sizing: border-box;
+
+  width: min(393px, calc(100vw - 40px));
+  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+
+  margin: 0 auto;
+
   background-color: var(--bg-default);
+
   display: flex;
   flex-direction: column;
+
   padding-top: 56px;
   padding-left: 0;
   padding-right: 0;
   padding-bottom: 0;
+
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
   border-radius: 16px;
 }
 
+/* ===================== NAV (CreatePlace/CreateDate/CreateLocate와 동일) ===================== */
 .create-info-nav {
   width: 353px;
-  height: 44px;
-  position: relative;
+  height: 56px;
+
   margin: 0 auto;
   padding: 0;
+
+  display: grid;
+  grid-template-rows: 4px 1fr;
+  row-gap: 14px;
+  align-items: start;
 }
 
 .create-info-topbar {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .create-info-back {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
+.create-info-back .back-button {
+  width: 44px;
+  height: 22px;
+}
+
+/* ===================== CONTENT ===================== */
 .create-info-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-left: 20px;
-  padding-right: 20px;
+
   margin-top: 38px;
   overflow-y: auto;
   min-height: 0;
@@ -149,6 +170,7 @@
   color: #fd5839;
 }
 
+/* ===================== FOOTER ===================== */
 .create-info-footer {
   display: flex;
   justify-content: center;
@@ -160,4 +182,12 @@
 .create-info-footer .next-button {
   width: 353px;
   height: 70px;
+}
+
+/* 작은 화면에서 nav 폭 100% */
+@media (max-width: 365px) {
+  .create-info-nav {
+    width: 100%;
+    margin: 0;
+  }
 }
