@@ -168,7 +168,7 @@ export default function MainPage() {
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
 
-  // ✅ Event API 연결 (heatmapData 포함)
+  // Event API 연결 (heatmapData 포함)
   useEffect(() => {
     let alive = true;
 
@@ -223,7 +223,7 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // ✅ recommendations API 연결 (이미지 포함으로 단일 호출)
+  // recommendations API 연결 (이미지 포함으로 단일 호출)
   useEffect(() => {
     let alive = true;
 
@@ -262,6 +262,104 @@ export default function MainPage() {
 
     return () => {
       alive = false;
+    };
+  }, [hashUrl]);
+
+  // SSE 구독 (히트맵 + 추천 데이터 실시간 업데이트)
+  useEffect(() => {
+    if (!hashUrl) {
+      console.log('SSE: hashUrl이 없어 구독하지 않음');
+      return;
+    }
+
+    const streamUrl = buildApiUrl(`/api/events/${encodeURIComponent(hashUrl)}/stream`);
+    console.log(`[SSE] 구독 시작 - hashUrl: ${hashUrl}`);
+    console.log(`[SSE] 연결 URL: ${streamUrl}`);
+
+    let eventSource;
+    try {
+      eventSource = new EventSource(streamUrl);
+      console.log(`[SSE] EventSource 생성됨, readyState: ${eventSource.readyState}`);
+    } catch (error) {
+      console.error('[SSE] EventSource 생성 실패:', error);
+      return;
+    }
+
+    eventSource.onopen = (event) => {
+      console.log('[SSE] 연결 성공 (onopen)', {
+        readyState: eventSource.readyState,
+        url: eventSource.url,
+        event,
+      });
+    };
+
+    eventSource.onmessage = (event) => {
+      console.log('[SSE] 메시지 수신 (onmessage):', {
+        data: event.data,
+        lastEventId: event.lastEventId,
+        type: event.type,
+      });
+
+      try {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] 파싱된 데이터:', data);
+
+        // 히트맵 데이터 실시간 업데이트
+        if (data.heatmapData) {
+          console.log('[SSE] 히트맵 데이터 업데이트:', data.heatmapData);
+          setEventData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              eventId: data.eventId,
+              heatmapData: data.heatmapData,
+            };
+          });
+        }
+
+        // 추천 장소 데이터 실시간 업데이트
+        if (data.recommendations) {
+          console.log('[SSE] 추천 장소 데이터 업데이트:', data.recommendations);
+          const normalized = normalizeRecommendations(data);
+          setRecoPlaces(normalized);
+        }
+      } catch (error) {
+        console.error('[SSE] 메시지 파싱 실패:', error, 'Raw data:', event.data);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('[SSE] 연결 오류 (onerror):', {
+        error,
+        readyState: eventSource.readyState,
+        url: eventSource.url,
+        type: error.type,
+      });
+
+      // readyState 확인
+      // 0 = CONNECTING, 1 = OPEN, 2 = CLOSED
+      if (eventSource.readyState === EventSource.CLOSED) {
+        console.error('[SSE] 연결이 닫혔습니다 (CLOSED)');
+      } else if (eventSource.readyState === EventSource.CONNECTING) {
+        console.warn('[SSE] 재연결 시도 중 (CONNECTING)');
+      }
+    };
+
+    // 'connected' 이벤트 리스너 추가 (서버에서 보낼 수 있는 커스텀 이벤트)
+    eventSource.addEventListener('connected', (event) => {
+      console.log('[SSE] connected 이벤트 수신:', event.data);
+    });
+
+    // 'update' 이벤트 리스너 추가 (서버에서 보낼 수 있는 커스텀 이벤트)
+    eventSource.addEventListener('update', (event) => {
+      console.log('[SSE] update 이벤트 수신:', event.data);
+    });
+
+    return () => {
+      console.log('[SSE] 연결 종료 (cleanup)');
+      if (eventSource) {
+        eventSource.close();
+      }
     };
   }, [hashUrl]);
 

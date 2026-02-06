@@ -99,6 +99,9 @@ export default function JoinPlaceCategoryPage() {
   const [errorText, setErrorText] = useState('');
   const [placeTypes, setPlaceTypes] = useState([]);
 
+  const [isSubmittingComplete, setIsSubmittingComplete] = useState(false);
+  const [completeError, setCompleteError] = useState('');
+
   const handleBack = () => navigate(-1);
 
   useEffect(() => {
@@ -180,8 +183,44 @@ export default function JoinPlaceCategoryPage() {
     );
   };
 
-  const handleDone = () => {
-    navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
+  const handleDone = async () => {
+    if (!hashUrl) return;
+
+    setCompleteError('');
+    setIsSubmittingComplete(true);
+
+    try {
+      const participantId = sessionStorage.getItem(`gmg_participant_${hashUrl}`);
+
+      if (!participantId) {
+        setCompleteError('참여자 정보가 없습니다. 먼저 이름 등록을 진행해주세요.');
+        setIsSubmittingComplete(false);
+        return;
+      }
+
+      const res = await fetch(
+        buildApiUrl(
+          `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/complete`,
+        ),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+        },
+      );
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setCompleteError(json?.message || `등록 완료에 실패했습니다. (${res.status})`);
+        setIsSubmittingComplete(false);
+        return;
+      }
+
+      navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
+    } catch {
+      setCompleteError('네트워크 오류로 등록 완료에 실패했습니다.');
+      setIsSubmittingComplete(false);
+    }
   };
 
   return (
@@ -207,6 +246,10 @@ export default function JoinPlaceCategoryPage() {
 
           {!!errorText && (
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+          )}
+
+          {!!completeError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{completeError}</p>
           )}
 
           {!isLoading && (
@@ -276,8 +319,11 @@ export default function JoinPlaceCategoryPage() {
         </main>
 
         <footer className="jpc-footer">
-          <NextButton disabled={!!errorText || isLoading} onClick={handleDone}>
-            완료
+          <NextButton
+            disabled={!!errorText || isLoading || isSubmittingComplete}
+            onClick={handleDone}
+          >
+            {isSubmittingComplete ? '처리 중...' : '완료'}
           </NextButton>
         </footer>
       </div>
