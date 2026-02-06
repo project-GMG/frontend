@@ -1,2 +1,28 @@
-User-agent: *
+# 1. 구글과 네이버는 전체 허용
+User-agent: Googlebot
 Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+# 2. AI 학습 차단
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: Google-Extended
+User-agent: Claude-bot
+User-agent: CCBot
+User-agent: PerplexityBot
+User-agent: FacebookBot
+User-agent: Omgilibot
+User-agent: Omgili
+Disallow: /
+
+# 3. 그 외 나머지 모든 로봇에 대한 기본 설정
+User-agent: *
+Disallow: /
