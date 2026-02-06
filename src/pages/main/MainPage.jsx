@@ -268,7 +268,7 @@ export default function MainPage() {
   // SSE 구독 (히트맵 + 추천 데이터 실시간 업데이트)
   useEffect(() => {
     if (!hashUrl) {
-      console.log('SSE: hashUrl이 없어 구독하지 않음');
+      console.log('[SSE] hashUrl이 없어 구독하지 않음');
       return;
     }
 
@@ -293,41 +293,6 @@ export default function MainPage() {
       });
     };
 
-    eventSource.onmessage = (event) => {
-      console.log('[SSE] 메시지 수신 (onmessage):', {
-        data: event.data,
-        lastEventId: event.lastEventId,
-        type: event.type,
-      });
-
-      try {
-        const data = JSON.parse(event.data);
-        console.log('[SSE] 파싱된 데이터:', data);
-
-        // 히트맵 데이터 실시간 업데이트
-        if (data.heatmapData) {
-          console.log('[SSE] 히트맵 데이터 업데이트:', data.heatmapData);
-          setEventData((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              eventId: data.eventId,
-              heatmapData: data.heatmapData,
-            };
-          });
-        }
-
-        // 추천 장소 데이터 실시간 업데이트
-        if (data.recommendations) {
-          console.log('[SSE] 추천 장소 데이터 업데이트:', data.recommendations);
-          const normalized = normalizeRecommendations(data);
-          setRecoPlaces(normalized);
-        }
-      } catch (error) {
-        console.error('[SSE] 메시지 파싱 실패:', error, 'Raw data:', event.data);
-      }
-    };
-
     eventSource.onerror = (error) => {
       console.error('[SSE] 연결 오류 (onerror):', {
         error,
@@ -345,14 +310,51 @@ export default function MainPage() {
       }
     };
 
-    // 'connected' 이벤트 리스너 추가 (서버에서 보낼 수 있는 커스텀 이벤트)
+    // 'connected' 이벤트 리스너 (초기 연결 확인용)
     eventSource.addEventListener('connected', (event) => {
-      console.log('[SSE] connected 이벤트 수신:', event.data);
+      console.log('[SSE] ✅ connected 이벤트 수신:', event.data);
     });
 
-    // 'update' 이벤트 리스너 추가 (서버에서 보낼 수 있는 커스텀 이벤트)
-    eventSource.addEventListener('update', (event) => {
-      console.log('[SSE] update 이벤트 수신:', event.data);
+    // 'heatmap-update' 이벤트 리스너 (서버에서 보내는 실제 이벤트명)
+    eventSource.addEventListener('heatmap-update', (event) => {
+      console.log('[SSE] 📊 heatmap-update 이벤트 수신');
+
+      try {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] 히트맵 데이터:', data);
+
+        if (data.heatmapData) {
+          setEventData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              eventId: data.eventId || prev.eventId,
+              heatmapData: data.heatmapData,
+            };
+          });
+          console.log('[SSE] ✅ 히트맵 상태 업데이트 완료');
+        }
+      } catch (error) {
+        console.error('[SSE] ❌ heatmap-update 파싱 실패:', error, 'Raw data:', event.data);
+      }
+    });
+
+    // 'place-recommendations' 이벤트 리스너 (서버에서 보내는 실제 이벤트명)
+    eventSource.addEventListener('place-recommendations', (event) => {
+      console.log('[SSE] 🍽️ place-recommendations 이벤트 수신');
+
+      try {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] 추천 장소 데이터:', data);
+
+        if (data.recommendations) {
+          const normalized = normalizeRecommendations(data);
+          setRecoPlaces(normalized);
+          console.log('[SSE] ✅ 추천 장소 상태 업데이트 완료, 개수:', normalized.length);
+        }
+      } catch (error) {
+        console.error('[SSE] ❌ place-recommendations 파싱 실패:', error, 'Raw data:', event.data);
+      }
     });
 
     return () => {
