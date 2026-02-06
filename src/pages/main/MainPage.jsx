@@ -149,9 +149,6 @@ function getSlotBgByRank(rank) {
   return '';
 }
 
-/* =========================
-   로컬 UI 확인용 더미 데이터
-   ========================= */
 const DUMMY_EVENT = {
   title: '다같이 만나요',
   dateRange: { startDate: '2026-02-10', endDate: '2026-02-15' },

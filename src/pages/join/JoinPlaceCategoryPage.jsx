@@ -155,6 +155,9 @@ export default function JoinPlaceCategoryPage() {
   const [errorText, setErrorText] = useState('');
   const [placeTypes, setPlaceTypes] = useState([]);
 
+  const [isSubmittingComplete] = useState(false);
+  const [completeError] = useState('');
+
   const handleBack = () => navigate(-1);
 
   useEffect(() => {
@@ -270,6 +273,10 @@ export default function JoinPlaceCategoryPage() {
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
           )}
 
+          {!!completeError && (
+            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{completeError}</p>
+          )}
+
           {!isLoading && (
             <div className="jpc-groups">
               {GROUPS.map((group) => (
@@ -334,8 +341,11 @@ export default function JoinPlaceCategoryPage() {
         </main>
 
         <footer className="jpc-footer">
-          <NextButton disabled={!!errorText || isLoading} onClick={handleDone}>
-            완료
+          <NextButton
+            disabled={!!errorText || isLoading || isSubmittingComplete}
+            onClick={handleDone}
+          >
+            {isSubmittingComplete ? '처리 중...' : '완료'}
           </NextButton>
         </footer>
       </div>
