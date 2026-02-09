@@ -117,7 +117,7 @@ function normalizeRecommendations(data) {
 
   const flat = recs
     .flatMap((r) => {
-      const typeName = String(r?.placeTypeName || '').trim();
+      const typeName = String(r?.placeTypeName || r?.placeTypeLabel || r?.label || '').trim();
       const places = Array.isArray(r?.places) ? r.places : [];
       return places.map((p) => ({
         id: p?.placeId ?? p?.id,
@@ -149,6 +149,34 @@ function getSlotBgByRank(rank) {
   return '';
 }
 
+function buildRecoSections(recoPlaces) {
+  const list = Array.isArray(recoPlaces) ? recoPlaces : [];
+  const byType = new Map();
+
+  for (const p of list) {
+    const type = String(p?.placeTypeName || '').trim() || '음식점';
+    if (!byType.has(type)) byType.set(type, []);
+    byType.get(type).push({
+      id: p?.id,
+      name: p?.name,
+      imageUrl: String(p?.imageUrl || '').trim(),
+    });
+  }
+
+  const sections = [];
+  for (const [typeLabel, places] of byType.entries()) {
+    for (let i = 0; i < places.length; i += 3) {
+      sections.push({
+        title: `이 ${typeLabel} 어때요?`,
+        places: places.slice(i, i + 3),
+        key: `${typeLabel}-${i}`,
+      });
+    }
+  }
+
+  return sections;
+}
+
 const DUMMY_EVENT = {
   title: '다같이 만나요',
   dateRange: { startDate: '2026-02-10', endDate: '2026-02-15' },
@@ -163,15 +191,19 @@ const DUMMY_EVENT = {
     { date: '2026-02-14', timeSlot: '19:00', availableCount: 7 },
     { date: '2026-02-15', timeSlot: '16:00', availableCount: 1 },
   ],
+  placeTypes: [
+    { id: 1, code: 'RESTAURANT', label: '식당' },
+    { id: 2, code: 'CAFE', label: '카페' },
+  ],
 };
 
 const DUMMY_RECO = [
-  { id: 'd1', name: '을밀대 평양냉면', imageUrl: '' },
-  { id: 'd2', name: '성심당 본점', imageUrl: '' },
-  { id: 'd3', name: '스시 오마카세', imageUrl: '' },
-  { id: 'd4', name: '동네 파스타집', imageUrl: '' },
-  { id: 'd5', name: '카츠 전문점', imageUrl: '' },
-  { id: 'd6', name: '샐러드&샌드위치', imageUrl: '' },
+  { id: 'd1', name: '을밀대 평양냉면', imageUrl: '', placeTypeName: '식당' },
+  { id: 'd2', name: '성심당 본점', imageUrl: '', placeTypeName: '식당' },
+  { id: 'd3', name: '스시 오마카세', imageUrl: '', placeTypeName: '식당' },
+  { id: 'd4', name: '라떼 맛집', imageUrl: '', placeTypeName: '카페' },
+  { id: 'd5', name: '핸드드립 카페', imageUrl: '', placeTypeName: '카페' },
+  { id: 'd6', name: '디저트 카페', imageUrl: '', placeTypeName: '카페' },
 ];
 
 export default function MainPage() {
@@ -299,8 +331,6 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  // SSE: 히트맵 실시간 스트림 구독 (/api/events/{hashUrl}/stream)
-
   useEffect(() => {
     if (!hashUrl) return;
 
@@ -317,9 +347,7 @@ export default function MainPage() {
 
     const applyHeatmapPatch = (payload) => {
       const data = payload?.data ?? payload ?? null;
-
       const nextHeatmap = data?.heatmapData ?? data?.heatmap ?? data?.items ?? data?.values ?? null;
-
       if (!Array.isArray(nextHeatmap)) return;
 
       setEventData((prev) => {
@@ -387,21 +415,7 @@ export default function MainPage() {
 
   const canRenderGrid = dates.length > 0 && timeSlots.length > 0;
 
-  const recoGroups = useMemo(() => {
-    const list = Array.isArray(recoPlaces) ? recoPlaces : [];
-
-    const groups = [];
-    for (let i = 0; i < list.length; i += 3) {
-      const chunk = list.slice(i, i + 3).map((p) => ({
-        id: p?.id,
-        name: p?.name,
-        imageUrl: String(p?.imageUrl || '').trim(),
-      }));
-      groups.push(chunk);
-    }
-
-    return groups;
-  }, [recoPlaces]);
+  const recoSections = useMemo(() => buildRecoSections(recoPlaces), [recoPlaces]);
 
   const syncFromGrid = () => {
     const grid = gridScrollRef.current;
@@ -485,14 +499,10 @@ export default function MainPage() {
 
         <main className="main-content">
           {isLoading && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-              모임 정보를 불러오는 중...
-            </p>
+            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>
           )}
 
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>
-          )}
+          {!!errorText && <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>}
 
           {isReady && (
             <>
@@ -508,11 +518,7 @@ export default function MainPage() {
                     </p>
                   ) : (
                     <div className="schedule-frame">
-                      <div
-                        ref={dateScrollRef}
-                        className="schedule-date-rail"
-                        onScroll={syncFromDate}
-                      >
+                      <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
                         <div className="schedule-date-row">
                           {dates.map((date) => (
                             <div key={date} className="schedule-date-header">
@@ -522,11 +528,7 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      <div
-                        ref={timeScrollRef}
-                        className="schedule-time-rail"
-                        onScroll={syncFromTime}
-                      >
+                      <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
                         <div className="schedule-time-col">
                           {timeSlots.map((slot, rowIndex) => (
                             <div key={slot} className="schedule-time-label">
@@ -584,26 +586,22 @@ export default function MainPage() {
                 <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
                   {recoLoading ? (
                     <div className="restaurant-container">
-                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
-                        추천 장소를 불러오는 중...
-                      </p>
+                      <h2 className="restaurant-container-title">추천 장소</h2>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소를 불러오는 중...</p>
                     </div>
-                  ) : recoGroups.length === 0 ? (
+                  ) : recoSections.length === 0 ? (
                     <div className="restaurant-container">
-                      <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
-                        추천 장소가 없습니다.
-                      </p>
+                      <h2 className="restaurant-container-title">추천 장소</h2>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소가 없습니다.</p>
                     </div>
                   ) : (
                     <>
-                      {recoGroups.map((group, groupIdx) => (
-                        <div key={`reco-group-${groupIdx}`} className="restaurant-container">
-                          <h2 className="restaurant-container-title">이 음식점 어때요?</h2>
+                      {recoSections.map((section) => (
+                        <div key={section.key} className="restaurant-container">
+                          <h2 className="restaurant-container-title">{section.title}</h2>
 
                           <div className="restaurant-set">
-                            {group.map((place) => (
+                            {section.places.map((place) => (
                               <article key={place.id ?? place.name} className="restaurant-card">
                                 <img
                                   src={place.imageUrl || NoImage}
@@ -616,17 +614,15 @@ export default function MainPage() {
                                   }}
                                 />
                                 <div className="restaurant-label">
-                                  <p className="restaurant-label-text">
-                                    {truncateKorean(place.name, 7)}
-                                  </p>
+                                  <p className="restaurant-label-text">{truncateKorean(place.name, 7)}</p>
                                 </div>
                               </article>
                             ))}
 
-                            {Array.from({ length: Math.max(0, 3 - group.length) }).map(
+                            {Array.from({ length: Math.max(0, 3 - section.places.length) }).map(
                               (_, emptyIdx) => (
                                 <div
-                                  key={`reco-${groupIdx}-empty-${emptyIdx}`}
+                                  key={`${section.key}-empty-${emptyIdx}`}
                                   className="restaurant-card restaurant-card--empty"
                                 />
                               ),

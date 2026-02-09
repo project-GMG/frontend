@@ -3,54 +3,49 @@
 .create-info-page {
   width: 100vw;
   min-height: 100dvh;
-
   display: flex;
   justify-content: center;
   align-items: flex-start;
-
   background-color: var(--bg-default);
-
-  padding-top: calc(20px + env(safe-area-inset-top));
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  padding: 0;
   box-sizing: border-box;
 }
 
 .create-info-container {
   box-sizing: border-box;
-
-  width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
-
+  width: min(393px, 100vw);
+  height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   margin: 0 auto;
-
   background-color: var(--bg-default);
-
   display: flex;
   flex-direction: column;
-
-  padding-top: 56px;
-  padding-left: 0;
-  padding-right: 0;
-  padding-bottom: 0;
-
-  overflow-y: auto;
+  padding: 20px;
+  overflow: hidden;
   -webkit-overflow-scrolling: touch;
-
   border-radius: 16px;
+  position: relative;
 }
 
-/* ===================== NAV (CreatePlace/CreateDate/CreateLocate와 동일) ===================== */
 .create-info-nav {
-  width: 353px;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  width: calc(min(393px, 100vw) - 40px);
   height: 56px;
 
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
+  padding-top:20px;
 
   display: grid;
   grid-template-rows: 4px 1fr;
   row-gap: 14px;
   align-items: start;
+
+  background: var(--bg-default);
 }
 
 .create-info-topbar {
@@ -70,14 +65,20 @@
   height: 22px;
 }
 
-/* ===================== CONTENT ===================== */
 .create-info-content {
   flex: 1;
   display: flex;
   flex-direction: column;
 
-  margin-top: 38px;
+  padding: 0;
+  margin-top: calc(56px + 38px);
+
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  padding-bottom: 90px;
   min-height: 0;
 }
 
@@ -170,24 +171,29 @@
   color: #fd5839;
 }
 
-/* ===================== FOOTER ===================== */
 .create-info-footer {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  width: calc(min(393px, 100vw) - 40px);
+
   display: flex;
   justify-content: center;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 34px;
+  padding: 0;
+
 }
 
 .create-info-footer .next-button {
-  width: 353px;
+  width: 100%;
+  max-width: 353px;
   height: 70px;
 }
 
-/* 작은 화면에서 nav 폭 100% */
 @media (max-width: 365px) {
-  .create-info-nav {
-    width: 100%;
-    margin: 0;
+  .create-info-footer .next-button {
+    max-width: 340px;
   }
 }

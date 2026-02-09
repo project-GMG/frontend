@@ -3,13 +3,10 @@
 .join-time-page {
   width: 100vw;
   min-height: 100dvh;
-
   display: flex;
   justify-content: center;
   align-items: flex-start;
-
   background-color: #f1f2f5;
-
   padding-top: calc(20px + env(safe-area-inset-top));
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -17,39 +14,47 @@
 
 .join-time-container {
   box-sizing: border-box;
-
   width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
-
+  height: min(
+    852px,
+    calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+  );
+  margin: 0 auto;
   background-color: #f1f2f5;
-
-  padding-top: 56px;
-  padding-left: 0;
-  padding-right: 0;
-  padding-bottom: 0;
-
   display: flex;
   flex-direction: column;
-
+  padding: 20px;
   overflow: hidden;
   border-radius: 16px;
+  position: relative;
 }
 
 .join-time-nav {
-  width: 353px;
-  height: 44px;
-  position: relative;
-  margin: 0 auto;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  height: 52px;
+
+  margin: 0;
   padding: 0;
-  flex-shrink: 0;
+  padding-top: 20px;
+
+  display: grid;
+  grid-template-rows: 4px 1fr;
+  row-gap: 14px;
+  align-items: start;
+
+  background: #f1f2f5;
 }
 
 .join-time-back {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .join-time-back .back-button {
@@ -57,11 +62,14 @@
   height: 22px;
 }
 
+.join-time-back .back-button-icon {
+  width: 32px;
+  height: 22px;
+}
+
 .join-time-step-pill {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  justify-self: center;
+  align-self: start;
 
   height: 18px;
   padding: 0 10px;
@@ -71,7 +79,7 @@
   color: #333232;
 
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 18px;
 }
 
@@ -81,17 +89,29 @@
   display: flex;
   flex-direction: column;
 
-  margin-top: 38px;
+  margin-top: calc(56px + 38px);
 
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  padding-bottom: 120px;
 }
 
 .join-time-title {
-  margin: 0 0 12px;
-  font-size: 23px;
+  margin: 0;
+  font-size: 26px;
   font-weight: 600;
   line-height: 27.6px;
+  color: #333232;
+}
+
+.join-time-subtitle {
+  margin: 30px 0 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.8px;
   color: #333232;
 }
 
@@ -110,9 +130,19 @@
   font-size: 14px;
 }
 
+/* ✅ 그리드 + 페이지네이션 묶음 */
+.join-time-grid-wrap {
+  width: 100%;
+  max-width: 353px;
+  margin: 18px auto 0;
+}
+
 .join-time-grid-card {
-  width: 353px;
+  width: 100%;
+  max-width: 353px;
   height: 520px;
+
+  margin: 0;
 
   border-radius: 5px;
   background: #f1f2f5;
@@ -127,7 +157,10 @@
   overflow: hidden;
 }
 
-.join-time-grid-card.is-selecting {
+/* ✅ 롱프레스 선택 모드에서만 터치 액션 차단 */
+.join-time-grid-card.is-selecting,
+.jt-grid-scroll.is-selecting,
+.jt-time-rail.is-selecting {
   touch-action: none;
 }
 
@@ -193,10 +226,7 @@
   top: var(--time-rail-top);
   left: var(--rail-left);
 
-  bottom: auto;
-
   width: var(--time-col);
-
   height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
   overflow-y: auto;
@@ -243,13 +273,12 @@
   line-height: 1;
   white-space: nowrap;
 }
+
 .jt-grid-scroll {
   position: absolute;
   top: var(--grid-top);
   left: calc(var(--time-col) + var(--time-gap));
   right: var(--grid-right);
-
-  bottom: auto;
 
   height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
@@ -312,12 +341,17 @@
   pointer-events: none;
 }
 
+/* ✅ 페이지네이션: 그리드 바로 아래, fixed 금지 */
 .join-time-pagination {
+  position: static;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-shrink: 0;
-  margin-top: -20px;
+
+  background: transparent;
+  margin: 14px 0 0;
+  padding: 0;
 }
 
 .join-time-dots {
@@ -337,13 +371,22 @@
   background: #7c7c7c;
 }
 
+/* ✅ footer는 버튼만 fixed */
 .join-time-footer {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+
+  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+
   display: flex;
   justify-content: center;
 
-  padding-bottom: 14px;
-
-  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
 }
 
 .join-time-footer > * {
@@ -366,24 +409,27 @@
       852px,
       calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
     );
-    padding-top: 52px;
+    padding: 20px;
   }
 
-  .join-time-nav {
-    width: calc(100% - 32px);
+  .join-time-nav,
+  .join-time-footer {
+    width: calc(min(393px, calc(100vw - 20px)) - 40px);
   }
 
   .join-time-content {
-    padding-left: 16px;
-    padding-right: 16px;
-    margin-top: 16px;
+    margin-top: calc(56px + 16px);
+    padding-bottom: 110px;
+  }
+
+  .join-time-grid-wrap {
+    max-width: 343px;
   }
 
   .join-time-grid-card {
     width: 100%;
     max-width: 343px;
     height: clamp(340px, 56dvh, 500px);
-
     contain: layout paint;
   }
 
@@ -419,19 +465,7 @@
     touch-action: pan-y;
   }
 
-  .join-time-footer {
-    padding-bottom: 12px;
-  }
-
   .join-time-footer button {
     height: 64px;
-  }
-
-  .join-time-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 15px;
-    flex-shrink: 0;
   }
 }

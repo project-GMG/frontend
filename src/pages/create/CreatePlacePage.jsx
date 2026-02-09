@@ -45,11 +45,12 @@ const PLACE_TYPE_CODE_MAP = {
   library: 'STUDY',
 };
 
+// 뒤로 갔다가 재진입 시 복원 (placeTypeCodes -> selectedIds)
 const CODE_TO_ID_MAP = {
   RESTAURANT: 'restaurant',
   CAFE: 'cafe',
-  BAR: 'bar',
-  STUDY: 'study',
+  BAR: 'pub',
+  STUDY: 'library',
 };
 
 export default function CreatePlacePage() {
@@ -57,7 +58,6 @@ export default function CreatePlacePage() {
   const location = useLocation();
   const prev = location.state || {};
 
-  // 뒤로 왔다가 다시 진입 시 복원 (placeTypeCodes -> selectedIds)
   const initialSelectedIds = useMemo(() => {
     const codes = Array.isArray(prev.placeTypeCodes) ? prev.placeTypeCodes : [];
     return codes.map((c) => CODE_TO_ID_MAP[c]).filter(Boolean);

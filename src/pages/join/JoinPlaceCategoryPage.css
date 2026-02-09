@@ -3,13 +3,10 @@
 .jpc-page {
   width: 100vw;
   min-height: 100dvh;
-
   display: flex;
   justify-content: center;
   align-items: flex-start;
-
   background-color: #f1f2f5;
-
   padding-top: calc(20px + env(safe-area-inset-top));
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -17,36 +14,39 @@
 
 .jpc-container {
   box-sizing: border-box;
-
   width: min(393px, calc(100vw - 40px));
   height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
-
   background-color: #f1f2f5;
-
-  padding-top: 56px;
-
-  padding-bottom: 34px;
-
   display: flex;
   flex-direction: column;
-
+  padding: 20px;
   overflow: hidden;
   border-radius: 16px;
+  position: relative;
 }
 
 .jpc-nav {
-  width: 353px;
-  height: 44px;
-  position: relative;
-  margin: 0 auto;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  height: 52px;
+  margin: 0;
   padding: 0;
-  flex-shrink: 0;
+  padding-top: 20px;
+  display: grid;
+  grid-template-rows: 4px 1fr;
+  row-gap: 14px;
+  align-items: start;
+  background: #f1f2f5;
 }
 
 .jpc-back {
-  position: absolute;
-  left: 0;
-  bottom: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
   margin: 0;
   padding: 0;
 }
@@ -56,40 +56,37 @@
   height: 22px;
 }
 
-.jpc-step-pill {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+.jpc-back .back-button-icon {
+  width: 32px;
+  height: 22px;
+}
 
+.jpc-step-pill {
+  justify-self: center;
+  align-self: start;
   height: 18px;
   padding: 0 10px;
   border-radius: 999px;
-
   background: #d9d9d9;
   color: #333232;
-
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 18px;
 }
 
 .jpc-content {
   flex: 1;
   min-height: 0;
-
   display: flex;
   flex-direction: column;
-
+  margin-top: calc(56px + 38px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  padding-bottom: 30px;
+  padding-bottom: 120px;
 }
 
 .jpc-title {
-  margin: 34px 0 30px;
-
+  margin: 0 0 30px;
   font-family: Pretendard;
   font-weight: 600;
   font-size: 26px;
@@ -121,18 +118,17 @@
 }
 
 .jpc-group-card {
-  width: 353px;
+  width: 100%;
+  max-width: 353px;
   height: 151px;
-
   border-radius: 22px;
   padding: 20px;
   box-sizing: border-box;
-
   background: #ffffff;
-
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin: 0 auto;
 }
 
 .jpc-group-card--restaurant {
@@ -162,7 +158,6 @@
   background: transparent;
   padding: 0;
   cursor: pointer;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -179,11 +174,9 @@
   height: 52px;
   border-radius: 17.33px;
   background: #ededf1;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   overflow: hidden;
 }
 
@@ -197,7 +190,20 @@
 }
 
 .jpc-footer {
-  flex-shrink: 0;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+}
+
+.jpc-footer > * {
+  width: 100%;
 }
 
 .jpc-footer button {
@@ -205,9 +211,6 @@
   width: 100%;
 }
 
-/* ===============================
-   375px 이하 반응형
-   =============================== */
 @media (max-width: 375px) {
   .jpc-page {
     padding-top: calc(10px + env(safe-area-inset-top));
@@ -215,30 +218,32 @@
   }
 
   .jpc-container {
-    width: calc(100vw - 20px);
-    height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    padding-top: 52px;
-    padding-left: 14px;
-    padding-right: 14px;
-    padding-bottom: 24px;
+    width: min(393px, calc(100vw - 20px));
+    height: min(
+      852px,
+      calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+    padding: 20px;
   }
 
-  .jpc-nav {
-    width: calc(100% - 4px);
-  }
-
-  .jpc-title {
-    margin: 22px 0 20px;
-    font-size: 22px;
+  .jpc-nav,
+  .jpc-footer {
+    width: calc(min(393px, calc(100vw - 20px)) - 40px);
   }
 
   .jpc-content {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    margin-top: calc(56px + 16px);
+    padding-bottom: 110px;
+  }
+
+  .jpc-title {
+    font-size: 22px;
+    margin: 0 0 20px;
   }
 
   .jpc-group-card {
     width: 100%;
+    max-width: 343px;
     height: auto;
     padding: 16px;
     gap: 12px;
@@ -253,7 +258,6 @@
   }
 
   .jpc-items {
-    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
   }
 

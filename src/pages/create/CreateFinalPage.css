@@ -2,48 +2,63 @@
 
 .create-final-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: #f1f2f5;
+  align-items: flex-start;
+  background-color: var(--bg-default);
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .create-final-container {
-  width: 393px;
-  height: 852px;
   box-sizing: border-box;
-  background-color: #f1f2f5;
+  width: min(393px, 100vw);
+  height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  margin: 0 auto;
+  background-color: var(--bg-default);
   display: flex;
   flex-direction: column;
-  padding-top: 56px;
-  padding-left: 0;
-  padding-right: 0;
-  padding-bottom: 20px;
-  overflow: visible;
+  padding: 20px;
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
   border-radius: 16px;
-
-  width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100vh - 40px));
-  max-width: calc(100vw - 40px);
-  max-height: calc(100vh - 40px);
+  position: relative;
 }
 
 .create-final-nav {
-  width: 353px;
-  height: 24px;
-  position: relative;
-  margin: 0 auto;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: calc(min(393px, 100vw) - 40px);
+  height: 56px;
+  margin: 0;
   padding: 0;
-  flex-shrink: 0;
+  padding-top:20px;
+  display: grid;
+  grid-template-rows: 4px 1fr;
+  row-gap: 14px;
+  align-items: start;
+  background: var(--bg-default);
+}
+
+.create-final-topbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .create-final-back {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.create-final-back .back-button {
+  width: 44px;
+  height: 22px;
 }
 
 .create-final-content {
@@ -51,24 +66,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 24px;
   text-align: center;
+
+  padding: 0;
+  margin-top: calc(56px + 38px);
+
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  padding-bottom: 90px;
   min-height: 0;
 }
 
 .create-final-title {
-  margin: 100px 0 32px;
-  font-family: Pretendard;
+  margin: 0;
+  font-family: Pretendard, sans-serif;
   font-weight: 600;
   font-size: 26px;
-  line-height: 100%;
+  line-height: 31.2px;
   letter-spacing: 0%;
   color: #333232;
 }
 
 .create-final-subtitle {
-  margin: 0 0 23px;
+  margin: 30px 0 0;
   font-size: 13px;
   font-weight: 500;
   line-height: 23px;
@@ -76,18 +99,16 @@
 }
 
 .create-final-link-box {
-  width: 330.2289px;
-  max-width: 100%;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 353px;
   height: 67.4456px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding-top: 10px;
-  padding-right: 20px;
-  padding-bottom: 10px;
-  padding-left: 20px;
+  padding: 10px 20px;
   background-color: #ffffff;
   border-radius: 50px;
   box-shadow: 0px 1px 2px -1px #0000001a, 0px 1px 3px 0px #0000001a;
@@ -141,12 +162,21 @@
 }
 
 .create-final-footer {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  width: calc(min(393px, 100vw) - 40px);
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: auto;
-  flex-shrink: 0;
+
+  padding: 0;
+  background: var(--bg-default);
 }
 
 .create-final-share-button {
@@ -177,7 +207,7 @@
 }
 
 .create-final-share-text {
-  font-family: Pretendard;
+  font-family: Pretendard, sans-serif;
   font-weight: 600;
   font-size: 10px;
   line-height: 16px;
@@ -187,16 +217,17 @@
 }
 
 .create-final-register-button {
-  width: 273px;
+  width: 100%;
+  max-width: 273px;
   height: 70px;
   border: none;
   border-radius: 70px;
   background-color: #ff5315;
   cursor: pointer;
-  font-family: Pretendard;
+  font-family: Pretendard, sans-serif;
   font-weight: 500;
   font-size: 18px;
-  line-height: 100%;
+  line-height: 1;
   letter-spacing: 0%;
   color: #ffffff;
   display: flex;
@@ -207,4 +238,10 @@
 .create-final-register-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@media (max-width: 365px) {
+  .create-final-link-box {
+    max-width: 340px;
+  }
 }

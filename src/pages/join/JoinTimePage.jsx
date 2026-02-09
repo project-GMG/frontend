@@ -178,9 +178,7 @@ function parseKey(key) {
 }
 
 function isWeekendLabel(label) {
-  const wd = String(label || '')
-    .trim()
-    .slice(-1);
+  const wd = String(label || '').trim().slice(-1);
   return wd === '토' || wd === '일';
 }
 
@@ -259,7 +257,6 @@ export default function JoinTimePage() {
       } catch (e) {
         if (!alive) return;
 
-        // 개발 모드 폴백
         if (USE_DUMMY_WHEN_NO_CODE) {
           setEventData(buildDummyEvent5Days());
           setEventError('개발 모드: 이벤트 API 접근 실패로 더미 데이터를 표시합니다.');
@@ -284,11 +281,7 @@ export default function JoinTimePage() {
     return buildDatesFromRange(s, e, 35);
   }, [eventData?.dateRange?.startDate, eventData?.dateRange?.endDate]);
 
-  const {
-    slots: TIME_SLOTS,
-    labels: TIME_LABELS,
-    apiHm: timeApiHm,
-  } = useMemo(() => {
+  const { slots: TIME_SLOTS, labels: TIME_LABELS, apiHm: timeApiHm } = useMemo(() => {
     const s = eventData?.timeRange?.startTime;
     const e = eventData?.timeRange?.endTime;
     return buildTimeSlotsFromRange(s, e);
@@ -298,10 +291,8 @@ export default function JoinTimePage() {
   const totalPages = Math.max(1, Math.ceil(allDateLabels.length / PAGE_SIZE));
   const [page, setPage] = useState(0);
 
-  // ✅ 마지막 페이지까지 도달했을 때 Next 활성화 조건에 사용
   const [hasReachedLast, setHasReachedLast] = useState(false);
 
-  // ✅ 날짜(=페이지 수)가 바뀌면 "도달 여부"는 다시 false
   useEffect(() => {
     setHasReachedLast(false);
   }, [hashUrl, totalPages]);
@@ -310,7 +301,6 @@ export default function JoinTimePage() {
     setPage((p) => Math.min(p, totalPages - 1));
   }, [totalPages]);
 
-  // ✅ totalPages가 2 이상일 때만 "끝까지 넘김"으로 인정
   useEffect(() => {
     if (totalPages <= 1) return;
     if (page === totalPages - 1) setHasReachedLast(true);
@@ -319,7 +309,6 @@ export default function JoinTimePage() {
   const pageDatesRaw = allDateLabels.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const pageDateIndexOffset = page * PAGE_SIZE;
 
-  // ✅ 항상 3개 컬럼이 있다고 가정하고(빈 칸 포함) 레일/그리드 정렬 유지
   const pageDatesFixed = useMemo(() => {
     const arr = [...pageDatesRaw];
     while (arr.length < PAGE_SIZE) arr.push(null);
@@ -452,7 +441,6 @@ export default function JoinTimePage() {
     }
   };
 
-  // ✅ "페이지 끝까지 넘김" 조건: totalPages가 2 이상일 때만 hasReachedLast 요구
   const shouldRequireLastPage = totalPages > 1;
   const isNextDisabled =
     (shouldRequireLastPage && !hasReachedLast) || isLoadingEvent || !!eventError || isSubmitting;
@@ -537,9 +525,9 @@ export default function JoinTimePage() {
 
       applyKeyByMode(key, mode);
 
-      timeScrollRef.current?.classList.add('is-selecting');
+      // ✅ 롱프레스 모드에서만 스크롤/스와이프를 잠깐 막음
       gridScrollRef.current?.classList.add('is-selecting');
-      target?.classList?.add?.('is-selecting');
+      timeScrollRef.current?.classList.add('is-selecting');
 
       if (target && typeof target.setPointerCapture === 'function') {
         try {
@@ -559,6 +547,7 @@ export default function JoinTimePage() {
     const dy = e.clientY - st.startY;
 
     if (st.mode === 'idle') {
+      // ✅ 롱프레스 전에는 "스크롤/스와이프"가 우선이므로, 조금만 움직여도 롱프레스 취소
       if (Math.abs(dx) > MOVE_CANCEL_PX || Math.abs(dy) > MOVE_CANCEL_PX) {
         st.movedBeforeLongPress = true;
         clearLongPressTimer();
@@ -566,6 +555,7 @@ export default function JoinTimePage() {
       return;
     }
 
+    // ✅ 롱프레스 모드 진입 후에는 drag-select
     e.preventDefault();
 
     const key = findSlotKeyFromPoint(e.clientX, e.clientY);
@@ -589,6 +579,7 @@ export default function JoinTimePage() {
     clearLongPressTimer();
 
     if (wasMode === 'idle') {
+      // ✅ 탭(롱프레스 아님)일 때만 토글
       if (!st.movedBeforeLongPress && startKey) toggleSingle(startKey);
       st.startKey = null;
       st.lastKey = null;
@@ -597,8 +588,8 @@ export default function JoinTimePage() {
 
     setMode('idle');
 
-    timeScrollRef.current?.classList.remove('is-selecting');
     gridScrollRef.current?.classList.remove('is-selecting');
+    timeScrollRef.current?.classList.remove('is-selecting');
 
     st.startKey = null;
     st.lastKey = null;
@@ -613,12 +604,14 @@ export default function JoinTimePage() {
   const onPointerCancel = (e) => finishPointer(e);
 
   const onTouchStart = (e) => {
+    // ✅ 롱프레스 모드가 아닐 때만 스와이프 판정
     if (selectStateRef.current.mode !== 'idle') return;
     const t = e.touches[0];
     swipeRef.current = { x: t.clientX, y: t.clientY };
   };
 
   const onTouchEnd = (e) => {
+    // ✅ 롱프레스 모드가 아닐 때만 스와이프 판정
     if (selectStateRef.current.mode !== 'idle') return;
 
     const start = swipeRef.current;
@@ -660,97 +653,102 @@ export default function JoinTimePage() {
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
           )}
 
-          <section
-            className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-          >
-            <div className="jt-frame">
-              <div className="jt-date-rail">
-                <div className="jt-date-row">
-                  {pageDatesFixed.map((d, i) => (
-                    <div
-                      key={`${page}-${d ?? 'empty'}-${i}`}
-                      className={[
-                        'jt-date-header',
-                        d && isWeekendLabel(d) ? 'is-weekend' : '',
-                        !d ? 'jt-date-header--empty' : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                    >
-                      {d ?? ''}
-                    </div>
-                  ))}
+          {/* ✅ 그리드 + 페이지네이션은 같은 묶음 */}
+          <section className="join-time-grid-wrap">
+            <section
+              className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
+            >
+              <div className="jt-frame">
+                <div className="jt-date-rail">
+                  <div className="jt-date-row">
+                    {pageDatesFixed.map((d, i) => (
+                      <div
+                        key={`${page}-${d ?? 'empty'}-${i}`}
+                        className={[
+                          'jt-date-header',
+                          d && isWeekendLabel(d) ? 'is-weekend' : '',
+                          !d ? 'jt-date-header--empty' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        {d ?? ''}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
-                <div className="jt-time-col">
-                  {TIME_SLOTS.map((slot, idx) => (
-                    <div key={`${slot}-${idx}`} className="jt-time-label">
-                      {TIME_LABELS[idx] ?? ''}
-                    </div>
-                  ))}
+                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
+                  <div className="jt-time-col">
+                    {TIME_SLOTS.map((slot, idx) => (
+                      <div key={`${slot}-${idx}`} className="jt-time-label">
+                        {TIME_LABELS[idx] ?? ''}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
-                <div
-                  className="jt-grid"
-                  style={{
-                    gridTemplateColumns: `repeat(${PAGE_SIZE}, 1fr)`,
-                    gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
-                  }}
-                >
-                  {TIME_SLOTS.map((slot, slotIndex) =>
-                    pageDatesFixed.map((dateLabel, localDateIndex) => {
-                      const hasDate = !!dateLabel;
-                      const dateIndex = pageDateIndexOffset + localDateIndex;
-                      const key = makeKey(dateIndex, slotIndex);
+                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
+                  <div
+                    className="jt-grid"
+                    style={{
+                      gridTemplateColumns: `repeat(${PAGE_SIZE}, 1fr)`,
+                      gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
+                    }}
+                  >
+                    {TIME_SLOTS.map((slot, slotIndex) =>
+                      pageDatesFixed.map((dateLabel, localDateIndex) => {
+                        const hasDate = !!dateLabel;
+                        const dateIndex = pageDateIndexOffset + localDateIndex;
+                        const key = makeKey(dateIndex, slotIndex);
 
-                      const isActive = hasDate && selectedKeys.has(key);
-                      const pairClass = slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
+                        const isActive = hasDate && selectedKeys.has(key);
+                        const pairClass = slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
 
-                      if (!hasDate) {
+                        if (!hasDate) {
+                          return (
+                            <div
+                              key={`${page}-empty-${key}`}
+                              className={`jt-slot jt-slot--empty ${pairClass}`}
+                              aria-hidden="true"
+                            />
+                          );
+                        }
+
                         return (
-                          <div
-                            key={`${page}-empty-${key}`}
-                            className={`jt-slot jt-slot--empty ${pairClass}`}
-                            aria-hidden="true"
+                          <button
+                            type="button"
+                            key={`${page}-${key}`}
+                            data-slot-key={key}
+                            className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
+                            aria-label={`${dateLabel} ${slot}`}
+                            onPointerDown={(e) => onSlotPointerDown(e, key)}
+                            onPointerMove={onSlotPointerMove}
+                            onPointerUp={finishPointer}
+                            onPointerCancel={onPointerCancel}
                           />
                         );
-                      }
-
-                      return (
-                        <button
-                          type="button"
-                          key={`${page}-${key}`}
-                          data-slot-key={key}
-                          className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
-                          aria-label={`${dateLabel} ${slot}`}
-                          onPointerDown={(e) => onSlotPointerDown(e, key)}
-                          onPointerMove={onSlotPointerMove}
-                          onPointerUp={finishPointer}
-                          onPointerCancel={onPointerCancel}
-                        />
-                      );
-                    }),
-                  )}
+                      }),
+                    )}
+                  </div>
                 </div>
+              </div>
+            </section>
+
+            {/* ✅ 페이지네이션은 그리드 바로 아래 (fixed 금지) */}
+            <div className="join-time-pagination join-time-pagination--dots-only">
+              <div className="join-time-dots" aria-label="페이지 표시">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <span key={i} className={`join-time-dot ${i === page ? 'is-active' : ''}`} />
+                ))}
               </div>
             </div>
           </section>
-
-          <div className="join-time-pagination join-time-pagination--dots-only">
-            <div className="join-time-dots" aria-label="페이지 표시">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <span key={i} className={`join-time-dot ${i === page ? 'is-active' : ''}`} />
-              ))}
-            </div>
-          </div>
         </main>
 
+        {/* ✅ footer는 버튼만 fixed */}
         <footer className="join-time-footer">
           <NextButton disabled={isNextDisabled} onClick={handleNext}>
             {isSubmitting ? '등록 중...' : '다음'}

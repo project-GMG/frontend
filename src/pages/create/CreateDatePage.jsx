@@ -87,7 +87,6 @@ export default function CreateDatePage() {
     return set;
   }, [prev?.dateRange, calendarCells]);
 
-  // 초기값: 13:00 ~ 18:00
   const initialStartTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.startTime;
     const idx = TIME_OPTIONS.indexOf(t);
@@ -153,13 +152,11 @@ export default function CreateDatePage() {
       const dy = y - startTouchYRef.current;
 
       if (!startTouchLockRef.current && Math.abs(dy) >= TOUCH_STEP_PX) {
-        // 위로 스와이프(dy<0) => 다음(+), 아래로(dy>0) => 이전(-)
         stepIndex(setStartTimeIndex, dy < 0 ? 1 : -1);
         lockStep(startTouchLockRef);
         startTouchYRef.current = y;
       }
 
-      // 핵심: 페이지 스크롤을 확실히 막고 wheel만 반응하게
       e.preventDefault();
     };
 
@@ -190,7 +187,6 @@ export default function CreateDatePage() {
       endTouchYRef.current = null;
     };
 
-    // iOS 대응: passive:false 로 등록해야 preventDefault가 먹는다
     startEl.addEventListener('touchstart', onStartTouchStart, { passive: true });
     startEl.addEventListener('touchmove', onStartTouchMove, { passive: false });
     startEl.addEventListener('touchend', onStartTouchEnd, { passive: true });
@@ -338,6 +334,10 @@ export default function CreateDatePage() {
 
         <main className="create-date-content">
           <h1 className="create-date-title">언제쯤 만날까요?</h1>
+          <p className="create-date-subtitle">
+            가능한 <span className="create-date-subtitle-em">날짜</span>와{' '}
+            <span className="create-date-subtitle-em">시간대</span>를 선택해 주세요
+          </p>
 
           <section className="create-date-section">
             <p className="create-date-section-title">
@@ -408,7 +408,11 @@ export default function CreateDatePage() {
 
               <span className="create-date-time-separator">~</span>
 
-              <div ref={endWheelRef} className="create-date-time-wheel" onWheel={handleEndWheel}>
+              <div
+                ref={endWheelRef}
+                className="create-date-time-wheel"
+                onWheel={handleEndWheel}
+              >
                 {renderWheelItems(endTimeIndex, 'end')}
               </div>
             </div>
