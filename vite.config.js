@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    assetsInclude: ['**/*.mov'],
     base: '/',
     server: {
       proxy: {
