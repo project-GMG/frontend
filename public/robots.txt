@@ -1,13 +1,10 @@
-# 1. 구글과 네이버는 전체 허용
+# Sitemap 위치
+Sitemap: https://xn--o39aa312i.com/sitemap.xml
+
+# 1. 주요 검색엔진 허용
 User-agent: Googlebot
-Allow: /
-
 User-agent: Yeti
-Allow: /
-
 User-agent: Daumoa
-Allow: /
-
 User-agent: bingbot
 Allow: /
 
@@ -23,6 +20,6 @@ User-agent: Omgilibot
 User-agent: Omgili
 Disallow: /
 
-# 3. 그 외 나머지 모든 로봇에 대한 기본 설정
+# 3. 그 외 모든 로봇 허용 (선택적 크롤링 방지)
 User-agent: *
-Disallow: /
+Allow: /
