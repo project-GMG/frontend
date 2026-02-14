@@ -142,11 +142,33 @@ function normalizeRecommendations(data) {
   return Array.from(uniq.values()).sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity));
 }
 
-function getSlotBgByRank(rank) {
-  if (rank === 1) return '#FF5315';
-  if (rank === 2) return 'rgba(253, 88, 57, 0.6)';
-  if (rank === 3) return 'rgba(255, 83, 21, 0.3)';
-  return '';
+function getSlotBgByLevel(level) {
+  // Level 0 (응답 없음/0명): 기본 배경색
+  if (level === 0) return '#EDEEF1';
+  // Level 1 (아주 낮음): 0% 초과 ~ 25% 이하
+  if (level === 1) return '#FFEEE8';
+  // Level 2 (낮음): 25% 초과 ~ 50% 이하
+  if (level === 2) return '#FFD4C4';
+  // Level 3 (보통): 50% 초과 ~ 75% 이하
+  if (level === 3) return '#FFBAA1';
+  // Level 4 (높음): 75% 초과 ~ 90% 이하
+  if (level === 4) return '#FF9873';
+  // Level 5 (매우 높음): 90% 초과 ~ 100%
+  if (level === 5) return '#FF7544';
+  return '#EDEEF1';
+}
+
+function calculateLevelFromIntensity(intensity) {
+  // intensity는 백엔드에서 계산한 0.0 ~ 1.0 값
+  if (intensity == null || intensity <= 0) return 0;
+
+  // intensity를 비율로 변환하여 레벨 계산
+  if (intensity > 0.9) return 5; // 90% 초과 ~ 100%
+  if (intensity > 0.75) return 4; // 75% 초과 ~ 90% 이하
+  if (intensity > 0.5) return 3; // 50% 초과 ~ 75% 이하
+  if (intensity > 0.25) return 2; // 25% 초과 ~ 50% 이하
+  if (intensity > 0) return 1; // 0% 초과 ~ 25% 이하
+  return 0;
 }
 
 function buildRecoSections(recoPlaces) {
@@ -397,31 +419,22 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  const topRankMap = useMemo(() => {
+  const heatmapLevelMap = useMemo(() => {
     const list = Array.isArray(eventData?.heatmapData) ? eventData.heatmapData : [];
 
-    const norm = list
-      .map((h) => {
-        const dt = parseYmd(h?.date);
-        const dateLabel = dt ? formatDateKorean(dt) : '';
-        const timeHm = String(h?.timeSlot || '').slice(0, 5);
-        if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) return null;
-
-        const c = Number(h?.availableCount);
-        if (!Number.isFinite(c)) return null;
-
-        return { key: `${dateLabel}|${timeHm}`, count: c };
-      })
-      .filter(Boolean);
-
-    const distinctCounts = Array.from(new Set(norm.map((x) => x.count))).sort((a, b) => b - a);
-    const topCounts = distinctCounts.slice(0, 3);
-
     const out = new Map();
-    for (const item of norm) {
-      const idx = topCounts.indexOf(item.count);
-      if (idx !== -1) out.set(item.key, idx + 1);
+
+    for (const h of list) {
+      const dt = parseYmd(h?.date);
+      const dateLabel = dt ? formatDateKorean(dt) : '';
+      const timeHm = String(h?.timeSlot || '').slice(0, 5);
+      if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) continue;
+
+      const key = `${dateLabel}|${timeHm}`;
+      const level = calculateLevelFromIntensity(h?.intensity);
+      out.set(key, level);
     }
+
     return out;
   }, [eventData]);
 
@@ -599,15 +612,15 @@ export default function MainPage() {
                                   ? 'schedule-slot schedule-slot--top'
                                   : 'schedule-slot schedule-slot--bottom';
 
-                                const rankKey = hmKey ? `${date}|${hmKey}` : '';
-                                const rank = rankKey ? topRankMap.get(rankKey) : null;
-                                const bg = getSlotBgByRank(rank);
+                                const levelKey = hmKey ? `${date}|${hmKey}` : '';
+                                const level = levelKey ? heatmapLevelMap.get(levelKey) : null;
+                                const bg = level != null ? getSlotBgByLevel(level) : '#EDEEF1';
 
                                 return (
                                   <div
                                     key={key}
                                     className={cellClass}
-                                    style={bg ? { backgroundColor: bg } : undefined}
+                                    style={{ backgroundColor: bg }}
                                   />
                                 );
                               }),
