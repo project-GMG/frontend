@@ -357,22 +357,36 @@ export default function MainPage() {
     };
 
     const applyRecommendationsPatch = (payload) => {
+      // SSE 응답 구조: { eventId, recommendations: [...] }
       const data = payload?.data ?? payload ?? null;
-      const recoData = data?.recommendations ?? data?.places ?? null;
-      if (!recoData) return;
+      if (!data) return;
 
-      const list = normalizeRecommendations({ recommendations: recoData });
+      // recommendations 배열이 있는지 확인
+      const recommendations = data?.recommendations;
+      if (!Array.isArray(recommendations)) return;
+
+      // normalizeRecommendations에 전달
+      const list = normalizeRecommendations({ recommendations });
       if (list.length > 0) {
         setRecoPlaces(list);
       }
     };
 
-    es.onmessage = (e) => {
+    // 이벤트 타입별 핸들러 등록
+    es.addEventListener('heatmap-update', (e) => {
       const payload = safeJsonParse(e?.data);
-      if (!payload) return;
-      applyHeatmapPatch(payload);
-      applyRecommendationsPatch(payload);
-    };
+      if (payload) applyHeatmapPatch(payload);
+    });
+
+    es.addEventListener('place-recommendations', (e) => {
+      const payload = safeJsonParse(e?.data);
+      if (payload) applyRecommendationsPatch(payload);
+    });
+
+    // 연결 확인 이벤트
+    es.addEventListener('connected', (e) => {
+      console.log('SSE 연결 성공:', e.data);
+    });
 
     es.onerror = () => {
       console.warn('SSE stream error:', streamUrl);
