@@ -242,7 +242,7 @@
 
   font-size: 16px;
   font-weight: 500;
-  color: #4b4b4b;
+  color: #616161;
 
   line-height: 31px;
   letter-spacing: -0.1px;
@@ -282,6 +282,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   100% {
     transform: translateX(0%);
     opacity: 1;
@@ -346,6 +347,7 @@
     transform: translateX(-100%);
     opacity: 0;
   }
+
   100% {
     transform: translateX(0%);
     opacity: 1;
@@ -359,6 +361,95 @@
 .ob-bubble-anim.is-left .ob-hand {
   margin-left: -18px;
   margin-right: -28px;
+}
+
+/* ===================== 섹션 6: 마무리 ===================== */
+.ob-final {
+  width: 393px;
+  min-height: 532px;
+  background: linear-gradient(to bottom, #f6f6f6 0%, #d9d9d9 100%);
+}
+
+.ob-final-inner {
+  width: 393px;
+  min-height: 532px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 60px 20px;
+  box-sizing: border-box;
+}
+
+.ob-final-title {
+  margin: 0;
+  width: 353px;
+  text-align: center;
+
+  font-size: 22px;
+  font-weight: 700;
+  color: #1b1b1b;
+  line-height: 42px;
+  letter-spacing: -0.3px;
+}
+
+.ob-final-hand-container {
+  margin-top: 60px;
+  width: 90px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.6s ease-out;
+}
+
+.ob-final-hand-container.is-inview {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ob-final-hand {
+  width: 50px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.ob-final-cta {
+  margin-top: 60px;
+  width: 333px;
+  height: 70px;
+
+  border: none;
+  cursor: pointer;
+
+  background: #ff5315;
+  color: #ffffff;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  border-radius: 50px;
+  box-shadow: 0px 4px 12px rgba(255, 83, 21, 0.3);
+
+  transition: all 0.3s ease;
+}
+
+.ob-final-cta:hover {
+  background: #e64a12;
+  box-shadow: 0px 6px 16px rgba(255, 83, 21, 0.4);
+  transform: translateY(-2px);
+}
+
+.ob-final-cta:active {
+  transform: translateY(0);
+  box-shadow: 0px 2px 8px rgba(255, 83, 21, 0.3);
 }
 
 @media (max-width: 393px) {
@@ -434,5 +525,19 @@
     padding-left: 0;
     padding-right: 0;
     display: block;
+  }
+
+  .ob-final,
+  .ob-final-inner {
+    width: 100%;
+    min-height: 100dvh;
+  }
+
+  .ob-final-title {
+    width: calc(100% - 40px);
+  }
+
+  .ob-final-cta {
+    width: calc(100% - 60px);
   }
 }
