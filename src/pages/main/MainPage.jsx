@@ -356,10 +356,22 @@ export default function MainPage() {
       });
     };
 
+    const applyRecommendationsPatch = (payload) => {
+      const data = payload?.data ?? payload ?? null;
+      const recoData = data?.recommendations ?? data?.places ?? null;
+      if (!recoData) return;
+
+      const list = normalizeRecommendations({ recommendations: recoData });
+      if (list.length > 0) {
+        setRecoPlaces(list);
+      }
+    };
+
     es.onmessage = (e) => {
       const payload = safeJsonParse(e?.data);
       if (!payload) return;
       applyHeatmapPatch(payload);
+      applyRecommendationsPatch(payload);
     };
 
     es.onerror = () => {
@@ -499,10 +511,14 @@ export default function MainPage() {
 
         <main className="main-content">
           {isLoading && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>모임 정보를 불러오는 중...</p>
+            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
+              모임 정보를 불러오는 중...
+            </p>
           )}
 
-          {!!errorText && <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>}
+          {!!errorText && (
+            <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>
+          )}
 
           {isReady && (
             <>
@@ -518,7 +534,11 @@ export default function MainPage() {
                     </p>
                   ) : (
                     <div className="schedule-frame">
-                      <div ref={dateScrollRef} className="schedule-date-rail" onScroll={syncFromDate}>
+                      <div
+                        ref={dateScrollRef}
+                        className="schedule-date-rail"
+                        onScroll={syncFromDate}
+                      >
                         <div className="schedule-date-row">
                           {dates.map((date) => (
                             <div key={date} className="schedule-date-header">
@@ -528,7 +548,11 @@ export default function MainPage() {
                         </div>
                       </div>
 
-                      <div ref={timeScrollRef} className="schedule-time-rail" onScroll={syncFromTime}>
+                      <div
+                        ref={timeScrollRef}
+                        className="schedule-time-rail"
+                        onScroll={syncFromTime}
+                      >
                         <div className="schedule-time-col">
                           {timeSlots.map((slot, rowIndex) => (
                             <div key={slot} className="schedule-time-label">
@@ -587,12 +611,16 @@ export default function MainPage() {
                   {recoLoading ? (
                     <div className="restaurant-container">
                       <h2 className="restaurant-container-title">추천 장소</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소를 불러오는 중...</p>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                        추천 장소를 불러오는 중...
+                      </p>
                     </div>
                   ) : recoSections.length === 0 ? (
                     <div className="restaurant-container">
                       <h2 className="restaurant-container-title">추천 장소</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>추천 장소가 없습니다.</p>
+                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                        추천 장소가 없습니다.
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -614,7 +642,9 @@ export default function MainPage() {
                                   }}
                                 />
                                 <div className="restaurant-label">
-                                  <p className="restaurant-label-text">{truncateKorean(place.name, 7)}</p>
+                                  <p className="restaurant-label-text">
+                                    {truncateKorean(place.name, 7)}
+                                  </p>
                                 </div>
                               </article>
                             ))}
