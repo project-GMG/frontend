@@ -83,6 +83,16 @@ async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislike
   );
 }
 
+async function postComplete(hashUrl, participantId) {
+  return apiFetch(
+    `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/complete`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+}
+
 /* =========================
    ✅ 로컬 디자인 테스트용 더미 데이터
    - /join/category/sub 로 code/categoryId 없이 진입 가능
@@ -292,9 +302,14 @@ export default function JoinPlaceCategorySubPage() {
 
     try {
       await postDisliked(hashUrl, participantId, nextCategoryIds, nextPlaceIds);
-      navigate(-1);
+
+      // Call complete API after successfully posting disliked data
+      await postComplete(hashUrl, participantId);
+
+      // Navigate to final page
+      navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
     } catch (e) {
-      setSubmitError(e?.message || '비선호 장소 등록에 실패했습니다.');
+      setSubmitError(e?.message || '정보 등록에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }
