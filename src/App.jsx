@@ -20,8 +20,27 @@ import OnboardingPage from './pages/onboarding/OnboardingPage';
 function DebugLocation() {
   const loc = useLocation();
   useEffect(() => {
-    console.log('[ROUTE]', loc.pathname + loc.search);
+    if (import.meta.env.DEV) {
+      console.log('[ROUTE]', loc.pathname + loc.search);
+    }
   }, [loc.pathname, loc.search]);
+  return null;
+}
+
+function AnalyticsPageViews() {
+  const loc = useLocation();
+  const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
+  useEffect(() => {
+    if (!measurementId) return;
+    if (typeof window === 'undefined') return;
+    if (typeof window.gtag !== 'function') return;
+
+    window.gtag('config', measurementId, {
+      page_path: loc.pathname + loc.search,
+    });
+  }, [measurementId, loc.pathname, loc.search]);
+
   return null;
 }
 
@@ -29,6 +48,7 @@ function App() {
   return (
     <>
       <DebugLocation />
+      <AnalyticsPageViews />
 
       <Routes>
         {/* <Route path="/" element={<Navigate to="/onboarding" replace />} /> */}
