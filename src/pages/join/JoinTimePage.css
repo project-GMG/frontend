@@ -104,14 +104,6 @@
   color: #333232;
 }
 
-.join-time-subtitle {
-  margin: 30px 0 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 16.8px;
-  color: #333232;
-}
-
 .join-time-loading {
   flex: 1;
   min-height: 0;
@@ -127,7 +119,6 @@
   font-size: 14px;
 }
 
-/* ✅ 그리드 + 페이지네이션 묶음 */
 .join-time-grid-wrap {
   width: 100%;
   max-width: 353px;
@@ -154,10 +145,7 @@
   overflow: hidden;
 }
 
-/* ✅ 롱프레스 선택 모드에서만 터치 액션 차단 */
-.join-time-grid-card.is-selecting,
-.jt-grid-scroll.is-selecting,
-.jt-time-rail.is-selecting {
+.join-time-grid-card.is-selecting {
   touch-action: none;
 }
 
@@ -173,41 +161,31 @@
   --time-col: 46px;
   --time-gap: 10px;
 
-  /* grid-scroll과 time-rail은 이 위치에서 시작함 (date-row 포함) */
-  --scroll-top: 8px;
+  --rail-top: 8px;
+  --grid-top: 36px;
+
+  --time-rail-top: 28px;
 
   --radius: 5px;
 
   --rail-left: 0px;
   --grid-right: 0px;
   --visible-rows: 12;
-
-  /* date-row + visible-rows만큼의 스크롤 영역 높이 */
-  --scroll-h: calc(
-    var(--date-row) + 6px + (var(--cell-h) * var(--visible-rows)) +
-      (var(--gap) * (var(--visible-rows) - 1))
-  );
 }
 
-/* jt-date-rail은 더 이상 사용하지 않음 (grid-scroll 내부로 이동) */
 .jt-date-rail {
-  display: none;
+  position: absolute;
+  top: var(--rail-top);
+  left: calc(var(--time-col) + var(--time-gap));
+  right: var(--grid-right);
+  height: var(--date-row);
+  overflow: hidden;
 }
 
-/* 날짜 헤더 행: grid-scroll 내부 sticky + 창 더 일치 */
 .jt-date-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: var(--gap);
-}
-
-.jt-date-row--sticky {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #f1f2f5;
-  padding-bottom: 6px;
-  padding-top: 0;
 }
 
 .jt-date-header {
@@ -229,11 +207,11 @@
 
 .jt-time-rail {
   position: absolute;
-  top: var(--scroll-top);
+  top: var(--time-rail-top);
   left: var(--rail-left);
 
   width: var(--time-col);
-  height: var(--scroll-h);
+  height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -248,10 +226,6 @@
 
 .jt-time-rail::-webkit-scrollbar {
   display: none;
-}
-
-.jt-time-rail.is-selecting {
-  overflow: hidden;
 }
 
 .jt-time-col {
@@ -273,42 +247,23 @@
   justify-content: flex-end;
 
   padding-right: 8px;
-  padding-top: 0;
+  padding-top: 2px;
 
   box-sizing: border-box;
   line-height: 1;
   white-space: nowrap;
-  overflow: visible;
-}
-
-/* 시간 텍스트를 경계선 중앙에 배치 (translateY -50%) */
-.jt-time-label-text {
-  display: block;
-  transform: translateY(-50%);
-  line-height: 1;
-}
-
-/* 시간 레일 주돃 - date-row 높이만큼 spacer */
-.jt-time-label--spacer {
-  height: calc(var(--date-row) + 6px);
-  min-height: calc(var(--date-row) + 6px);
-  pointer-events: none;
 }
 
 .jt-grid-scroll {
   position: absolute;
-  top: var(--scroll-top);
+  top: var(--grid-top);
   left: calc(var(--time-col) + var(--time-gap));
   right: var(--grid-right);
 
-  height: var(--scroll-h);
+  height: calc((var(--cell-h) * var(--visible-rows)) + (var(--gap) * (var(--visible-rows) - 1)));
 
   overflow-y: auto;
   overflow-x: hidden;
-
-  /* 스크롤바 숨김 */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 
   -webkit-overflow-scrolling: touch;
 
@@ -320,22 +275,11 @@
   touch-action: pan-y;
 }
 
-.jt-grid-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.jt-grid-scroll.is-selecting {
-  overflow: hidden;
-}
-
 .jt-grid {
   width: 100%;
   display: grid;
   column-gap: var(--gap);
   row-gap: var(--gap);
-  /* time-rail의 endLabel 높이만큼 스크롤 범위 확보 */
-  padding-bottom: calc(var(--cell-h) / 2);
-  box-sizing: content-box;
 }
 
 .jt-slot {
@@ -352,12 +296,6 @@
   -webkit-tap-highlight-color: transparent;
 
   touch-action: pan-y;
-}
-
-/* 마지막 endTime 레이블 (6PM 등): jt-grid의 padding-bottom과 높이 동일하게 */
-.jt-time-label--end {
-  height: calc(var(--cell-h) / 2);
-  min-height: 16px;
 }
 
 .jt-slot--top {
@@ -379,7 +317,18 @@
   pointer-events: none;
 }
 
-/* ✅ 페이지네이션: 그리드 바로 아래, fixed 금지 */
+.jt-grid-scroll.is-pressing,
+.jt-time-rail.is-pressing {
+  touch-action: none;
+  overflow: hidden;
+}
+
+.jt-grid-scroll.is-selecting,
+.jt-time-rail.is-selecting {
+  touch-action: none;
+  overflow: hidden;
+}
+
 .join-time-pagination {
   position: static;
   width: 100%;
@@ -409,7 +358,6 @@
   background: #7c7c7c;
 }
 
-/* ✅ footer는 버튼만 fixed */
 .join-time-footer {
   position: fixed;
   left: 50%;
@@ -493,13 +441,7 @@
     padding-top: 2px;
   }
 
-  .jt-time-rail,
-  .jt-grid-scroll {
-    overscroll-behavior: contain;
-  }
-
   .jt-slot {
-    width: 100%;
     touch-action: pan-y;
   }
 

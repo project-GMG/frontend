@@ -1,4 +1,5 @@
 // gmg-front/src/pages/join/JoinTimePage.jsx
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -7,7 +8,6 @@ import './JoinTimePage.css';
 import { buildApiUrl } from '../../lib/api';
 
 const LONG_PRESS_MS = 250;
-const MOVE_CANCEL_PX = 8;
 const KEY_SEP = '::';
 
 const SWIPE_TH_PX = 40;
@@ -136,8 +136,8 @@ function hmToMin(hm) {
 function buildTimeSlotsFromRange(startHm, endHm) {
   const startMin = hmToMin(startHm);
   const endMin = hmToMin(endHm);
-  if (startMin == null || endMin == null) return { labels: [], slots: [], apiHm: [], endLabel: '' };
-  if (!(startMin < endMin)) return { labels: [], slots: [], apiHm: [], endLabel: '' };
+  if (startMin == null || endMin == null) return { labels: [], slots: [], apiHm: [] };
+  if (!(startMin < endMin)) return { labels: [], slots: [], apiHm: [] };
 
   const slots = [];
   const labels = [];
@@ -161,15 +161,7 @@ function buildTimeSlotsFromRange(startHm, endHm) {
     cur += 30;
   }
 
-  // 마지막 시간(endTime) 레이블 생성
-  const eh = Math.floor(endMin / 60);
-  const em = endMin % 60;
-  const endIsPm = eh >= 12;
-  const endHour12 = ((eh + 11) % 12) + 1;
-  const endAmpm = endIsPm ? 'PM' : 'AM';
-  const endLabel = em === 0 ? `${endHour12} ${endAmpm}` : '';
-
-  return { labels, slots, apiHm, endLabel };
+  return { labels, slots, apiHm };
 }
 
 function makeKey(dateIndex, slotIndex) {
@@ -220,7 +212,6 @@ export default function JoinTimePage() {
 
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
-  const gridCardRef = useRef(null);
 
   const swipeRef = useRef({ x: 0, y: 0 });
 
@@ -293,7 +284,6 @@ export default function JoinTimePage() {
     slots: TIME_SLOTS,
     labels: TIME_LABELS,
     apiHm: timeApiHm,
-    endLabel: TIME_END_LABEL,
   } = useMemo(() => {
     const s = eventData?.timeRange?.startTime;
     const e = eventData?.timeRange?.endTime;
@@ -500,31 +490,17 @@ export default function JoinTimePage() {
     mode: 'idle',
     pointerDown: false,
     pointerId: null,
+    pointerType: null,
     startX: 0,
     startY: 0,
     startKey: null,
     lastKey: null,
     longPressTimer: null,
     movedBeforeLongPress: false,
-    priming: false,
+    cancelPx: 8,
+    pressingLocked: false,
+    captureEl: null,
   });
-
-  const setPriming = (on) => {
-    const grid = gridScrollRef.current;
-    const time = timeScrollRef.current;
-    const card = gridCardRef.current;
-    if (!grid || !time || !card) return;
-
-    if (on) {
-      grid.classList.add('is-priming');
-      time.classList.add('is-priming');
-      card.classList.add('is-priming');
-    } else {
-      grid.classList.remove('is-priming');
-      time.classList.remove('is-priming');
-      card.classList.remove('is-priming');
-    }
-  };
 
   const clearLongPressTimer = () => {
     const st = selectStateRef.current;
@@ -565,24 +541,64 @@ export default function JoinTimePage() {
     return slotEl?.getAttribute?.('data-slot-key') ?? null;
   };
 
+  const lockScrollForPressing = () => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    if (grid) grid.classList.add('is-pressing');
+    if (time) time.classList.add('is-pressing');
+  };
+
+  const unlockScrollForPressing = () => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    if (grid) grid.classList.remove('is-pressing');
+    if (time) time.classList.remove('is-pressing');
+  };
+
+  const lockScrollForSelecting = () => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    if (grid) grid.classList.add('is-selecting');
+    if (time) time.classList.add('is-selecting');
+  };
+
+  const unlockScrollForSelecting = () => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    if (grid) grid.classList.remove('is-selecting');
+    if (time) time.classList.remove('is-selecting');
+  };
+
   const onSlotPointerDown = (e, key) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-    const target = e.currentTarget;
-    const pid = e.pointerId;
-
     const st = selectStateRef.current;
+
     st.pointerDown = true;
-    st.pointerId = pid;
+    st.pointerId = e.pointerId;
+    st.pointerType = e.pointerType;
     st.startX = e.clientX;
     st.startY = e.clientY;
     st.startKey = key;
     st.lastKey = key;
     st.movedBeforeLongPress = false;
-    st.priming = true;
+    st.cancelPx = e.pointerType === 'touch' ? 16 : 8;
+    st.pressingLocked = false;
+    st.captureEl = e.currentTarget;
 
     clearLongPressTimer();
-    setPriming(true);
+
+    if (e.pointerType === 'touch') {
+      st.pressingLocked = true;
+      lockScrollForPressing();
+      if (st.captureEl && typeof st.captureEl.setPointerCapture === 'function') {
+        try {
+          st.captureEl.setPointerCapture(e.pointerId);
+        } catch {
+          // ignore
+        }
+      }
+    }
 
     st.longPressTimer = setTimeout(() => {
       if (!st.pointerDown) return;
@@ -591,20 +607,13 @@ export default function JoinTimePage() {
       const isActive = selectedKeys.has(key);
       const mode = isActive ? 'deselect' : 'select';
       setMode(mode);
-
       applyKeyByMode(key, mode);
 
-      gridScrollRef.current?.classList.add('is-selecting');
-      timeScrollRef.current?.classList.add('is-selecting');
-      gridCardRef.current?.classList.add('is-selecting');
-
-      if (target && typeof target.setPointerCapture === 'function') {
-        try {
-          target.setPointerCapture(pid);
-        } catch {
-          // ignore
-        }
+      if (st.pressingLocked) {
+        st.pressingLocked = false;
+        unlockScrollForPressing();
       }
+      lockScrollForSelecting();
     }, LONG_PRESS_MS);
   };
 
@@ -616,12 +625,12 @@ export default function JoinTimePage() {
     const dy = e.clientY - st.startY;
 
     if (st.mode === 'idle') {
-      if (Math.abs(dx) > MOVE_CANCEL_PX || Math.abs(dy) > MOVE_CANCEL_PX) {
+      if (Math.abs(dx) > st.cancelPx || Math.abs(dy) > st.cancelPx) {
         st.movedBeforeLongPress = true;
         clearLongPressTimer();
-        if (st.priming) {
-          st.priming = false;
-          setPriming(false);
+        if (st.pressingLocked) {
+          st.pressingLocked = false;
+          unlockScrollForPressing();
         }
       }
       return;
@@ -645,36 +654,40 @@ export default function JoinTimePage() {
     const startKey = st.startKey;
 
     st.pointerDown = false;
-    st.pointerId = null;
 
     clearLongPressTimer();
 
-    if (st.priming) {
-      st.priming = false;
-      setPriming(false);
+    if (st.pressingLocked) {
+      st.pressingLocked = false;
+      unlockScrollForPressing();
     }
 
     if (wasMode === 'idle') {
       if (!st.movedBeforeLongPress && startKey) toggleSingle(startKey);
       st.startKey = null;
       st.lastKey = null;
+      st.pointerId = null;
+      st.pointerType = null;
+      st.captureEl = null;
       return;
     }
 
     setMode('idle');
-
-    gridScrollRef.current?.classList.remove('is-selecting');
-    timeScrollRef.current?.classList.remove('is-selecting');
-    gridCardRef.current?.classList.remove('is-selecting');
+    unlockScrollForSelecting();
 
     st.startKey = null;
     st.lastKey = null;
+    st.pointerId = null;
+    st.pointerType = null;
 
-    try {
-      e.currentTarget?.releasePointerCapture?.(e.pointerId);
-    } catch {
-      // ignore
+    if (st.captureEl) {
+      try {
+        st.captureEl.releasePointerCapture?.(e.pointerId);
+      } catch {
+        // ignore
+      }
     }
+    st.captureEl = null;
   };
 
   const onPointerCancel = (e) => finishPointer(e);
@@ -720,6 +733,7 @@ export default function JoinTimePage() {
               <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
             </div>
           )}
+
           {!!eventError && (
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
           )}
@@ -729,34 +743,13 @@ export default function JoinTimePage() {
 
           <section className="join-time-grid-wrap">
             <section
-              ref={gridCardRef}
               className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
               <div className="jt-frame">
-                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
-                  <div className="jt-time-col">
-                    {/* 날짜 헤더 위 빈 공간 (date-row 높이만큼) */}
-                    <div className="jt-time-label jt-time-label--spacer" />
-                    {TIME_SLOTS.map((slot, idx) => (
-                      <div key={`${slot}-${idx}`} className="jt-time-label">
-                        {TIME_LABELS[idx] ? (
-                          <span className="jt-time-label-text">{TIME_LABELS[idx]}</span>
-                        ) : null}
-                      </div>
-                    ))}
-                    {TIME_END_LABEL && (
-                      <div className="jt-time-label jt-time-label--end">
-                        <span className="jt-time-label-text">{TIME_END_LABEL}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
-                  {/* 날짜 헤더: 그리드 스크롤 내부 상단 sticky */}
-                  <div className="jt-date-row jt-date-row--sticky">
+                <div className="jt-date-rail">
+                  <div className="jt-date-row">
                     {pageDatesFixed.map((d, i) => (
                       <div
                         key={`${page}-${d ?? 'empty'}-${i}`}
@@ -772,6 +765,19 @@ export default function JoinTimePage() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
+                  <div className="jt-time-col">
+                    {TIME_SLOTS.map((slot, idx) => (
+                      <div key={`${slot}-${idx}`} className="jt-time-label">
+                        {TIME_LABELS[idx] ?? ''}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
                   <div
                     className="jt-grid"
                     style={{
@@ -805,7 +811,7 @@ export default function JoinTimePage() {
                             data-slot-key={key}
                             className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
                             aria-label={`${dateLabel} ${slot}`}
-                            onPointerDown={(e) => onSlotPointerDown(e, key)}
+                            onPointerDown={(ev) => onSlotPointerDown(ev, key)}
                             onPointerMove={onSlotPointerMove}
                             onPointerUp={finishPointer}
                             onPointerCancel={onPointerCancel}
