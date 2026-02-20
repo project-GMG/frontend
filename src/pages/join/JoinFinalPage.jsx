@@ -1,4 +1,5 @@
-// JoinFinalPage.jsx
+// gmg-front/src/pages/join/JoinFinalPage.jsx
+
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinFinalPage.css';
@@ -29,8 +30,8 @@ export default function JoinFinalPage() {
             불편한 없는 만남을 만들어 드릴게요!
           </p>
 
-          <div className="join-final-illustration">
-            <img src={EndIcon} alt="" className="join-final-image" aria-hidden="true" />
+          <div className="join-final-illustration" aria-hidden="true">
+            <img src={EndIcon} alt="" className="join-final-image" />
           </div>
         </main>
 

@@ -4,12 +4,12 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './CreateFinalPage.css';
 import BackButton from '../components/common/BackButton';
+
 import EndIcon from '../../assets/icons/End_ico.png';
 import CopyIcon from '../../assets/icons/copy.png';
 import ShareIcon from '../../assets/icons/share.png';
 
-const SHARE_BASE_URL =
-  (import.meta.env.VITE_SHARE_BASE_URL || '').trim() || window.location.origin;
+const SHARE_BASE_URL = (import.meta.env.VITE_SHARE_BASE_URL || '').trim() || window.location.origin;
 
 function buildMainLink(hash) {
   if (!hash) return '';
@@ -27,9 +27,7 @@ export default function CreateFinalPage() {
 
   const hashUrl = createdEvent.hashUrl || '';
 
-  const mainLink = useMemo(() => {
-    return buildMainLink(hashUrl);
-  }, [hashUrl]);
+  const mainLink = useMemo(() => buildMainLink(hashUrl), [hashUrl]);
 
   const handleBack = () => window.history.back();
 
@@ -57,7 +55,9 @@ export default function CreateFinalPage() {
   const handleRegister = () => {
     navigate(
       `/main?code=${encodeURIComponent(
-        String(hashUrl).replace(/^https?:\/\/[^/]+\/?/, '').replace(/^\/+/, ''),
+        String(hashUrl)
+          .replace(/^https?:\/\/[^/]+\/?/, '')
+          .replace(/^\/+/, ''),
       )}`,
       { replace: true },
     );
@@ -105,6 +105,7 @@ export default function CreateFinalPage() {
             className="create-final-share-button"
             onClick={handleShare}
             disabled={!mainLink}
+            aria-label="공유하기"
           >
             <img src={ShareIcon} alt="" className="create-final-share-icon" />
             <span className="create-final-share-text">공유하기</span>

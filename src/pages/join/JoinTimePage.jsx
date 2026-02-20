@@ -1,5 +1,4 @@
 // gmg-front/src/pages/join/JoinTimePage.jsx
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -192,9 +191,6 @@ function isWeekendLabel(label) {
   return wd === '토' || wd === '일';
 }
 
-/* =========================
-   ✅ 개발환경 디자인 확인용 더미 데이터 (5일)
-   ========================= */
 function addDaysYmd(baseYmd, days) {
   const dt = parseYmd(baseYmd);
   if (!dt) return baseYmd;
@@ -224,6 +220,7 @@ export default function JoinTimePage() {
 
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
+  const gridCardRef = useRef(null);
 
   const swipeRef = useRef({ x: 0, y: 0 });
 
@@ -303,7 +300,6 @@ export default function JoinTimePage() {
     return buildTimeSlotsFromRange(s, e);
   }, [eventData?.timeRange?.startTime, eventData?.timeRange?.endTime]);
 
-  // edit 모드: allDateYmds, timeApiHm 확정 후 기존 선택 데이터 로드
   useEffect(() => {
     if (!isEditMode || !hashUrl || !allDateYmds.length || !timeApiHm.length) return;
 
@@ -314,7 +310,9 @@ export default function JoinTimePage() {
     (async () => {
       try {
         const json = await apiFetch(
-          `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/unavailable-times`,
+          `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(
+            participantId,
+          )}/unavailable-times`,
         );
         if (!alive) return;
         const times = json?.data?.unavailableTimes ?? [];
@@ -329,7 +327,7 @@ export default function JoinTimePage() {
         }
         setSelectedKeys(keys);
       } catch {
-        // 로드 실패 시 빈 상태로 시작
+        // ignore
       }
     })();
 
@@ -508,7 +506,25 @@ export default function JoinTimePage() {
     lastKey: null,
     longPressTimer: null,
     movedBeforeLongPress: false,
+    priming: false,
   });
+
+  const setPriming = (on) => {
+    const grid = gridScrollRef.current;
+    const time = timeScrollRef.current;
+    const card = gridCardRef.current;
+    if (!grid || !time || !card) return;
+
+    if (on) {
+      grid.classList.add('is-priming');
+      time.classList.add('is-priming');
+      card.classList.add('is-priming');
+    } else {
+      grid.classList.remove('is-priming');
+      time.classList.remove('is-priming');
+      card.classList.remove('is-priming');
+    }
+  };
 
   const clearLongPressTimer = () => {
     const st = selectStateRef.current;
@@ -563,8 +579,10 @@ export default function JoinTimePage() {
     st.startKey = key;
     st.lastKey = key;
     st.movedBeforeLongPress = false;
+    st.priming = true;
 
     clearLongPressTimer();
+    setPriming(true);
 
     st.longPressTimer = setTimeout(() => {
       if (!st.pointerDown) return;
@@ -576,9 +594,9 @@ export default function JoinTimePage() {
 
       applyKeyByMode(key, mode);
 
-      // ✅ 롱프레스 모드에서만 스크롤/스와이프를 잠깐 막음
       gridScrollRef.current?.classList.add('is-selecting');
       timeScrollRef.current?.classList.add('is-selecting');
+      gridCardRef.current?.classList.add('is-selecting');
 
       if (target && typeof target.setPointerCapture === 'function') {
         try {
@@ -598,15 +616,17 @@ export default function JoinTimePage() {
     const dy = e.clientY - st.startY;
 
     if (st.mode === 'idle') {
-      // ✅ 롱프레스 전에는 "스크롤/스와이프"가 우선이므로, 조금만 움직여도 롱프레스 취소
       if (Math.abs(dx) > MOVE_CANCEL_PX || Math.abs(dy) > MOVE_CANCEL_PX) {
         st.movedBeforeLongPress = true;
         clearLongPressTimer();
+        if (st.priming) {
+          st.priming = false;
+          setPriming(false);
+        }
       }
       return;
     }
 
-    // ✅ 롱프레스 모드 진입 후에는 drag-select
     e.preventDefault();
 
     const key = findSlotKeyFromPoint(e.clientX, e.clientY);
@@ -629,8 +649,12 @@ export default function JoinTimePage() {
 
     clearLongPressTimer();
 
+    if (st.priming) {
+      st.priming = false;
+      setPriming(false);
+    }
+
     if (wasMode === 'idle') {
-      // ✅ 탭(롱프레스 아님)일 때만 토글
       if (!st.movedBeforeLongPress && startKey) toggleSingle(startKey);
       st.startKey = null;
       st.lastKey = null;
@@ -641,6 +665,7 @@ export default function JoinTimePage() {
 
     gridScrollRef.current?.classList.remove('is-selecting');
     timeScrollRef.current?.classList.remove('is-selecting');
+    gridCardRef.current?.classList.remove('is-selecting');
 
     st.startKey = null;
     st.lastKey = null;
@@ -655,14 +680,12 @@ export default function JoinTimePage() {
   const onPointerCancel = (e) => finishPointer(e);
 
   const onTouchStart = (e) => {
-    // ✅ 롱프레스 모드가 아닐 때만 스와이프 판정
     if (selectStateRef.current.mode !== 'idle') return;
     const t = e.touches[0];
     swipeRef.current = { x: t.clientX, y: t.clientY };
   };
 
   const onTouchEnd = (e) => {
-    // ✅ 롱프레스 모드가 아닐 때만 스와이프 판정
     if (selectStateRef.current.mode !== 'idle') return;
 
     const start = swipeRef.current;
@@ -704,9 +727,9 @@ export default function JoinTimePage() {
             <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
           )}
 
-          {/* ✅ 그리드 + 페이지네이션은 같은 묶음 */}
           <section className="join-time-grid-wrap">
             <section
+              ref={gridCardRef}
               className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
@@ -795,7 +818,6 @@ export default function JoinTimePage() {
               </div>
             </section>
 
-            {/* ✅ 페이지네이션은 그리드 바로 아래 (fixed 금지) */}
             <div className="join-time-pagination join-time-pagination--dots-only">
               <div className="join-time-dots" aria-label="페이지 표시">
                 {Array.from({ length: totalPages }).map((_, i) => (
@@ -806,7 +828,6 @@ export default function JoinTimePage() {
           </section>
         </main>
 
-        {/* ✅ footer는 버튼만 fixed */}
         <footer className="join-time-footer">
           <NextButton disabled={isNextDisabled} onClick={handleNext}>
             {isSubmitting ? '등록 중...' : '다음'}

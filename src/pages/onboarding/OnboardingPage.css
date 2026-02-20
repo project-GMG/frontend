@@ -359,8 +359,9 @@
 }
 
 .ob-bubble-anim.is-left .ob-hand {
-  margin-left: -18px;
-  margin-right: -28px;
+  margin-left: -40px;
+  margin-right: -40px;
+  z-index: 20;
 }
 
 /* ===================== 섹션 6: 마무리 ===================== */

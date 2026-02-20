@@ -14,6 +14,7 @@ import FoodVideo from '../../assets/icons/category_icon/food.mp4';
 import OnboardingLogo from '../../assets/icons/category_icon/onboarding-logo.png';
 import Onboarding2 from '../../assets/icons/category_icon/onboarding2.png';
 import Onboarding22Icon from '../../assets/icons/category_icon/onboarding2-2.png';
+import HandLeftImg from '../../assets/icons/category_icon/onboardinghandleft.png';
 
 import CalenderIcon from '../../assets/icons/category_icon/onboarding-calender.png';
 import HandImg from '../../assets/icons/category_icon/onboarding-hand.png';
@@ -225,7 +226,7 @@ export default function OnboardingPage() {
 
             <div className="ob-bubble-stage is-left" aria-label="말풍선 애니메이션">
               <div className={`ob-bubble-anim is-left ${section4InView ? 'is-inview' : ''}`}>
-                <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
+                <img className="ob-hand" src={HandLeftImg} alt="손" draggable={false} />
                 <div className="ob-bubble">나 어제 치킨 먹어서 안땡겨</div>
               </div>
             </div>
