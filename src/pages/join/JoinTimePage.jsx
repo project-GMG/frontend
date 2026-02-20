@@ -137,8 +137,8 @@ function hmToMin(hm) {
 function buildTimeSlotsFromRange(startHm, endHm) {
   const startMin = hmToMin(startHm);
   const endMin = hmToMin(endHm);
-  if (startMin == null || endMin == null) return { labels: [], slots: [], apiHm: [] };
-  if (!(startMin < endMin)) return { labels: [], slots: [], apiHm: [] };
+  if (startMin == null || endMin == null) return { labels: [], slots: [], apiHm: [], endLabel: '' };
+  if (!(startMin < endMin)) return { labels: [], slots: [], apiHm: [], endLabel: '' };
 
   const slots = [];
   const labels = [];
@@ -162,7 +162,15 @@ function buildTimeSlotsFromRange(startHm, endHm) {
     cur += 30;
   }
 
-  return { labels, slots, apiHm };
+  // 마지막 시간(endTime) 레이블 생성
+  const eh = Math.floor(endMin / 60);
+  const em = endMin % 60;
+  const endIsPm = eh >= 12;
+  const endHour12 = ((eh + 11) % 12) + 1;
+  const endAmpm = endIsPm ? 'PM' : 'AM';
+  const endLabel = em === 0 ? `${endHour12} ${endAmpm}` : '';
+
+  return { labels, slots, apiHm, endLabel };
 }
 
 function makeKey(dateIndex, slotIndex) {
@@ -288,6 +296,7 @@ export default function JoinTimePage() {
     slots: TIME_SLOTS,
     labels: TIME_LABELS,
     apiHm: timeApiHm,
+    endLabel: TIME_END_LABEL,
   } = useMemo(() => {
     const s = eventData?.timeRange?.startTime;
     const e = eventData?.timeRange?.endTime;
@@ -703,8 +712,28 @@ export default function JoinTimePage() {
               onTouchEnd={onTouchEnd}
             >
               <div className="jt-frame">
-                <div className="jt-date-rail">
-                  <div className="jt-date-row">
+                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
+                  <div className="jt-time-col">
+                    {/* 날짜 헤더 위 빈 공간 (date-row 높이만큼) */}
+                    <div className="jt-time-label jt-time-label--spacer" />
+                    {TIME_SLOTS.map((slot, idx) => (
+                      <div key={`${slot}-${idx}`} className="jt-time-label">
+                        {TIME_LABELS[idx] ? (
+                          <span className="jt-time-label-text">{TIME_LABELS[idx]}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                    {TIME_END_LABEL && (
+                      <div className="jt-time-label jt-time-label--end">
+                        <span className="jt-time-label-text">{TIME_END_LABEL}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
+                  {/* 날짜 헤더: 그리드 스크롤 내부 상단 sticky */}
+                  <div className="jt-date-row jt-date-row--sticky">
                     {pageDatesFixed.map((d, i) => (
                       <div
                         key={`${page}-${d ?? 'empty'}-${i}`}
@@ -720,19 +749,6 @@ export default function JoinTimePage() {
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
-                  <div className="jt-time-col">
-                    {TIME_SLOTS.map((slot, idx) => (
-                      <div key={`${slot}-${idx}`} className="jt-time-label">
-                        {TIME_LABELS[idx] ?? ''}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
                   <div
                     className="jt-grid"
                     style={{
