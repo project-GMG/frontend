@@ -302,11 +302,8 @@ export default function JoinPlaceCategorySubPage() {
 
     try {
       await postDisliked(hashUrl, participantId, nextCategoryIds, nextPlaceIds);
-
-      // Call complete API after successfully posting disliked data
       await postComplete(hashUrl, participantId);
 
-      // Navigate to final page
       navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
     } catch (e) {
       setSubmitError(e?.message || '정보 등록에 실패했습니다.');

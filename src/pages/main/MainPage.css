@@ -246,7 +246,7 @@
   top: calc(var(--date-row) - 1px + var(--time-rail-y-shift));
   left: var(--rail-left);
   width: var(--time-rail-w);
-  height: var(--grid-h);
+  height: calc(var(--grid-h) + var(--cell-h) + var(--row-gap));
   overflow-y: hidden;
   overflow-x: hidden;
   background: var(--bg-primary);
