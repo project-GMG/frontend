@@ -44,23 +44,36 @@
   grid-template-rows: 4px 1fr;
   row-gap: 14px;
   align-items: start;
+  background-color: transparent;
 }
 
 .create-date-topbar {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: transparent;
 }
 
 .create-date-back {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  background: transparent;
 }
 
 .create-date-back .back-button {
   width: 44px;
   height: 22px;
+  background: transparent;
+}
+
+.create-date-nav .topbar,
+.create-date-nav .top-bar,
+.create-date-nav .topbar-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 .create-date-content {
@@ -69,7 +82,8 @@
   flex-direction: column;
   padding: 0;
 
-  margin-top: calc(56px + 38px);
+  margin-top: 0;
+  padding-top: calc(56px + 38px);
 
   overflow-y: auto;
   overflow-x: hidden;
