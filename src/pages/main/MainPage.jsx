@@ -502,9 +502,10 @@ export default function MainPage() {
 
   const handleCloseJoin = () => setIsJoinOpen(false);
 
-  const handleJoinedGoTime = () => {
+  const handleJoinedGoTime = ({ isNew } = {}) => {
     setIsJoinOpen(false);
-    navigate(`/join/time?code=${encodeURIComponent(hashUrl)}`);
+    const base = `/join/time?code=${encodeURIComponent(hashUrl)}`;
+    navigate(isNew ? base : `${base}&mode=edit`);
   };
 
   const isReady = !isLoading && !!eventData;

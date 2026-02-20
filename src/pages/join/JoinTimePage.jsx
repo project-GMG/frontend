@@ -178,7 +178,9 @@ function parseKey(key) {
 }
 
 function isWeekendLabel(label) {
-  const wd = String(label || '').trim().slice(-1);
+  const wd = String(label || '')
+    .trim()
+    .slice(-1);
   return wd === '토' || wd === '일';
 }
 
@@ -208,6 +210,7 @@ export default function JoinTimePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hashUrl = (searchParams.get('code') || '').trim();
+  const isEditMode = searchParams.get('mode') === 'edit';
 
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
 
@@ -281,11 +284,50 @@ export default function JoinTimePage() {
     return buildDatesFromRange(s, e, 35);
   }, [eventData?.dateRange?.startDate, eventData?.dateRange?.endDate]);
 
-  const { slots: TIME_SLOTS, labels: TIME_LABELS, apiHm: timeApiHm } = useMemo(() => {
+  const {
+    slots: TIME_SLOTS,
+    labels: TIME_LABELS,
+    apiHm: timeApiHm,
+  } = useMemo(() => {
     const s = eventData?.timeRange?.startTime;
     const e = eventData?.timeRange?.endTime;
     return buildTimeSlotsFromRange(s, e);
   }, [eventData?.timeRange?.startTime, eventData?.timeRange?.endTime]);
+
+  // edit 모드: allDateYmds, timeApiHm 확정 후 기존 선택 데이터 로드
+  useEffect(() => {
+    if (!isEditMode || !hashUrl || !allDateYmds.length || !timeApiHm.length) return;
+
+    const participantId = sessionStorage.getItem(`gmg_participant_${hashUrl}`);
+    if (!participantId) return;
+
+    let alive = true;
+    (async () => {
+      try {
+        const json = await apiFetch(
+          `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/unavailable-times`,
+        );
+        if (!alive) return;
+        const times = json?.data?.unavailableTimes ?? [];
+
+        const keys = new Set();
+        for (const { date, startTime } of times) {
+          const dateIndex = allDateYmds.indexOf(date);
+          const slotIndex = timeApiHm.indexOf(startTime);
+          if (dateIndex !== -1 && slotIndex !== -1) {
+            keys.add(makeKey(dateIndex, slotIndex));
+          }
+        }
+        setSelectedKeys(keys);
+      } catch {
+        // 로드 실패 시 빈 상태로 시작
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [isEditMode, hashUrl, allDateYmds, timeApiHm]);
 
   const PAGE_SIZE = 3;
   const totalPages = Math.max(1, Math.ceil(allDateLabels.length / PAGE_SIZE));
