@@ -63,7 +63,9 @@
   border: none;
   background-color: var(--bg-primary);
   border-radius: 999px 0 999px 999px;
-  box-shadow: 0px 1px 2px -1px #0000001a, 0px 1px 3px 0px #0000001a;
+  box-shadow:
+    0px 1px 2px -1px #0000001a,
+    0px 1px 3px 0px #0000001a;
   cursor: pointer;
 }
 
@@ -189,7 +191,6 @@
   --time-gap: 4px;
   --time-rail-y-shift: -3px;
 
-
   --frame-shift-x: 0px;
 
   --grid-w: calc(
@@ -226,6 +227,8 @@
 .schedule-date-row {
   display: flex;
   width: fit-content;
+  gap: var(--col-gap);
+  padding-right: var(--scroll-inset);
 }
 
 .schedule-date-header {
@@ -244,13 +247,14 @@
   left: var(--rail-left);
   width: var(--time-rail-w);
   height: var(--grid-h);
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   background: var(--bg-primary);
   z-index: 4;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .schedule-time-rail::-webkit-scrollbar {
   display: none;
 }
@@ -258,6 +262,8 @@
 .schedule-time-col {
   display: flex;
   flex-direction: column;
+  gap: var(--row-gap);
+  padding-top: 1px;
 }
 
 .schedule-time-label {
@@ -267,7 +273,7 @@
   font-weight: 400;
   color: var(--text-primary);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
   padding-right: 6px;
   box-sizing: border-box;
@@ -374,6 +380,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .restaurant-rail--hidden-scrollbar::-webkit-scrollbar {
   display: none;
 }

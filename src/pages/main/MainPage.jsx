@@ -82,7 +82,7 @@ function buildTimeSlotsFromRange(startHm, endHm) {
   const slots = [];
   const labels = [];
 
-  while (startMin <= endMin) {
+  while (startMin < endMin) {
     const h = Math.floor(startMin / 60);
     const m = startMin % 60;
 
@@ -96,6 +96,14 @@ function buildTimeSlotsFromRange(startHm, endHm) {
 
     startMin += 30;
   }
+
+  // 종료 시각 레이블 추가 (슬롯은 추가하지 않음)
+  const eh2 = Math.floor(endMin / 60);
+  const em2 = endMin % 60;
+  const isPmEnd = eh2 >= 12;
+  const hour12End = ((eh2 + 11) % 12) + 1;
+  const ampmEnd = isPmEnd ? 'PM' : 'AM';
+  labels.push(em2 === 0 ? `${hour12End} ${ampmEnd}` : '');
 
   return { slots, labels };
 }
@@ -587,6 +595,10 @@ export default function MainPage() {
                               {timeLabels[rowIndex] ?? ''}
                             </div>
                           ))}
+                          {/* 종료 시각 레이블 */}
+                          <div className="schedule-time-label schedule-time-label--end">
+                            {timeLabels[timeSlots.length] ?? ''}
+                          </div>
                         </div>
                       </div>
 
