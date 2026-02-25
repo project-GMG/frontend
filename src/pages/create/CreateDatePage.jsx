@@ -55,6 +55,10 @@ function toYmdLocal(date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function toBackendTimeLabel(timeLabel) {
+  return timeLabel === '24:00' ? '23:59' : timeLabel;
+}
+
 export default function CreateDatePage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,7 +113,6 @@ export default function CreateDatePage() {
   const wheelAccEndRef = useRef(0);
   const WHEEL_THRESHOLD = 100;
 
-  // ===== 모바일 터치 스크롤(스와이프) 안정화: DOM non-passive 리스너로 처리 =====
   const startWheelRef = useRef(null);
   const endWheelRef = useRef(null);
 
@@ -247,7 +250,10 @@ export default function CreateDatePage() {
       state: {
         ...prev,
         dateRange: { startDate, endDate },
-        timeRange: { startTime, endTime },
+        timeRange: {
+          startTime: toBackendTimeLabel(startTime),
+          endTime: toBackendTimeLabel(endTime),
+        },
       },
     });
   };
@@ -408,11 +414,7 @@ export default function CreateDatePage() {
 
               <span className="create-date-time-separator">~</span>
 
-              <div
-                ref={endWheelRef}
-                className="create-date-time-wheel"
-                onWheel={handleEndWheel}
-              >
+              <div ref={endWheelRef} className="create-date-time-wheel" onWheel={handleEndWheel}>
                 {renderWheelItems(endTimeIndex, 'end')}
               </div>
             </div>

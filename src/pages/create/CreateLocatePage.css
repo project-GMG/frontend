@@ -38,31 +38,43 @@
 
   margin: 0;
   padding: 0;
-  padding-top:20px;
+  padding-top: 20px;
 
   display: grid;
   grid-template-rows: 4px 1fr;
   row-gap: 14px;
   align-items: start;
 
-  background: var(--bg-default);
+  background: transparent;
 }
 
 .create-locate-topbar {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: transparent;
 }
 
 .create-locate-back {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  background: transparent;
 }
 
 .create-locate-back .back-button {
   width: 44px;
   height: 22px;
+  background: transparent;
+}
+
+.create-locate-nav .topbar,
+.create-locate-nav .top-bar,
+.create-locate-nav .topbar-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 .create-locate-content {
@@ -71,7 +83,9 @@
   flex-direction: column;
 
   padding: 0;
-  margin-top: calc(56px + 38px);
+
+  margin-top: 0;
+  padding-top: calc(56px + 38px);
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -318,7 +332,6 @@
   display: flex;
   justify-content: center;
   padding: 0;
-
 }
 
 .create-locate-footer .next-button {
@@ -330,5 +343,29 @@
 @media (max-width: 365px) {
   .create-locate-footer .next-button {
     max-width: 340px;
+  }
+}
+
+@media (max-height: 780px) {
+  .create-locate-map-wrapper {
+    height: 420px;
+  }
+}
+
+@media (max-height: 710px) {
+  .create-locate-map-wrapper {
+    height: 390px;
+  }
+}
+
+@media (max-height: 690px) {
+  .create-locate-map-wrapper {
+    height: 370px;
+  }
+}
+
+@media (max-height: 670px) {
+  .create-locate-map-wrapper {
+    height: 340px;
   }
 }

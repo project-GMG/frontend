@@ -38,31 +38,43 @@
 
   margin: 0;
   padding: 0;
-  padding-top:20px;
+  padding-top: 20px;
 
   display: grid;
   grid-template-rows: 4px 1fr;
   row-gap: 14px;
   align-items: start;
 
-  background: var(--bg-default);
+  background-color: transparent;
 }
 
 .create-place-topbar {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: transparent;
 }
 
 .create-place-back {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  background: transparent;
 }
 
 .create-place-back .back-button {
   width: 44px;
   height: 22px;
+  background: transparent;
+}
+
+.create-place-nav .topbar,
+.create-place-nav .top-bar,
+.create-place-nav .topbar-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 .create-place-content {
@@ -71,7 +83,8 @@
   flex-direction: column;
   padding: 0;
 
-  margin-top: calc(56px + 38px);
+  margin-top: 0;
+  padding-top: calc(56px + 38px);
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -106,7 +119,7 @@
   margin-top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
 }
 
 .create-place-category-card {
@@ -120,7 +133,9 @@
   border-radius: 16px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .create-place-category-card--selected {
@@ -170,7 +185,6 @@
   display: flex;
   justify-content: center;
   padding: 0;
-
 }
 
 .create-place-footer .next-button {
