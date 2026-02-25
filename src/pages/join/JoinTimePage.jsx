@@ -1,5 +1,3 @@
-// gmg-front/src/pages/join/JoinTimePage.jsx
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
@@ -11,7 +9,8 @@ const LONG_PRESS_MS = 250;
 const KEY_SEP = '::';
 
 const SWIPE_TH_PX = 40;
-const SWIPE_MAX_VERTICAL_PX = 60;
+const SWIPE_MAX_VERTICAL_PX = 80;
+const SWIPE_DECIDE_PX = 12;
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(buildApiUrl(path), {
@@ -213,8 +212,6 @@ export default function JoinTimePage() {
   const gridScrollRef = useRef(null);
   const timeScrollRef = useRef(null);
 
-  const swipeRef = useRef({ x: 0, y: 0 });
-
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [eventError, setEventError] = useState('');
   const [eventData, setEventData] = useState(null);
@@ -311,9 +308,7 @@ export default function JoinTimePage() {
         for (const { date, startTime } of times) {
           const dateIndex = allDateYmds.indexOf(date);
           const slotIndex = timeApiHm.indexOf(startTime);
-          if (dateIndex !== -1 && slotIndex !== -1) {
-            keys.add(makeKey(dateIndex, slotIndex));
-          }
+          if (dateIndex !== -1 && slotIndex !== -1) keys.add(makeKey(dateIndex, slotIndex));
         }
         setSelectedKeys(keys);
       } catch {
@@ -375,7 +370,6 @@ export default function JoinTimePage() {
 
   const buildUnavailableTimesRaw = () => {
     const out = [];
-
     for (const key of selectedKeys) {
       const parsed = parseKey(key);
       if (!parsed) continue;
@@ -395,7 +389,6 @@ export default function JoinTimePage() {
 
       out.push({ date: ymd, startTime, endTime: `${eh}:${em}` });
     }
-
     return out;
   };
 
@@ -502,6 +495,19 @@ export default function JoinTimePage() {
     captureEl: null,
   });
 
+  const swipeStateRef = useRef({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    decided: false,
+    isSwipe: false,
+    dx: 0,
+    dy: 0,
+  });
+
+  const isSwipingRef = useRef(false);
+
   const clearLongPressTimer = () => {
     const st = selectStateRef.current;
     if (st.longPressTimer) {
@@ -569,7 +575,112 @@ export default function JoinTimePage() {
     if (time) time.classList.remove('is-selecting');
   };
 
+  const cancelSelectingForSwipe = () => {
+    const st = selectStateRef.current;
+    st.movedBeforeLongPress = true;
+    clearLongPressTimer();
+    if (st.pressingLocked) {
+      st.pressingLocked = false;
+      unlockScrollForPressing();
+    }
+    if (st.mode !== 'idle') {
+      setMode('idle');
+      unlockScrollForSelecting();
+    }
+  };
+
+  const onGridPointerDownCapture = (e) => {
+    if (selectStateRef.current.mode !== 'idle') return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    const s = swipeStateRef.current;
+    s.active = true;
+    s.pointerId = e.pointerId;
+    s.startX = e.clientX;
+    s.startY = e.clientY;
+    s.decided = false;
+    s.isSwipe = false;
+    s.dx = 0;
+    s.dy = 0;
+
+    isSwipingRef.current = false;
+  };
+
+  const onGridPointerMoveCapture = (e) => {
+    const s = swipeStateRef.current;
+    if (!s.active) return;
+    if (s.pointerId !== e.pointerId) return;
+    if (selectStateRef.current.mode !== 'idle') return;
+
+    s.dx = e.clientX - s.startX;
+    s.dy = e.clientY - s.startY;
+
+    const ax = Math.abs(s.dx);
+    const ay = Math.abs(s.dy);
+
+    if (!s.decided) {
+      if (ax < SWIPE_DECIDE_PX && ay < SWIPE_DECIDE_PX) return;
+
+      s.decided = true;
+
+      if (ax >= ay) {
+        s.isSwipe = true;
+        isSwipingRef.current = true;
+        cancelSelectingForSwipe();
+      } else {
+        s.isSwipe = false;
+        isSwipingRef.current = false;
+        s.active = false;
+        s.pointerId = null;
+        return;
+      }
+    }
+
+    if (!s.isSwipe) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const onGridPointerUpCapture = (e) => {
+    const s = swipeStateRef.current;
+    if (!s.active) return;
+    if (s.pointerId !== e.pointerId) return;
+
+    const dx = s.dx;
+    const dy = s.dy;
+
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+
+    const wasSwipe = s.isSwipe;
+
+    s.active = false;
+    s.pointerId = null;
+    s.decided = false;
+    s.isSwipe = false;
+
+    isSwipingRef.current = false;
+
+    if (!wasSwipe) return;
+    if (ay > SWIPE_MAX_VERTICAL_PX) return;
+    if (ax < SWIPE_TH_PX) return;
+
+    if (dx <= -SWIPE_TH_PX) goNext();
+    else if (dx >= SWIPE_TH_PX) goPrev();
+  };
+
+  const onGridPointerCancelCapture = () => {
+    const s = swipeStateRef.current;
+    s.active = false;
+    s.pointerId = null;
+    s.decided = false;
+    s.isSwipe = false;
+    isSwipingRef.current = false;
+  };
+
   const onSlotPointerDown = (e, key) => {
+    if (isSwipingRef.current) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
     const st = selectStateRef.current;
@@ -589,6 +700,7 @@ export default function JoinTimePage() {
     clearLongPressTimer();
 
     if (e.pointerType === 'touch') {
+      e.preventDefault();
       st.pressingLocked = true;
       lockScrollForPressing();
       if (st.captureEl && typeof st.captureEl.setPointerCapture === 'function') {
@@ -603,6 +715,7 @@ export default function JoinTimePage() {
     st.longPressTimer = setTimeout(() => {
       if (!st.pointerDown) return;
       if (st.movedBeforeLongPress) return;
+      if (isSwipingRef.current) return;
 
       const isActive = selectedKeys.has(key);
       const mode = isActive ? 'deselect' : 'select';
@@ -618,6 +731,8 @@ export default function JoinTimePage() {
   };
 
   const onSlotPointerMove = (e) => {
+    if (isSwipingRef.current) return;
+
     const st = selectStateRef.current;
     if (!st.pointerDown) return;
 
@@ -663,7 +778,7 @@ export default function JoinTimePage() {
     }
 
     if (wasMode === 'idle') {
-      if (!st.movedBeforeLongPress && startKey) toggleSingle(startKey);
+      if (!st.movedBeforeLongPress && startKey && !isSwipingRef.current) toggleSingle(startKey);
       st.startKey = null;
       st.lastKey = null;
       st.pointerId = null;
@@ -691,27 +806,6 @@ export default function JoinTimePage() {
   };
 
   const onPointerCancel = (e) => finishPointer(e);
-
-  const onTouchStart = (e) => {
-    if (selectStateRef.current.mode !== 'idle') return;
-    const t = e.touches[0];
-    swipeRef.current = { x: t.clientX, y: t.clientY };
-  };
-
-  const onTouchEnd = (e) => {
-    if (selectStateRef.current.mode !== 'idle') return;
-
-    const start = swipeRef.current;
-    const t = e.changedTouches[0];
-
-    const dx = t.clientX - start.x;
-    const dy = t.clientY - start.y;
-
-    if (Math.abs(dy) > SWIPE_MAX_VERTICAL_PX) return;
-
-    if (dx <= -SWIPE_TH_PX) goNext();
-    else if (dx >= SWIPE_TH_PX) goPrev();
-  };
 
   return (
     <div className="join-time-page">
@@ -744,8 +838,10 @@ export default function JoinTimePage() {
           <section className="join-time-grid-wrap">
             <section
               className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
+              onPointerDownCapture={onGridPointerDownCapture}
+              onPointerMoveCapture={onGridPointerMoveCapture}
+              onPointerUpCapture={onGridPointerUpCapture}
+              onPointerCancelCapture={onGridPointerCancelCapture}
             >
               <div className="jt-frame">
                 <div className="jt-date-rail">
