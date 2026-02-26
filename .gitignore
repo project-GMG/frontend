@@ -17,6 +17,11 @@ dist-ssr
 env.*
 *.env.*
 
+# Vite env files (may contain secrets)
+.env
+.env.*
+!.env.example
+
 # Editor
 .vscode/*
 !.vscode/extensions.json

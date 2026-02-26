@@ -1,6 +1,6 @@
 // gmg-front/src/pages/create/CreateFinalPage.jsx
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './CreateFinalPage.css';
 import BackButton from '../components/common/BackButton';
@@ -8,6 +8,8 @@ import BackButton from '../components/common/BackButton';
 import EndIcon from '../../assets/icons/End_ico.png';
 import CopyIcon from '../../assets/icons/copy.png';
 import ShareIcon from '../../assets/icons/share.png';
+
+import { trackEvent, trackEventOnce } from '../../lib/analytics';
 
 const SHARE_BASE_URL = (import.meta.env.VITE_SHARE_BASE_URL || '').trim() || window.location.origin;
 
@@ -29,16 +31,28 @@ export default function CreateFinalPage() {
 
   const mainLink = useMemo(() => buildMainLink(hashUrl), [hashUrl]);
 
+  useEffect(() => {
+    trackEventOnce('create_flow_complete', 'create_flow_complete', {
+      has_link: Boolean(mainLink),
+    });
+  }, [mainLink]);
+
   const handleBack = () => window.history.back();
 
   const handleCopyLink = async () => {
     if (!mainLink) return;
+    trackEvent('create_link_copy', { has_link: true });
     await navigator.clipboard.writeText(mainLink);
     alert('링크가 복사되었습니다.');
   };
 
   const handleShare = async () => {
     if (!mainLink) return;
+
+    trackEvent('create_link_share', {
+      share_api_supported: Boolean(navigator.share),
+      has_link: true,
+    });
 
     if (navigator.share) {
       await navigator.share({
@@ -53,6 +67,7 @@ export default function CreateFinalPage() {
   };
 
   const handleRegister = () => {
+    trackEvent('create_register_click', { has_link: Boolean(mainLink) });
     navigate(
       `/main?code=${encodeURIComponent(
         String(hashUrl)

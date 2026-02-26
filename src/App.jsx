@@ -17,6 +17,8 @@ import JoinFinalPage from './pages/join/JoinFinalPage';
 
 import OnboardingPage from './pages/onboarding/OnboardingPage';
 
+import { flushRouteDwellOnExit, trackPageView, trackRouteDwell } from './lib/analytics';
+
 function DebugLocation() {
   const loc = useLocation();
   useEffect(() => {
@@ -32,14 +34,43 @@ function AnalyticsPageViews() {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
   useEffect(() => {
-    if (!measurementId) return;
+    if (!measurementId) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[GA] VITE_GA_MEASUREMENT_ID가 비어있습니다. 루트 .env에 GA4 측정 ID(G-...)를 설정하세요.',
+        );
+      }
+      return;
+    }
     if (typeof window === 'undefined') return;
-    if (typeof window.gtag !== 'function') return;
+    if (typeof window.gtag !== 'function') {
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[GA] window.gtag를 찾지 못했습니다. index.html에 gtag 스니펫이 로드되는지 확인하세요.',
+        );
+      }
+      return;
+    }
 
-    window.gtag('config', measurementId, {
-      page_path: loc.pathname + loc.search,
-    });
+    trackPageView({ page_path: loc.pathname + loc.search });
   }, [measurementId, loc.pathname, loc.search]);
+
+  return null;
+}
+
+function RouteDwellTracker() {
+  const loc = useLocation();
+
+  useEffect(() => {
+    const toPath = loc.pathname + loc.search;
+    trackRouteDwell(toPath);
+  }, [loc.pathname, loc.search]);
+
+  useEffect(() => {
+    const onPageHide = () => flushRouteDwellOnExit();
+    window.addEventListener('pagehide', onPageHide);
+    return () => window.removeEventListener('pagehide', onPageHide);
+  }, []);
 
   return null;
 }
@@ -49,6 +80,7 @@ function App() {
     <>
       <DebugLocation />
       <AnalyticsPageViews />
+      <RouteDwellTracker />
 
       <Routes>
         {/* <Route path="/" element={<Navigate to="/onboarding" replace />} /> */}

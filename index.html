@@ -21,7 +21,9 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', '%VITE_GA_MEASUREMENT_ID%');
+      // SPA 라우팅에서 페이지뷰는 앱에서 직접 전송하므로(react-router)
+      // 여기서는 자동 page_view 전송을 끕니다.
+      gtag('config', '%VITE_GA_MEASUREMENT_ID%', { send_page_view: false });
     </script>
   </head>
   <body>

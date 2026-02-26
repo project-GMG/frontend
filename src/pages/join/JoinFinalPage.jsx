@@ -1,11 +1,13 @@
 // gmg-front/src/pages/join/JoinFinalPage.jsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './JoinFinalPage.css';
 import NextButton from '../components/common/NextButton';
 
 import EndIcon from '../../assets/icons/End_ico.png';
+
+import { trackEvent, trackEventOnce } from '../../lib/analytics';
 
 export default function JoinFinalPage() {
   const navigate = useNavigate();
@@ -13,7 +15,14 @@ export default function JoinFinalPage() {
 
   const hashUrl = (searchParams.get('code') || '').trim();
 
+  useEffect(() => {
+    trackEventOnce('join_flow_complete', 'join_flow_complete', {
+      has_code: Boolean(hashUrl),
+    });
+  }, [hashUrl]);
+
   const handleGoBack = () => {
+    trackEvent('join_go_back_click', { has_code: Boolean(hashUrl) });
     if (hashUrl) navigate(`/main?code=${encodeURIComponent(hashUrl)}`);
     else navigate('/main');
   };
