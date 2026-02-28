@@ -15,15 +15,28 @@
     <meta property="og:url" content="https://xn--o39aa312i.com/">
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_MEASUREMENT_ID%"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      (function () {
+        var GA_ID = '%VITE_GA_MEASUREMENT_ID%';
+        GA_ID = (GA_ID || '').trim();
+        if (!GA_ID) return;
 
-      // SPA 라우팅에서 페이지뷰는 앱에서 직접 전송하므로(react-router)
-      // 여기서는 자동 page_view 전송을 끕니다.
-      gtag('config', '%VITE_GA_MEASUREMENT_ID%', { send_page_view: false });
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_ID);
+        document.head.appendChild(s);
+
+        gtag('js', new Date());
+        // SPA 라우팅에서 페이지뷰는 앱에서 직접 전송하므로(react-router)
+        // 여기서는 자동 page_view 전송을 끕니다.
+        gtag('config', GA_ID, { send_page_view: false });
+      })();
     </script>
   </head>
   <body>
