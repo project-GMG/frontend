@@ -412,19 +412,22 @@
 .restaurant-set {
   width: 100%;
   flex: 1;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   align-items: flex-start;
 }
 
 .restaurant-card {
-  width: 92px;
+  width: 100%;
+  max-width: 92px;
   height: 100px;
   border-radius: 16px;
   overflow: hidden;
   background-color: var(--bg-primary);
   position: relative;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08);
+  justify-self: center;
 }
 
 .restaurant-card--empty {
@@ -485,5 +488,14 @@
   .restaurant-container {
     width: calc(100% - 20px);
     flex: 0 0 calc(100% - 20px);
+  }
+
+  .restaurant-set {
+    gap: 8px;
+  }
+
+  .restaurant-card {
+    max-width: 86px;
+    height: 96px;
   }
 }

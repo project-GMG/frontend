@@ -53,6 +53,54 @@ const CATEGORY_ICON_BY_CODE = {
   STUDY_CAFE: StudyCafeIcon,
 };
 
+async function apiFetch(path, options = {}) {
+  const res = await fetch(buildApiUrl(path), {
+    ...options,
+    headers: {
+      accept: 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await res.text().catch(() => '');
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = null;
+  }
+
+  if (!res.ok) {
+    const msg =
+      json?.message ||
+      json?.error ||
+      (typeof json === 'string' ? json : null) ||
+      `요청 실패 (${res.status})`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json;
+}
+
+function getParticipantId(hashUrl) {
+  const raw = sessionStorage.getItem(`gmg_participant_${hashUrl}`);
+  const n = raw ? Number(raw) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
+async function postComplete(hashUrl, participantId) {
+  return apiFetch(
+    `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/complete`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+}
+
 function buildTitleParts(placeTypeCode, placeTypeLabel) {
   const label = placeTypeLabel || '장소';
 
@@ -155,8 +203,8 @@ export default function JoinPlaceCategoryPage() {
   const [errorText, setErrorText] = useState('');
   const [placeTypes, setPlaceTypes] = useState([]);
 
-  const [isSubmittingComplete] = useState(false);
-  const [completeError] = useState('');
+  const [isSubmittingComplete, setIsSubmittingComplete] = useState(false);
+  const [completeError, setCompleteError] = useState('');
 
   const handleBack = () => navigate(-1);
 
@@ -244,10 +292,34 @@ export default function JoinPlaceCategoryPage() {
     );
   };
 
-  const handleDone = () => {
-    navigate(`/join/final?code=${encodeURIComponent(effectiveCode)}`, {
-      state: { __dummy: isDummyMode },
-    });
+  const handleDone = async () => {
+    if (isDummyMode) {
+      navigate(`/join/final?code=${encodeURIComponent(effectiveCode)}`, {
+        state: { __dummy: true },
+      });
+      return;
+    }
+
+    if (!hashUrl) return;
+
+    setCompleteError('');
+    setIsSubmittingComplete(true);
+
+    const participantId = getParticipantId(hashUrl);
+    if (!participantId) {
+      setCompleteError('참여자 정보가 없습니다. 이름 등록부터 다시 진행해 주세요.');
+      setIsSubmittingComplete(false);
+      return;
+    }
+
+    try {
+      await postComplete(hashUrl, participantId);
+      navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
+    } catch (e) {
+      setCompleteError(e?.message || '완료 처리에 실패했습니다.');
+    } finally {
+      setIsSubmittingComplete(false);
+    }
   };
 
   return (

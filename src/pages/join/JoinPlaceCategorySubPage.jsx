@@ -83,16 +83,6 @@ async function postDisliked(hashUrl, participantId, dislikedCategoryIds, dislike
   );
 }
 
-async function postComplete(hashUrl, participantId) {
-  return apiFetch(
-    `/api/event/${encodeURIComponent(hashUrl)}/participants/${encodeURIComponent(participantId)}/complete`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  );
-}
-
 /* =========================
    ✅ 로컬 디자인 테스트용 더미 데이터
    - /join/category/sub 로 code/categoryId 없이 진입 가능
@@ -115,6 +105,8 @@ export default function JoinPlaceCategorySubPage() {
   const categoryIdFromQuery = searchParams.get('categoryId');
   const state = location.state || {};
   const categoryIdFromState = state.categoryId ?? state.itemId;
+  const isDummyFromState = !!state.__dummy;
+  const isDummyCode = hashUrl === 'dev-dummy';
 
   const normalizedCategoryId = useMemo(() => {
     const v = categoryIdFromQuery ?? categoryIdFromState;
@@ -144,6 +136,7 @@ export default function JoinPlaceCategorySubPage() {
   const pageSize = 16;
 
   const USE_DUMMY_LOCAL = true;
+  const isDummyMode = USE_DUMMY_LOCAL && (isDummyFromState || !hashUrl || isDummyCode);
 
   const handleBack = () => navigate(-1);
 
@@ -152,7 +145,7 @@ export default function JoinPlaceCategorySubPage() {
   const pendingRef = useRef(false);
 
   const fetchPage = async (nextPage) => {
-    if (!hashUrl || normalizedCategoryId == null) return;
+    if (isDummyMode || !hashUrl || normalizedCategoryId == null) return;
 
     if (pendingRef.current) return;
     if (lastLoadedPageRef.current === nextPage) return;
@@ -194,7 +187,7 @@ export default function JoinPlaceCategorySubPage() {
 
   useEffect(() => {
     // ✅ 로컬 디자인 테스트 진입 (code/categoryId 없어도 더미 표시)
-    if ((!hashUrl || normalizedCategoryId == null) && USE_DUMMY_LOCAL) {
+    if ((isDummyMode || normalizedCategoryId == null) && USE_DUMMY_LOCAL) {
       setIsLoading(false);
       setErrorText('');
       setSubmitError('');
@@ -227,7 +220,7 @@ export default function JoinPlaceCategorySubPage() {
 
     fetchPage(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hashUrl, normalizedCategoryId]);
+  }, [hashUrl, normalizedCategoryId, isDummyMode]);
 
   const filteredPlaces = useMemo(() => {
     const q = query.trim();
@@ -268,8 +261,11 @@ export default function JoinPlaceCategorySubPage() {
 
   const handleDone = async () => {
     // ✅ 더미 모드에서는 서버 전송 없이 뒤로가기만
-    if ((!hashUrl || normalizedCategoryId == null) && USE_DUMMY_LOCAL) {
-      navigate(-1);
+    if (isDummyMode || normalizedCategoryId == null) {
+      const nextCode = hashUrl || 'dev-dummy';
+      navigate(`/join/category?code=${encodeURIComponent(nextCode)}`, {
+        state: { __dummy: true },
+      });
       return;
     }
 
@@ -296,15 +292,13 @@ export default function JoinPlaceCategorySubPage() {
     const participantId = getParticipantId(hashUrl);
     if (!participantId) {
       setIsSubmitting(false);
-      setSubmitError('참여자 정보가 없습니다. 먼저 이름 등록을 다시 진행해주세요.');
+      navigate(`/join/category?code=${encodeURIComponent(hashUrl)}`);
       return;
     }
 
     try {
       await postDisliked(hashUrl, participantId, nextCategoryIds, nextPlaceIds);
-      await postComplete(hashUrl, participantId);
-
-      navigate(`/join/final?code=${encodeURIComponent(hashUrl)}`);
+      navigate(`/join/category?code=${encodeURIComponent(hashUrl)}`);
     } catch (e) {
       setSubmitError(e?.message || '정보 등록에 실패했습니다.');
     } finally {
