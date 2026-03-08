@@ -9,6 +9,8 @@ const LONG_PRESS_MS = 400;
 const FAB_SIZE = 44;
 const EDGE_MARGIN = 12;
 const STORAGE_KEY = 'gmg_feedback_draft';
+const COOLDOWN_KEY = 'gmg_feedback_cooldown';
+const COOLDOWN_MS = 10 * 60 * 1000;
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -43,6 +45,30 @@ function clearDraft() {
   }
 }
 
+function getCooldownEnd() {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_KEY);
+    if (!raw) return 0;
+    return parseInt(raw, 10);
+  } catch {
+    return 0;
+  }
+}
+
+function setCooldown() {
+  const end = Date.now() + COOLDOWN_MS;
+  try {
+    localStorage.setItem(COOLDOWN_KEY, end.toString());
+  } catch {
+    // 무시
+  }
+  return end;
+}
+
+function checkCooldownEnd(end) {
+  return end > Date.now();
+}
+
 export default function FeedbackWidget() {
   const location = useLocation();
 
@@ -72,6 +98,20 @@ export default function FeedbackWidget() {
   const [comment, setComment] = useState(() => loadDraft().comment);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [cooldownEnd, setCooldownEnd] = useState(getCooldownEnd());
+  const [isCoolingDown, setIsCoolingDown] = useState(() => checkCooldownEnd(getCooldownEnd()));
+
+  useEffect(() => {
+    if (isCoolingDown) {
+      const timeDiff = cooldownEnd - Date.now();
+      if (timeDiff > 0) {
+        const timeout = setTimeout(() => {
+          setIsCoolingDown(false);
+        }, timeDiff);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [cooldownEnd, isCoolingDown]);
 
   // ── Save draft to localStorage whenever rating/comment changes ──
   useEffect(() => {
@@ -153,6 +193,7 @@ export default function FeedbackWidget() {
       snapToEdge(pos.x, pos.y);
     } else if (!didDrag.current) {
       openedAtRef.current = Date.now();
+      setCooldownEnd(getCooldownEnd());
       setIsOpen(true);
     }
   }, [isDragging, pos.x, pos.y, snapToEdge]);
@@ -179,7 +220,7 @@ export default function FeedbackWidget() {
     setSubmitting(true);
 
     try {
-      await fetch(buildApiUrl('/api/feedback'), {
+      const res = await fetch(buildApiUrl('/api/feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -188,6 +229,12 @@ export default function FeedbackWidget() {
           page: location.pathname + location.search,
         }),
       });
+
+      if (res.ok || res.status === 429) {
+        const newEnd = setCooldown();
+        setCooldownEnd(newEnd);
+        setIsCoolingDown(true);
+      }
     } catch {
       // fire-and-forget
     }
@@ -264,7 +311,23 @@ export default function FeedbackWidget() {
           }}
         >
           <div className={modalClassName} style={getModalOrigin()}>
-            {submitted ? (
+            {isCoolingDown && !submitted ? (
+              <div className="feedback-success">
+                <div className="feedback-success-icon">⏳</div>
+                <p className="feedback-success-title">잠시 후 다시 시도해주세요</p>
+                <p className="feedback-success-sub">의견은 10분에 한 번씩 보낼 수 있어요.</p>
+                <button
+                  type="button"
+                  className="feedback-close-btn"
+                  onClick={handleClose}
+                  aria-label="닫기"
+                  id="feedback-close-btn-cooldown"
+                  style={{ position: 'absolute', top: '16px', right: '16px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : submitted ? (
               <div className="feedback-success">
                 <div className="feedback-success-icon">🎉</div>
                 <p className="feedback-success-title">감사합니다!</p>
