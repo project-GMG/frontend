@@ -63,6 +63,7 @@ export default function FeedbackWidget() {
   const dragStartRef = useRef({ px: 0, py: 0, ox: 0, oy: 0 });
   const didDrag = useRef(false);
   const fabRef = useRef(null);
+  const openedAtRef = useRef(0);
 
   // ───── Modal state ─────
   const [isOpen, setIsOpen] = useState(false);
@@ -151,6 +152,7 @@ export default function FeedbackWidget() {
       setIsDragging(false);
       snapToEdge(pos.x, pos.y);
     } else if (!didDrag.current) {
+      openedAtRef.current = Date.now();
       setIsOpen(true);
     }
   }, [isDragging, pos.x, pos.y, snapToEdge]);
@@ -253,8 +255,12 @@ export default function FeedbackWidget() {
       {isOpen && (
         <div
           className={overlayClassName}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) handleClose();
+          onPointerDown={(e) => {
+            // Only close if the backdrop itself was pressed (not a child)
+            // and enough time has passed to avoid ghost taps from the FAB
+            if (e.target === e.currentTarget && Date.now() - openedAtRef.current > 300) {
+              handleClose();
+            }
           }}
         >
           <div className={modalClassName} style={getModalOrigin()}>
