@@ -1,6 +1,7 @@
 // src/App.jsx
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import FeedbackWidget from './pages/components/feedback/FeedbackWidget';
 
 import CreatePlacePage from './pages/create/CreatePlacePage';
 import CreateDatePage from './pages/create/CreateDatePage';
@@ -76,10 +77,14 @@ function RouteDwellTracker() {
 }
 
 function App() {
+  const location = useLocation();
+  const isOnboarding = location.pathname === '/' || location.pathname === '/onboarding';
+
   return (
     <>
       <DebugLocation />
       <AnalyticsPageViews />
+      {!isOnboarding && <FeedbackWidget />}
       <RouteDwellTracker />
 
       <Routes>
