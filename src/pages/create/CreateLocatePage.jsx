@@ -23,6 +23,104 @@ const DEFAULT_PLACE = {
 };
 
 const DEFAULT_RADIUS_M = 250;
+const FRANCHISE_SEARCH_RADIUS_M = 10000;
+const FRANCHISE_HINTS = [
+  '스타벅스',
+  '이디야',
+  '투썸',
+  '메가커피',
+  '빽다방',
+  '컴포즈',
+  '할리스',
+  '파리바게뜨',
+  '던킨',
+  '맥도날드',
+  '버거킹',
+  '롯데리아',
+  '서브웨이',
+  '다이소',
+  '올리브영',
+  'gs25',
+  'cu',
+  '세븐일레븐',
+  '공차',
+
+  '엔제리너스',
+  '탐앤탐스',
+  '폴바셋',
+  '커피빈',
+  '카페베네',
+  '달콤커피',
+  '블루보틀',
+  '매머드커피',
+  '더벤티',
+  '텐퍼센트커피',
+  '요거프레소',
+  '쥬씨',
+  '요거트아이스크림의정석',
+  '배스킨라빈스',
+  '설빙',
+
+  '맘스터치',
+  '노브랜드버거',
+  '프랭크버거',
+  'KFC',
+  '쉐이크쉑',
+  '피자헛',
+  '도미노피자',
+  '미스터피자',
+  '파파존스',
+  '교촌치킨',
+  'bhc',
+  'BBQ',
+  '굽네치킨',
+  '처갓집양념치킨',
+
+  '이마트24',
+  '미니스톱',
+
+  '노브랜드',
+  '이마트',
+  '홈플러스',
+  '롯데마트',
+  '코스트코',
+  '이케아',
+];
+
+function normalizeKeyword(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .trim();
+}
+
+function isFranchiseKeyword(keyword) {
+  const normalized = normalizeKeyword(keyword);
+  if (!normalized) return false;
+  return FRANCHISE_HINTS.some((hint) => normalized.includes(normalizeKeyword(hint)));
+}
+
+function mapKakaoPlacesToResults(data = []) {
+  return data.map((d, idx) => {
+    const distNum = d.distance ? Number(d.distance) : null;
+    return {
+      id: `${d.id || idx}`,
+      name: d.place_name,
+      address: d.road_address_name || d.address_name || '',
+      distance: d.distance ? `${d.distance}m` : '',
+      distanceNum: Number.isFinite(distNum) ? distNum : null,
+      lat: Number(d.y),
+      lng: Number(d.x),
+    };
+  });
+}
+
+function sortByDistance(results = []) {
+  const withDist = results.filter((x) => x.distanceNum != null);
+  const withoutDist = results.filter((x) => x.distanceNum == null);
+  withDist.sort((a, b) => a.distanceNum - b.distanceNum);
+  return [...withDist, ...withoutDist];
+}
 
 function createOrangePinDataUrl(colorHex = '#ff5315') {
   const svg = `
@@ -290,54 +388,47 @@ export default function CreateLocatePage() {
     const timer = window.setTimeout(() => {
       const { kakao } = window;
       const places = placesRef.current;
+      const runKeywordSearch = (kw, options) =>
+        new Promise((resolve) => {
+          places.keywordSearch(
+            kw,
+            (data, status) => {
+              resolve({ data, status });
+            },
+            options,
+          );
+        });
 
       // 현재 위치가 있으면 userLoc 기준, 없으면 지도 center 기준
       const baseLoc = userLoc || center;
 
-      // 키워드 매칭 우선 유지: 반경을 너무 작게 잡지 말고 넉넉히(누락 방지)
-      const options = baseLoc
+      const nearOptions = baseLoc
         ? {
             location: new kakao.maps.LatLng(baseLoc.lat, baseLoc.lng),
-            radius: 5000, // 5km (필요하면 2000~10000 사이 튜닝)
+            radius: FRANCHISE_SEARCH_RADIUS_M,
           }
         : undefined;
 
-      places.keywordSearch(
-        keyword,
-        (data, status) => {
-          if (!isSearchActive) return;
+      const franchiseMode = isFranchiseKeyword(keyword);
 
-          if (status !== kakao.maps.services.Status.OK) {
-            setResults([]);
-            setIsSuggestLoading(false);
-            return;
-          }
+      (async () => {
+        const { data, status } = await runKeywordSearch(
+          keyword,
+          franchiseMode ? nearOptions : undefined,
+        );
 
-          const mapped = (data || []).map((d, idx) => {
-            const distNum = d.distance ? Number(d.distance) : null;
+        if (!isSearchActive) return;
 
-            return {
-              id: `${d.id || idx}`,
-              name: d.place_name,
-              address: d.road_address_name || d.address_name || '',
-              distance: d.distance ? `${d.distance}m` : '',
-              distanceNum: Number.isFinite(distNum) ? distNum : null,
-              lat: Number(d.y),
-              lng: Number(d.x),
-            };
-          });
-
-          // 동일 키워드 결과 내에서만 "근처 우선"
-          const withDist = mapped.filter((x) => x.distanceNum != null);
-          const withoutDist = mapped.filter((x) => x.distanceNum == null);
-
-          withDist.sort((a, b) => a.distanceNum - b.distanceNum);
-
-          setResults([...withDist, ...withoutDist]);
+        if (status !== kakao.maps.services.Status.OK) {
+          setResults([]);
           setIsSuggestLoading(false);
-        },
-        options,
-      );
+          return;
+        }
+
+        const mapped = mapKakaoPlacesToResults(data || []);
+        setResults(franchiseMode ? sortByDistance(mapped) : mapped);
+        setIsSuggestLoading(false);
+      })();
     }, 200);
 
     return () => window.clearTimeout(timer);
