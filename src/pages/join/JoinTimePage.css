@@ -189,7 +189,11 @@
 }
 
 .jt-date-rail {
-  display: none;
+  position: absolute;
+  top: var(--scroll-top);
+  left: calc(var(--time-col) + var(--time-gap));
+  right: var(--grid-right);
+  z-index: 3;
 }
 
 .jt-date-row {
@@ -327,6 +331,7 @@
   display: grid;
   column-gap: var(--gap);
   row-gap: var(--gap);
+  padding-top: calc(var(--date-row) + 6px);
   padding-bottom: calc(var(--cell-h) / 2);
   box-sizing: content-box;
 }

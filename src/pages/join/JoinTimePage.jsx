@@ -149,6 +149,19 @@ function getNormalizedEventRange(eventData) {
   };
 }
 
+function withFallbackEventRange(eventData, fallbackEventData) {
+  const primary = getNormalizedEventRange(eventData);
+  if (primary.startDate && primary.endDate && primary.startTime && primary.endTime) return primary;
+
+  const fallback = getNormalizedEventRange(fallbackEventData);
+  return {
+    startDate: primary.startDate || fallback.startDate,
+    endDate: primary.endDate || fallback.endDate,
+    startTime: primary.startTime || fallback.startTime,
+    endTime: primary.endTime || fallback.endTime,
+  };
+}
+
 function toYmdLocal(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -276,6 +289,15 @@ export default function JoinTimePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const dummyEventData = useMemo(
+    () => ({
+      ...buildDummyEvent5Days(),
+      hashUrl: 'local-preview',
+      title: 'Local Preview Event',
+      heatmapData: [],
+    }),
+    [],
+  );
 
   const USE_DUMMY_WHEN_NO_CODE = true;
 
@@ -288,7 +310,7 @@ export default function JoinTimePage() {
 
         if (USE_DUMMY_WHEN_NO_CODE) {
           setEventError('');
-          setEventData(buildDummyEvent5Days());
+          setEventData(dummyEventData);
           setIsLoadingEvent(false);
           return;
         }
@@ -312,7 +334,7 @@ export default function JoinTimePage() {
         if (!alive) return;
 
         if (USE_DUMMY_WHEN_NO_CODE) {
-          setEventData(buildDummyEvent5Days());
+          setEventData(dummyEventData);
           setEventError('개발 모드: 이벤트 API 접근 실패로 더미 데이터를 표시합니다.');
           setIsLoadingEvent(false);
           return;
@@ -327,9 +349,12 @@ export default function JoinTimePage() {
     return () => {
       alive = false;
     };
-  }, [hashUrl]);
+  }, [dummyEventData, hashUrl]);
 
-  const normalizedEventRange = useMemo(() => getNormalizedEventRange(eventData), [eventData]);
+  const normalizedEventRange = useMemo(
+    () => withFallbackEventRange(eventData, dummyEventData),
+    [dummyEventData, eventData],
+  );
 
   const { labels: allDateLabels, ymds: allDateYmds } = useMemo(() => {
     const s = normalizedEventRange.startDate;
@@ -899,7 +924,7 @@ export default function JoinTimePage() {
             >
               <div className="jt-frame">
                 <div className="jt-date-rail">
-                  <div className="jt-date-row">
+                  <div className="jt-date-row jt-date-row--sticky">
                     {pageDatesFixed.map((d, i) => (
                       <div
                         key={`${page}-${d ?? 'empty'}-${i}`}
@@ -919,6 +944,7 @@ export default function JoinTimePage() {
 
                 <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
                   <div className="jt-time-col">
+                    <div className="jt-time-label jt-time-label--spacer" aria-hidden="true" />
                     {TIME_SLOTS.map((slot, idx) => (
                       <div key={`${slot}-${idx}`} className="jt-time-label">
                         {TIME_LABELS[idx] ?? ''}
