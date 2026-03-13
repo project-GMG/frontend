@@ -5,6 +5,11 @@ import BackButton from '../components/common/BackButton';
 import './JoinTimePage.css';
 import logoIcon from '../../assets/icons/logo.png';
 import { buildApiUrl } from '../../lib/api';
+import {
+  buildConsecutiveSelectedDates,
+  buildDateColumns,
+  normalizeSelectedDates,
+} from '../../lib/eventDateSelection';
 
 const LONG_PRESS_MS = 250;
 const KEY_SEP = '::';
@@ -12,6 +17,7 @@ const KEY_SEP = '::';
 const SWIPE_TH_PX = 40;
 const SWIPE_MAX_VERTICAL_PX = 80;
 const SWIPE_DECIDE_PX = 12;
+const USE_DUMMY_WHEN_NO_CODE = true;
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(buildApiUrl(path), {
@@ -80,26 +86,6 @@ async function ensureParticipantId(hashUrl) {
   return pid;
 }
 
-function parseYmd(s) {
-  if (!s) return null;
-  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]) - 1;
-  const d = Number(m[3]);
-  const dt = new Date(y, mo, d);
-  dt.setHours(0, 0, 0, 0);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
-
-function normalizeYmdInput(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const m = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (!m) return '';
-  return `${m[1]}-${m[2]}-${m[3]}`;
-}
-
 function normalizeHmInput(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
@@ -116,19 +102,7 @@ function pickFirstNonEmpty(...values) {
   return '';
 }
 
-function getNormalizedEventRange(eventData) {
-  const startDateRaw = pickFirstNonEmpty(
-    eventData?.dateRange?.startDate,
-    eventData?.startDate,
-    eventData?.startDateTime,
-    eventData?.dateStart,
-  );
-  const endDateRaw = pickFirstNonEmpty(
-    eventData?.dateRange?.endDate,
-    eventData?.endDate,
-    eventData?.endDateTime,
-    eventData?.dateEnd,
-  );
+function getNormalizedEventTimeRange(eventData) {
   const startTimeRaw = pickFirstNonEmpty(
     eventData?.timeRange?.startTime,
     eventData?.startTime,
@@ -143,58 +117,20 @@ function getNormalizedEventRange(eventData) {
   );
 
   return {
-    startDate: normalizeYmdInput(startDateRaw),
-    endDate: normalizeYmdInput(endDateRaw),
     startTime: normalizeHmInput(startTimeRaw),
     endTime: normalizeHmInput(endTimeRaw),
   };
 }
 
-function withFallbackEventRange(eventData, fallbackEventData) {
-  const primary = getNormalizedEventRange(eventData);
-  if (primary.startDate && primary.endDate && primary.startTime && primary.endTime) return primary;
+function withFallbackTimeRange(eventData, fallbackEventData) {
+  const primary = getNormalizedEventTimeRange(eventData);
+  if (primary.startTime && primary.endTime) return primary;
 
-  const fallback = getNormalizedEventRange(fallbackEventData);
+  const fallback = getNormalizedEventTimeRange(fallbackEventData);
   return {
-    startDate: primary.startDate || fallback.startDate,
-    endDate: primary.endDate || fallback.endDate,
     startTime: primary.startTime || fallback.startTime,
     endTime: primary.endTime || fallback.endTime,
   };
-}
-
-function toYmdLocal(date) {
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function formatDateKorean(date) {
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  const wd = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-  return `${mm}/${dd} ${wd}`;
-}
-
-function buildDatesFromRange(startYmd, endYmd, limit = 35) {
-  const start = parseYmd(startYmd);
-  const end = parseYmd(endYmd);
-  if (!start || !end) return { labels: [], ymds: [] };
-
-  const labels = [];
-  const ymds = [];
-
-  const cur = new Date(start);
-  let count = 0;
-  while (cur.getTime() <= end.getTime() && count < limit) {
-    labels.push(formatDateKorean(cur));
-    ymds.push(toYmdLocal(cur));
-    cur.setDate(cur.getDate() + 1);
-    count += 1;
-  }
-
-  return { labels, ymds };
 }
 
 function hmToMin(hm) {
@@ -254,21 +190,15 @@ function isWeekendLabel(label) {
   return wd === '토' || wd === '일';
 }
 
-function addDaysYmd(baseYmd, days) {
-  const dt = parseYmd(baseYmd);
-  if (!dt) return baseYmd;
-  dt.setDate(dt.getDate() + days);
-  return toYmdLocal(dt);
-}
-
 function buildDummyEvent5Days() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const start = toYmdLocal(today);
-  const end = addDaysYmd(start, 4);
   return {
     title: '다같이 만나요(더미)',
-    dateRange: { startDate: start, endDate: end },
+    selectedDates: buildConsecutiveSelectedDates(
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+      5,
+    ),
     timeRange: { startTime: '10:00', endTime: '20:00' },
   };
 }
@@ -299,8 +229,6 @@ export default function JoinTimePage() {
     }),
     [],
   );
-
-  const USE_DUMMY_WHEN_NO_CODE = true;
 
   useEffect(() => {
     let alive = true;
@@ -352,26 +280,29 @@ export default function JoinTimePage() {
     };
   }, [dummyEventData, hashUrl]);
 
-  const normalizedEventRange = useMemo(
-    () => withFallbackEventRange(eventData, dummyEventData),
+  const normalizedTimeRange = useMemo(
+    () => withFallbackTimeRange(eventData, dummyEventData),
     [dummyEventData, eventData],
   );
 
+  const eventSelectedDates = useMemo(
+    () => normalizeSelectedDates(eventData?.selectedDates ?? dummyEventData.selectedDates),
+    [dummyEventData.selectedDates, eventData?.selectedDates],
+  );
+
   const { labels: allDateLabels, ymds: allDateYmds } = useMemo(() => {
-    const s = normalizedEventRange.startDate;
-    const e = normalizedEventRange.endDate;
-    return buildDatesFromRange(s, e, 35);
-  }, [normalizedEventRange.startDate, normalizedEventRange.endDate]);
+    return buildDateColumns(eventSelectedDates, 35);
+  }, [eventSelectedDates]);
 
   const {
     slots: TIME_SLOTS,
     labels: TIME_LABELS,
     apiHm: timeApiHm,
   } = useMemo(() => {
-    const s = normalizedEventRange.startTime;
-    const e = normalizedEventRange.endTime;
+    const s = normalizedTimeRange.startTime;
+    const e = normalizedTimeRange.endTime;
     return buildTimeSlotsFromRange(s, e);
-  }, [normalizedEventRange.startTime, normalizedEventRange.endTime]);
+  }, [normalizedTimeRange.endTime, normalizedTimeRange.startTime]);
 
   useEffect(() => {
     if (!isEditMode || !hashUrl || !allDateYmds.length || !timeApiHm.length) return;
@@ -479,22 +410,16 @@ export default function JoinTimePage() {
   };
 
   const filterUnavailableTimesByEvent = (list) => {
-    const ds = normalizedEventRange.startDate;
-    const de = normalizedEventRange.endDate;
-    const ts = normalizedEventRange.startTime;
-    const te = normalizedEventRange.endTime;
-
-    const startDate = parseYmd(ds);
-    const endDate = parseYmd(de);
+    const allowedDates = new Set(eventSelectedDates);
+    const ts = normalizedTimeRange.startTime;
+    const te = normalizedTimeRange.endTime;
     const startMin = hmToMin(ts);
     const endMin = hmToMin(te);
 
-    if (!startDate || !endDate || startMin == null || endMin == null) return list;
+    if (!allowedDates.size || startMin == null || endMin == null) return list;
 
     return list.filter((it) => {
-      const d = parseYmd(it.date);
-      if (!d) return false;
-      if (d.getTime() < startDate.getTime() || d.getTime() > endDate.getTime()) return false;
+      if (!allowedDates.has(it.date)) return false;
 
       const sMin = hmToMin(it.startTime);
       const eMin = hmToMin(it.endTime);

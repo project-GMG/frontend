@@ -6,6 +6,7 @@ import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/icons/logo.png';
+import { normalizeSelectedDates } from '../../lib/eventDateSelection';
 
 const WEEKDAY_LABELS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -70,27 +71,21 @@ export default function CreateDatePage() {
   const initialSelectedDateKeys = useMemo(() => {
     const set = new Set();
 
-    const dr = prev?.dateRange;
-    if (!dr?.startDate || !dr?.endDate) return set;
-
-    const start = new Date(`${dr.startDate}T00:00:00`);
-    const end = new Date(`${dr.endDate}T00:00:00`);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return set;
+    const selectedDates = normalizeSelectedDates(prev?.selectedDates);
+    if (!selectedDates.length) return set;
 
     const ymdToKey = new Map();
     calendarCells.forEach((cell) => {
       if (cell.type === 'date') ymdToKey.set(toYmdLocal(cell.date), cell.key);
     });
 
-    const cur = new Date(start);
-    while (cur <= end) {
-      const key = ymdToKey.get(toYmdLocal(cur));
+    selectedDates.forEach((selectedDate) => {
+      const key = ymdToKey.get(selectedDate);
       if (key) set.add(key);
-      cur.setDate(cur.getDate() + 1);
-    }
+    });
 
     return set;
-  }, [prev?.dateRange, calendarCells]);
+  }, [prev?.selectedDates, calendarCells]);
 
   const initialStartTimeIndex = useMemo(() => {
     const t = prev?.timeRange?.startTime;
@@ -235,14 +230,11 @@ export default function CreateDatePage() {
       return;
     }
 
-    const selectedDates = calendarCells
-      .filter((cell) => cell.type === 'date' && selectedDateKeys.has(cell.key))
-      .map((cell) => cell.date);
-
-    selectedDates.sort((a, b) => a - b);
-
-    const startDate = toYmdLocal(selectedDates[0]);
-    const endDate = toYmdLocal(selectedDates[selectedDates.length - 1]);
+    const selectedDates = normalizeSelectedDates(
+      calendarCells
+        .filter((cell) => cell.type === 'date' && selectedDateKeys.has(cell.key))
+        .map((cell) => cell.date),
+    );
 
     const startTime = TIME_OPTIONS[startTimeIndex];
     const endTime = TIME_OPTIONS[endTimeIndex];
@@ -250,7 +242,7 @@ export default function CreateDatePage() {
     navigate('/create/locate', {
       state: {
         ...prev,
-        dateRange: { startDate, endDate },
+        selectedDates,
         timeRange: {
           startTime: toBackendTimeLabel(startTime),
           endTime: toBackendTimeLabel(endTime),
