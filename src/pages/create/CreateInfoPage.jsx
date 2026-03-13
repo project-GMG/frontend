@@ -9,18 +9,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import editPen from '../../assets/icons/edit_pen.png';
 import logoIcon from '../../assets/icons/logo.png';
 import { buildApiUrl } from '../../lib/api';
+import { normalizeSelectedDates } from '../../lib/eventDateSelection';
 
 const DEFAULT_NAME = '다같이 만나요';
-
-function toYmd(dateLike) {
-  if (!dateLike) return '';
-  const d = new Date(dateLike);
-  if (Number.isNaN(d.getTime())) return '';
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
 
 function toHm(timeLike) {
   if (!timeLike) return '';
@@ -31,20 +22,6 @@ function toHm(timeLike) {
   if (/^\d{1,2}$/.test(s)) return String(s).padStart(2, '0') + ':00';
   if (/^\d{2}:\d{2}/.test(s)) return s.slice(0, 5);
   return '';
-}
-
-function normalizeDateRange(input) {
-  const arr = Array.isArray(input) ? input : input ? Array.from(input) : [];
-  const dates = arr
-    .map((v) => new Date(v))
-    .filter((d) => !Number.isNaN(d.getTime()))
-    .sort((a, b) => a.getTime() - b.getTime());
-
-  if (!dates.length) return { startDate: '', endDate: '' };
-  return {
-    startDate: toYmd(dates[0]),
-    endDate: toYmd(dates[dates.length - 1]),
-  };
 }
 
 function safeJsonParse(text) {
@@ -96,13 +73,7 @@ export default function CreateInfoPage() {
   const centerLongitude =
     locationObj?.centerLongitude !== undefined ? Number(locationObj.centerLongitude) : NaN;
 
-  const dateRange =
-    prev.dateRange && prev.dateRange.startDate && prev.dateRange.endDate
-      ? {
-          startDate: toYmd(prev.dateRange.startDate),
-          endDate: toYmd(prev.dateRange.endDate),
-        }
-      : normalizeDateRange(prev.selectedDates);
+  const selectedDates = normalizeSelectedDates(prev.selectedDates);
 
   const timeRange =
     prev.timeRange && prev.timeRange.startTime && prev.timeRange.endTime
@@ -117,10 +88,10 @@ export default function CreateInfoPage() {
 
   const hasPlaceTypes = placeTypeCodes.length > 0;
   const hasLocation = Number.isFinite(centerLatitude) && Number.isFinite(centerLongitude);
-  const hasDateRange = !!dateRange.startDate && !!dateRange.endDate;
+  const hasSelectedDates = selectedDates.length > 0;
   const hasTimeRange = !!timeRange.startTime && !!timeRange.endTime;
 
-  const isPayloadReady = hasPlaceTypes && hasLocation && hasDateRange && hasTimeRange;
+  const isPayloadReady = hasPlaceTypes && hasLocation && hasSelectedDates && hasTimeRange;
 
   // ===== 변경: 버튼은 항상 활성(disabled=false) =====
   // 단, 생성 중에는 중복 클릭 방지로 onClick 내부에서 막음(요청이 "항상 활성"이므로 disabled는 건드리지 않음)
@@ -181,10 +152,7 @@ export default function CreateInfoPage() {
         centerLongitude,
         locationName: locationObj?.locationName || '',
       },
-      dateRange: {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      },
+      selectedDates,
       timeRange: {
         startTime: timeRange.startTime,
         endTime: timeRange.endTime,
