@@ -403,8 +403,19 @@ export default function MainPage() {
     };
   }, [hashUrl]);
 
-  const heatmapLevelMap = useMemo(() => {
+  const [activeSlotKey, setActiveSlotKey] = useState('');
+
+  const heatmapInfoMap = useMemo(() => {
     const list = Array.isArray(eventData?.heatmapData) ? eventData.heatmapData : [];
+
+    const participantCountRaw = Number(eventData?.participantCount);
+    const fallbackTotal = list.reduce((max, h) => {
+      const v = Number(h?.availableCount);
+      return Number.isFinite(v) ? Math.max(max, v) : max;
+    }, 0);
+    const totalCount = Number.isFinite(participantCountRaw)
+      ? Math.max(0, participantCountRaw)
+      : fallbackTotal;
 
     const out = new Map();
 
@@ -414,9 +425,12 @@ export default function MainPage() {
       const timeHm = String(h?.timeSlot || '').slice(0, 5);
       if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) continue;
 
-      const key = `${dateLabel}|${timeHm}`;
+      const availableRaw = Number(h?.availableCount);
+      const available = Number.isFinite(availableRaw) ? Math.max(0, Math.round(availableRaw)) : 0;
+      const unavailable = Math.max(0, totalCount - available);
       const level = calculateLevelFromIntensity(h?.intensity);
-      out.set(key, level);
+
+      out.set(`${dateLabel}|${timeHm}`, { available, unavailable, level });
     }
 
     return out;
@@ -590,7 +604,6 @@ export default function MainPage() {
                             </div>
                           </div>
                         </div>
-
                         <div
                           ref={gridScrollRef}
                           className="schedule-grid-scroll gmg-scrollbar-both"
@@ -605,7 +618,7 @@ export default function MainPage() {
                               }}
                             >
                               {timeSlots.map((slot, rowIndex) =>
-                                dates.map((date) => {
+                                dates.map((date, colIndex) => {
                                   const key = `${date}-${slot}`;
                                   const hmKey = slotToHm(slot);
 
@@ -615,15 +628,53 @@ export default function MainPage() {
                                     : 'schedule-slot schedule-slot--bottom';
 
                                   const levelKey = hmKey ? `${date}|${hmKey}` : '';
-                                  const level = levelKey ? heatmapLevelMap.get(levelKey) : null;
-                                  const bg = level != null ? getSlotBgByLevel(level) : '#EDEEF1';
+                                  const cellInfo = levelKey ? heatmapInfoMap.get(levelKey) : null;
+                                  const level = cellInfo?.level ?? 0;
+                                  const bg = getSlotBgByLevel(level);
+                                  const isActive = activeSlotKey === key;
+                                  const tooltipClassName =
+                                    colIndex === 0
+                                      ? 'schedule-slot-tooltip schedule-slot-tooltip--pin-left'
+                                      : colIndex === dates.length - 1
+                                        ? 'schedule-slot-tooltip schedule-slot-tooltip--pin-right'
+                                        : 'schedule-slot-tooltip';
 
                                   return (
                                     <div
                                       key={key}
-                                      className={cellClass}
+                                      className={`${cellClass} ${isActive ? 'schedule-slot--active' : ''}`}
                                       style={{ backgroundColor: bg }}
-                                    />
+                                      role="button"
+                                      tabIndex={0}
+                                      aria-label={`${date} ${slot} 가능 ${cellInfo?.available ?? 0}명, 불가능 ${cellInfo?.unavailable ?? 0}명`}
+                                      onMouseEnter={() => setActiveSlotKey(key)}
+                                      onMouseLeave={() =>
+                                        setActiveSlotKey((prev) => (prev === key ? '' : prev))
+                                      }
+                                      onFocus={() => setActiveSlotKey(key)}
+                                      onBlur={() =>
+                                        setActiveSlotKey((prev) => (prev === key ? '' : prev))
+                                      }
+                                      onClick={() =>
+                                        setActiveSlotKey((prev) => (prev === key ? '' : key))
+                                      }
+                                    >
+                                      {isActive && (
+                                        <div className={tooltipClassName} role="status">
+                                          <div className="schedule-slot-tooltip-item">
+                                            <span
+                                              className="schedule-slot-tooltip-dot"
+                                              style={{ backgroundColor: bg }}
+                                            />
+                                            가능: {cellInfo?.available ?? 0}명
+                                          </div>
+                                          <div className="schedule-slot-tooltip-item">
+                                            <span className="schedule-slot-tooltip-dot schedule-slot-tooltip-dot--unavailable" />
+                                            불가능: {cellInfo?.unavailable ?? 0}명
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 }),
                               )}

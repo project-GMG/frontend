@@ -301,7 +301,7 @@
   overflow: auto;
   border-radius: 12px;
   background: var(--bg-primary);
-  z-index: 1;
+  z-index: 5;
 }
 
 .schedule-grid-scroll-inner {
@@ -328,8 +328,68 @@
   background-color: var(--color-gray-100);
   margin-left: -0.5px;
   margin-top: -0.5px;
-  pointer-events: none;
   border-radius: 0;
+  position: relative;
+  pointer-events: auto;
+}
+
+.schedule-slot:focus-visible {
+  outline: 2px solid #1f1f1f;
+  outline-offset: 1px;
+  z-index: 5;
+}
+
+.schedule-slot--active {
+  z-index: 6;
+}
+
+.schedule-slot-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%);
+  min-width: 96px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(31, 31, 31, 0.92);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  z-index: 30;
+}
+
+.schedule-slot-tooltip--pin-left {
+  left: 0;
+  transform: none;
+}
+
+.schedule-slot-tooltip--pin-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.schedule-slot-tooltip-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.schedule-slot-tooltip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.schedule-slot-tooltip-dot--unavailable {
+  background: #9ea3ad;
 }
 
 .schedule-slot--top {
