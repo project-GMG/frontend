@@ -11,6 +11,13 @@
   box-sizing: border-box;
 }
 
+.create-locate-desktop-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
 .create-locate-container {
   box-sizing: border-box;
   width: min(393px, 100vw);
@@ -24,6 +31,10 @@
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   position: relative;
+}
+
+.create-locate-brand-panel {
+  display: none;
 }
 
 .create-locate-nav {
@@ -338,6 +349,96 @@
   width: 100%;
   max-width: 353px;
   height: 70px;
+}
+
+@media (min-width: 768px) {
+  .create-locate-page {
+    align-items: center;
+    padding: 24px;
+    background:
+      linear-gradient(rgba(241, 121, 78, 0.7), rgba(241, 121, 78, 0.7)),
+      linear-gradient(135deg, #f5a585 0%, #f1794e 100%);
+  }
+
+  .create-locate-desktop-shell {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .create-locate-brand-panel {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    color: #1f1f1f;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(calc(-100% - 300px), -50%);
+  }
+
+  .create-locate-brand-logo {
+    width: 120px;
+    height: auto;
+    display: block;
+  }
+
+  .create-locate-brand-copy {
+    margin-top: 74px;
+  }
+
+  .create-locate-brand-text {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 300;
+    line-height: 1.14;
+    letter-spacing: -0.04em;
+    color: #1f1f1f;
+    word-break: keep-all;
+  }
+
+  .create-locate-brand-divider {
+    width: 100%;
+    max-width: 240px;
+    height: 1px;
+    margin: 18px 0 22px;
+    background: rgba(31, 31, 31, 0.7);
+  }
+
+  .create-locate-brand-text-strong {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .create-locate-container {
+    width: 393px;
+    height: 852px;
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
+  }
+
+  .create-locate-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
+
+  .create-locate-content {
+    padding-bottom: 110px;
+  }
+
+  .create-locate-footer {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
 }
 
 @media (max-width: 365px) {

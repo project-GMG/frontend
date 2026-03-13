@@ -7,6 +7,7 @@ import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
 import editPen from '../../assets/icons/edit_pen.png';
+import logoIcon from '../../assets/icons/logo.png';
 import { buildApiUrl } from '../../lib/api';
 
 const DEFAULT_NAME = '다같이 만나요';
@@ -239,64 +240,80 @@ export default function CreateInfoPage() {
 
   return (
     <div className="create-info-page">
-      <div className="create-info-container">
-        <header className="create-info-nav">
-          <div className="create-info-topbar">
-            <TopBar currentStep={4} totalSteps={4} />
+      <div className="create-info-desktop-shell">
+        <aside className="create-info-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="create-info-brand-logo" />
+          <div className="create-info-brand-copy">
+            <p className="create-info-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
+            </p>
+            <div className="create-info-brand-divider" />
+            <p className="create-info-brand-text">
+              이제는 <span className="create-info-brand-text-strong">가면가</span>
+            </p>
           </div>
-          <div className="create-info-back">
-            <BackButton onClick={handleBack} />
-          </div>
-        </header>
-
-        <main className="create-info-content">
-          <h1 className="create-info-title">모임을 생성하세요</h1>
-
-          <section className="info-field">
-            <label className={labelClass} htmlFor="group-name">
-              모임 이름
-            </label>
-
-            <div className={wrapperClass}>
-              <input
-                id="group-name"
-                ref={inputRef}
-                type="text"
-                className={inputClass}
-                value={groupName}
-                onFocus={handleNameFocus}
-                onBlur={handleNameBlur}
-                onChange={handleNameChange}
-              />
-
-              <button
-                type="button"
-                className="info-pencil-button"
-                onClick={handlePencilClick}
-                aria-label="모임 이름 수정"
-              >
-                <img src={editPen} alt="" className="info-pencil" />
-              </button>
+        </aside>
+        <div className="create-info-container">
+          <header className="create-info-nav">
+            <div className="create-info-topbar">
+              <TopBar currentStep={4} totalSteps={4} />
             </div>
+            <div className="create-info-back">
+              <BackButton onClick={handleBack} />
+            </div>
+          </header>
 
-            {isNameTooLong && <p className="info-error-text">12글자 이내로 입력해주세요</p>}
+          <main className="create-info-content">
+            <h1 className="create-info-title">모임을 생성하세요</h1>
 
-            {!isPayloadReady && (
-              <p className="info-error-text">
-                이전 단계 선택값이 누락되었습니다. (카테고리/날짜/시간/위치)
-              </p>
-            )}
+            <section className="info-field">
+              <label className={labelClass} htmlFor="group-name">
+                모임 이름
+              </label>
 
-            {!!submitError && <p className="info-error-text">{submitError}</p>}
-          </section>
-        </main>
+              <div className={wrapperClass}>
+                <input
+                  id="group-name"
+                  ref={inputRef}
+                  type="text"
+                  className={inputClass}
+                  value={groupName}
+                  onFocus={handleNameFocus}
+                  onBlur={handleNameBlur}
+                  onChange={handleNameChange}
+                />
 
-        <footer className="create-info-footer">
-          {/* 변경: disabled는 항상 false */}
-          <NextButton disabled={false} onClick={handleCreate}>
-            {isSubmitting ? '생성 중...' : '생성하기'}
-          </NextButton>
-        </footer>
+                <button
+                  type="button"
+                  className="info-pencil-button"
+                  onClick={handlePencilClick}
+                  aria-label="모임 이름 수정"
+                >
+                  <img src={editPen} alt="" className="info-pencil" />
+                </button>
+              </div>
+
+              {isNameTooLong && <p className="info-error-text">12글자 이내로 입력해주세요</p>}
+
+              {!isPayloadReady && (
+                <p className="info-error-text">
+                  이전 단계 선택값이 누락되었습니다. (카테고리/날짜/시간/위치)
+                </p>
+              )}
+
+              {!!submitError && <p className="info-error-text">{submitError}</p>}
+            </section>
+          </main>
+
+          <footer className="create-info-footer">
+            {/* 변경: disabled는 항상 false */}
+            <NextButton disabled={false} onClick={handleCreate}>
+              {isSubmitting ? '생성 중...' : '생성하기'}
+            </NextButton>
+          </footer>
+        </div>
       </div>
     </div>
   );

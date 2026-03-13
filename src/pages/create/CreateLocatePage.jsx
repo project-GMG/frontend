@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import SearchIcon from '../../assets/icons/search.png';
 import LocationMarkerIcon from '../../assets/icons/location marker.svg';
 import CurrentLocationIcon from '../../assets/icons/category_icon/current-location.svg';
+import logoIcon from '../../assets/icons/logo.png';
 
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 
@@ -498,141 +499,160 @@ export default function CreateLocatePage() {
 
   return (
     <div className="create-locate-page">
-      <div className="create-locate-container">
-        <header className="create-locate-nav">
-          <div className="create-locate-topbar">
-            <TopBar currentStep={3} totalSteps={4} />
+      <div className="create-locate-desktop-shell">
+        <aside className="create-locate-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="create-locate-brand-logo" />
+          <div className="create-locate-brand-copy">
+            <p className="create-locate-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
+            </p>
+            <div className="create-locate-brand-divider" />
+            <p className="create-locate-brand-text">
+              이제는 <span className="create-locate-brand-text-strong">가면가</span>
+            </p>
           </div>
-          <div className="create-locate-back">
-            <BackButton onClick={handleBack} />
-          </div>
-        </header>
+        </aside>
+        <div className="create-locate-container">
+          <header className="create-locate-nav">
+            <div className="create-locate-topbar">
+              <TopBar currentStep={3} totalSteps={4} />
+            </div>
+            <div className="create-locate-back">
+              <BackButton onClick={handleBack} />
+            </div>
+          </header>
 
-        <main className="create-locate-content">
-          <h1 className="create-locate-title">어디쯤에서 만날까요?</h1>
-          <p className="create-locate-subtitle">지도를 움직여 만날 위치를 대략 정해주세요</p>
+          <main className="create-locate-content">
+            <h1 className="create-locate-title">어디쯤에서 만날까요?</h1>
+            <p className="create-locate-subtitle">지도를 움직여 만날 위치를 대략 정해주세요</p>
 
-          <section className="create-locate-map-section">
-            <div className="create-locate-map-wrapper">
-              {!isSearchActive && (
+            <section className="create-locate-map-section">
+              <div className="create-locate-map-wrapper">
+                {!isSearchActive && (
+                  <button
+                    type="button"
+                    className="create-locate-search-collapsed"
+                    onClick={openSearch}
+                    disabled={!isKakaoReady}
+                  >
+                    <img className="create-locate-search-icon-img" src={SearchIcon} alt="검색" />
+                    <span className="create-locate-search-collapsed-text">{collapsedText}</span>
+                  </button>
+                )}
+
+                {isSearchActive && (
+                  <div className="create-locate-search-panel">
+                    <form
+                      className="create-locate-search-panel-header"
+                      onSubmit={handleSearchSubmit}
+                    >
+                      <button
+                        type="button"
+                        className="create-locate-search-back-button"
+                        onClick={closeSearch}
+                      >
+                        <span className="create-locate-search-back-icon" />
+                      </button>
+
+                      <input
+                        type="text"
+                        className="create-locate-search-panel-input"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="장소 검색"
+                        disabled={!isKakaoReady}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+
+                      <button
+                        type="button"
+                        className="create-locate-search-close-button"
+                        onClick={closeSearch}
+                        aria-label="닫기"
+                      >
+                        ✕
+                      </button>
+                    </form>
+
+                    <div className="create-locate-search-panel-divider" />
+
+                    <ul className="create-locate-search-results">
+                      {isSuggestLoading && (
+                        <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                          <span className="create-locate-search-result-name">검색 중...</span>
+                        </li>
+                      )}
+
+                      {!isSuggestLoading &&
+                        results.map((item) => (
+                          <li
+                            key={item.id}
+                            className="create-locate-search-result-item"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => selectResult(item)}
+                            onKeyDown={(ev) => {
+                              if (ev.key === 'Enter') selectResult(item);
+                            }}
+                          >
+                            <img
+                              src={LocationMarkerIcon}
+                              alt=""
+                              className="create-locate-search-result-pin-img"
+                            />
+                            <span className="create-locate-search-result-name">{item.name}</span>
+                          </li>
+                        ))}
+
+                      {!isSuggestLoading && searchQuery.trim() && results.length === 0 && (
+                        <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                          <span className="create-locate-search-result-name">
+                            검색 결과가 없습니다
+                          </span>
+                        </li>
+                      )}
+
+                      {!searchQuery.trim() && (
+                        <li className="create-locate-search-result-item create-locate-search-result-item--hint">
+                          <span className="create-locate-search-result-name">
+                            검색어를 입력하세요
+                          </span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                <div ref={mapContainerRef} className="create-locate-map-placeholder" />
+
+                {!!kakaoError && <div className="create-locate-map-error">{kakaoError}</div>}
+
                 <button
                   type="button"
-                  className="create-locate-search-collapsed"
-                  onClick={openSearch}
+                  className="create-locate-current-location-button"
+                  onClick={moveToCurrentLocation}
+                  aria-label="현재 위치로 이동"
                   disabled={!isKakaoReady}
                 >
-                  <img className="create-locate-search-icon-img" src={SearchIcon} alt="검색" />
-                  <span className="create-locate-search-collapsed-text">{collapsedText}</span>
+                  <img
+                    src={CurrentLocationIcon}
+                    alt=""
+                    className="create-locate-current-location-icon-img"
+                  />
                 </button>
-              )}
+              </div>
+            </section>
+          </main>
 
-              {isSearchActive && (
-                <div className="create-locate-search-panel">
-                  <form className="create-locate-search-panel-header" onSubmit={handleSearchSubmit}>
-                    <button
-                      type="button"
-                      className="create-locate-search-back-button"
-                      onClick={closeSearch}
-                    >
-                      <span className="create-locate-search-back-icon" />
-                    </button>
-
-                    <input
-                      type="text"
-                      className="create-locate-search-panel-input"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="장소 검색"
-                      disabled={!isKakaoReady}
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-
-                    <button
-                      type="button"
-                      className="create-locate-search-close-button"
-                      onClick={closeSearch}
-                      aria-label="닫기"
-                    >
-                      ✕
-                    </button>
-                  </form>
-
-                  <div className="create-locate-search-panel-divider" />
-
-                  <ul className="create-locate-search-results">
-                    {isSuggestLoading && (
-                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
-                        <span className="create-locate-search-result-name">검색 중...</span>
-                      </li>
-                    )}
-
-                    {!isSuggestLoading &&
-                      results.map((item) => (
-                        <li
-                          key={item.id}
-                          className="create-locate-search-result-item"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => selectResult(item)}
-                          onKeyDown={(ev) => {
-                            if (ev.key === 'Enter') selectResult(item);
-                          }}
-                        >
-                          <img
-                            src={LocationMarkerIcon}
-                            alt=""
-                            className="create-locate-search-result-pin-img"
-                          />
-                          <span className="create-locate-search-result-name">{item.name}</span>
-                        </li>
-                      ))}
-
-                    {!isSuggestLoading && searchQuery.trim() && results.length === 0 && (
-                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
-                        <span className="create-locate-search-result-name">
-                          검색 결과가 없습니다
-                        </span>
-                      </li>
-                    )}
-
-                    {!searchQuery.trim() && (
-                      <li className="create-locate-search-result-item create-locate-search-result-item--hint">
-                        <span className="create-locate-search-result-name">
-                          검색어를 입력하세요
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              )}
-
-              <div ref={mapContainerRef} className="create-locate-map-placeholder" />
-
-              {!!kakaoError && <div className="create-locate-map-error">{kakaoError}</div>}
-
-              <button
-                type="button"
-                className="create-locate-current-location-button"
-                onClick={moveToCurrentLocation}
-                aria-label="현재 위치로 이동"
-                disabled={!isKakaoReady}
-              >
-                <img
-                  src={CurrentLocationIcon}
-                  alt=""
-                  className="create-locate-current-location-icon-img"
-                />
-              </button>
-            </div>
-          </section>
-        </main>
-
-        <footer className="create-locate-footer">
-          <NextButton disabled={!hasSelection || !isKakaoReady} onClick={handleNext}>
-            다음
-          </NextButton>
-        </footer>
+          <footer className="create-locate-footer">
+            <NextButton disabled={!hasSelection || !isKakaoReady} onClick={handleNext}>
+              다음
+            </NextButton>
+          </footer>
+        </div>
       </div>
     </div>
   );

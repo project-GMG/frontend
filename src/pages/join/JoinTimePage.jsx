@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import NextButton from '../components/common/NextButton';
 import BackButton from '../components/common/BackButton';
 import './JoinTimePage.css';
+import logoIcon from '../../assets/icons/logo.png';
 import { buildApiUrl } from '../../lib/api';
 
 const LONG_PRESS_MS = 250;
@@ -888,133 +889,150 @@ export default function JoinTimePage() {
 
   return (
     <div className="join-time-page">
-      <div className="join-time-container">
-        <header className="join-time-nav">
-          <div className="join-time-step-pill">
-            {page + 1} / {totalPages}
+      <div className="join-time-desktop-shell">
+        <aside className="join-time-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="join-time-brand-logo" />
+          <div className="join-time-brand-copy">
+            <p className="join-time-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
+            </p>
+            <div className="join-time-brand-divider" />
+            <p className="join-time-brand-text">
+              이제는 <span className="join-time-brand-text-strong">가면가</span>
+            </p>
           </div>
-          <div className="join-time-back">
-            <BackButton onClick={handleBack} />
-          </div>
-        </header>
-
-        <main className="join-time-content">
-          <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
-
-          {isLoadingEvent && (
-            <div className="join-time-loading">
-              <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
+        </aside>
+        <div className="join-time-container">
+          <header className="join-time-nav">
+            <div className="join-time-step-pill">
+              {page + 1} / {totalPages}
             </div>
-          )}
+            <div className="join-time-back">
+              <BackButton onClick={handleBack} />
+            </div>
+          </header>
 
-          {!!eventError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
-          )}
-          {!!submitError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
-          )}
+          <main className="join-time-content">
+            <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
 
-          <section className="join-time-grid-wrap">
-            <section
-              className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
-              onPointerDownCapture={onGridPointerDownCapture}
-              onPointerMoveCapture={onGridPointerMoveCapture}
-              onPointerUpCapture={onGridPointerUpCapture}
-              onPointerCancelCapture={onGridPointerCancelCapture}
-            >
-              <div className="jt-frame">
-                <div className="jt-date-rail">
-                  <div className="jt-date-row jt-date-row--sticky">
-                    {pageDatesFixed.map((d, i) => (
-                      <div
-                        key={`${page}-${d ?? 'empty'}-${i}`}
-                        className={[
-                          'jt-date-header',
-                          d && isWeekendLabel(d) ? 'is-weekend' : '',
-                          !d ? 'jt-date-header--empty' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      >
-                        {d ?? ''}
-                      </div>
-                    ))}
+            {isLoadingEvent && (
+              <div className="join-time-loading">
+                <p className="join-time-loading-text">모임 정보를 불러오는 중...</p>
+              </div>
+            )}
+
+            {!!eventError && (
+              <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{eventError}</p>
+            )}
+            {!!submitError && (
+              <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+            )}
+
+            <section className="join-time-grid-wrap">
+              <section
+                className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
+                onPointerDownCapture={onGridPointerDownCapture}
+                onPointerMoveCapture={onGridPointerMoveCapture}
+                onPointerUpCapture={onGridPointerUpCapture}
+                onPointerCancelCapture={onGridPointerCancelCapture}
+              >
+                <div className="jt-frame">
+                  <div className="jt-date-rail">
+                    <div className="jt-date-row jt-date-row--sticky">
+                      {pageDatesFixed.map((d, i) => (
+                        <div
+                          key={`${page}-${d ?? 'empty'}-${i}`}
+                          className={[
+                            'jt-date-header',
+                            d && isWeekendLabel(d) ? 'is-weekend' : '',
+                            !d ? 'jt-date-header--empty' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        >
+                          {d ?? ''}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
-                  <div className="jt-time-col">
-                    <div className="jt-time-label jt-time-label--spacer" aria-hidden="true" />
-                    {TIME_SLOTS.map((slot, idx) => (
-                      <div key={`${slot}-${idx}`} className="jt-time-label">
-                        {TIME_LABELS[idx] ?? ''}
-                      </div>
-                    ))}
+                  <div ref={timeScrollRef} className="jt-time-rail" onScroll={syncFromTime}>
+                    <div className="jt-time-col">
+                      <div className="jt-time-label jt-time-label--spacer" aria-hidden="true" />
+                      {TIME_SLOTS.map((slot, idx) => (
+                        <div key={`${slot}-${idx}`} className="jt-time-label">
+                          {TIME_LABELS[idx] ?? ''}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
-                  <div
-                    className="jt-grid"
-                    style={{
-                      gridTemplateColumns: `repeat(${PAGE_SIZE}, 1fr)`,
-                      gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
-                    }}
-                  >
-                    {TIME_SLOTS.map((slot, slotIndex) =>
-                      pageDatesFixed.map((dateLabel, localDateIndex) => {
-                        const hasDate = !!dateLabel;
-                        const dateIndex = pageDateIndexOffset + localDateIndex;
-                        const key = makeKey(dateIndex, slotIndex);
+                  <div ref={gridScrollRef} className="jt-grid-scroll" onScroll={syncFromGrid}>
+                    <div
+                      className="jt-grid"
+                      style={{
+                        gridTemplateColumns: `repeat(${PAGE_SIZE}, 1fr)`,
+                        gridTemplateRows: `repeat(${TIME_SLOTS.length}, var(--cell-h))`,
+                      }}
+                    >
+                      {TIME_SLOTS.map((slot, slotIndex) =>
+                        pageDatesFixed.map((dateLabel, localDateIndex) => {
+                          const hasDate = !!dateLabel;
+                          const dateIndex = pageDateIndexOffset + localDateIndex;
+                          const key = makeKey(dateIndex, slotIndex);
 
-                        const isActive = hasDate && selectedKeys.has(key);
-                        const pairClass = slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
+                          const isActive = hasDate && selectedKeys.has(key);
+                          const pairClass =
+                            slotIndex % 2 === 0 ? 'jt-slot--top' : 'jt-slot--bottom';
 
-                        if (!hasDate) {
+                          if (!hasDate) {
+                            return (
+                              <div
+                                key={`${page}-empty-${key}`}
+                                className={`jt-slot jt-slot--empty ${pairClass}`}
+                                aria-hidden="true"
+                              />
+                            );
+                          }
+
                           return (
-                            <div
-                              key={`${page}-empty-${key}`}
-                              className={`jt-slot jt-slot--empty ${pairClass}`}
-                              aria-hidden="true"
+                            <button
+                              type="button"
+                              key={`${page}-${key}`}
+                              data-slot-key={key}
+                              className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
+                              aria-label={`${dateLabel} ${slot}`}
+                              onPointerDown={(ev) => onSlotPointerDown(ev, key)}
+                              onPointerMove={onSlotPointerMove}
+                              onPointerUp={finishPointer}
+                              onPointerCancel={onPointerCancel}
                             />
                           );
-                        }
-
-                        return (
-                          <button
-                            type="button"
-                            key={`${page}-${key}`}
-                            data-slot-key={key}
-                            className={`jt-slot ${pairClass} ${isActive ? 'jt-slot--active' : ''}`}
-                            aria-label={`${dateLabel} ${slot}`}
-                            onPointerDown={(ev) => onSlotPointerDown(ev, key)}
-                            onPointerMove={onSlotPointerMove}
-                            onPointerUp={finishPointer}
-                            onPointerCancel={onPointerCancel}
-                          />
-                        );
-                      }),
-                    )}
+                        }),
+                      )}
+                    </div>
                   </div>
+                </div>
+              </section>
+
+              <div className="join-time-pagination join-time-pagination--dots-only">
+                <div className="join-time-dots" aria-label="페이지 표시">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <span key={i} className={`join-time-dot ${i === page ? 'is-active' : ''}`} />
+                  ))}
                 </div>
               </div>
             </section>
+          </main>
 
-            <div className="join-time-pagination join-time-pagination--dots-only">
-              <div className="join-time-dots" aria-label="페이지 표시">
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <span key={i} className={`join-time-dot ${i === page ? 'is-active' : ''}`} />
-                ))}
-              </div>
-            </div>
-          </section>
-        </main>
-
-        <footer className="join-time-footer">
-          <NextButton disabled={isNextDisabled} onClick={handleNext}>
-            {isSubmitting ? '등록 중...' : '다음'}
-          </NextButton>
-        </footer>
+          <footer className="join-time-footer">
+            <NextButton disabled={isNextDisabled} onClick={handleNext}>
+              {isSubmitting ? '등록 중...' : '다음'}
+            </NextButton>
+          </footer>
+        </div>
       </div>
     </div>
   );

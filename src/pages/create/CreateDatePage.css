@@ -11,6 +11,13 @@
   box-sizing: border-box;
 }
 
+.create-date-desktop-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
 .create-date-container {
   box-sizing: border-box;
   width: min(393px, 100vw);
@@ -24,6 +31,10 @@
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   position: relative;
+}
+
+.create-date-brand-panel {
+  display: none;
 }
 
 .create-date-nav {
@@ -287,6 +298,96 @@
   font-size: 18px;
   line-height: 1;
   letter-spacing: 0%;
+}
+
+@media (min-width: 768px) {
+  .create-date-page {
+    align-items: center;
+    padding: 24px;
+    background:
+      linear-gradient(rgba(241, 121, 78, 0.7), rgba(241, 121, 78, 0.7)),
+      linear-gradient(135deg, #f5a585 0%, #f1794e 100%);
+  }
+
+  .create-date-desktop-shell {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .create-date-brand-panel {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    color: #1f1f1f;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(calc(-100% - 300px), -50%);
+  }
+
+  .create-date-brand-logo {
+    width: 120px;
+    height: auto;
+    display: block;
+  }
+
+  .create-date-brand-copy {
+    margin-top: 74px;
+  }
+
+  .create-date-brand-text {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 300;
+    line-height: 1.14;
+    letter-spacing: -0.04em;
+    color: #1f1f1f;
+    word-break: keep-all;
+  }
+
+  .create-date-brand-divider {
+    width: 100%;
+    max-width: 240px;
+    height: 1px;
+    margin: 18px 0 22px;
+    background: rgba(31, 31, 31, 0.7);
+  }
+
+  .create-date-brand-text-strong {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .create-date-container {
+    width: 393px;
+    height: 852px;
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
+  }
+
+  .create-date-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
+
+  .create-date-content {
+    padding-bottom: 110px;
+  }
+
+  .create-date-footer {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
 }
 
 @media (max-width: 375px) {

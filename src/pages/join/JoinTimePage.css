@@ -10,6 +10,13 @@
   box-sizing: border-box;
 }
 
+.join-time-desktop-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
 .join-time-container {
   box-sizing: border-box;
   width: min(393px, calc(100vw - 40px));
@@ -22,6 +29,10 @@
   overflow: hidden;
   border-radius: 16px;
   position: relative;
+}
+
+.join-time-brand-panel {
+  display: none;
 }
 
 .join-time-nav {
@@ -428,6 +439,98 @@
 
 .join-time-footer button {
   height: 70px;
+}
+
+@media (min-width: 768px) {
+  .join-time-page {
+    align-items: center;
+    padding: 24px;
+    background:
+      linear-gradient(rgba(241, 121, 78, 0.7), rgba(241, 121, 78, 0.7)),
+      linear-gradient(135deg, #f5a585 0%, #f1794e 100%);
+  }
+
+  .join-time-desktop-shell {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .join-time-brand-panel {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    color: #1f1f1f;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(calc(-100% - 300px), -50%);
+  }
+
+  .join-time-brand-logo {
+    width: 120px;
+    height: auto;
+    display: block;
+  }
+
+  .join-time-brand-copy {
+    margin-top: 74px;
+  }
+
+  .join-time-brand-text {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 300;
+    line-height: 1.14;
+    letter-spacing: -0.04em;
+    color: #1f1f1f;
+    word-break: keep-all;
+  }
+
+  .join-time-brand-divider {
+    width: 100%;
+    max-width: 240px;
+    height: 1px;
+    margin: 18px 0 22px;
+    background: rgba(31, 31, 31, 0.7);
+  }
+
+  .join-time-brand-text-strong {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .join-time-container {
+    width: 393px;
+    height: 852px;
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    padding: 20px;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
+  }
+
+  .join-time-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+    background: #f1f2f5;
+  }
+
+  .join-time-content {
+    padding-bottom: 120px;
+  }
+
+  .join-time-footer {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
 }
 
 @media (max-width: 375px) {

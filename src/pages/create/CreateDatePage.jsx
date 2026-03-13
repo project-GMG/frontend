@@ -5,6 +5,7 @@ import BackButton from '../components/common/BackButton';
 import TopBar from '../components/common/TopBar';
 import NextButton from '../components/common/NextButton';
 import { useLocation, useNavigate } from 'react-router-dom';
+import logoIcon from '../../assets/icons/logo.png';
 
 const WEEKDAY_LABELS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -328,104 +329,120 @@ export default function CreateDatePage() {
 
   return (
     <div className="create-date-page">
-      <div className="create-date-container">
-        <header className="create-date-nav">
-          <div className="create-date-topbar">
-            <TopBar currentStep={2} totalSteps={4} />
+      <div className="create-date-desktop-shell">
+        <aside className="create-date-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="create-date-brand-logo" />
+          <div className="create-date-brand-copy">
+            <p className="create-date-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
+            </p>
+            <div className="create-date-brand-divider" />
+            <p className="create-date-brand-text">
+              이제는 <span className="create-date-brand-text-strong">가면가</span>
+            </p>
           </div>
-          <div className="create-date-back">
-            <BackButton onClick={handleBack} />
-          </div>
-        </header>
+        </aside>
+        <div className="create-date-container">
+          <header className="create-date-nav">
+            <div className="create-date-topbar">
+              <TopBar currentStep={2} totalSteps={4} />
+            </div>
+            <div className="create-date-back">
+              <BackButton onClick={handleBack} />
+            </div>
+          </header>
 
-        <main className="create-date-content">
-          <h1 className="create-date-title">언제쯤 만날까요?</h1>
-          <p className="create-date-subtitle">
-            가능한 <span className="create-date-subtitle-em">날짜</span>와{' '}
-            <span className="create-date-subtitle-em">시간대</span>를 선택해 주세요
-          </p>
-
-          <section className="create-date-section">
-            <p className="create-date-section-title">
-              <span className="create-date-section-title-strong">날짜</span> 선택하기
+          <main className="create-date-content">
+            <h1 className="create-date-title">언제쯤 만날까요?</h1>
+            <p className="create-date-subtitle">
+              가능한 <span className="create-date-subtitle-em">날짜</span>와{' '}
+              <span className="create-date-subtitle-em">시간대</span>를 선택해 주세요
             </p>
 
-            <div className="create-date-calendar">
-              {calendarCells.map((cell) => {
-                if (cell.type === 'empty') {
+            <section className="create-date-section">
+              <p className="create-date-section-title">
+                <span className="create-date-section-title-strong">날짜</span> 선택하기
+              </p>
+
+              <div className="create-date-calendar">
+                {calendarCells.map((cell) => {
+                  if (cell.type === 'empty') {
+                    return (
+                      <div
+                        key={cell.key}
+                        className="create-date-calendar-cell create-date-calendar-cell--empty"
+                      />
+                    );
+                  }
+
+                  const selected = selectedDateKeys.has(cell.key);
+                  const date = cell.date;
+                  const isWeekendDay = isWeekend(date);
+                  const dayLabel = WEEKDAY_LABELS[(date.getDay() + 6) % 7] ?? '';
+
                   return (
-                    <div
+                    <button
                       key={cell.key}
-                      className="create-date-calendar-cell create-date-calendar-cell--empty"
-                    />
+                      type="button"
+                      className={
+                        'create-date-calendar-cell create-date-calendar-cell--date' +
+                        (selected ? ' create-date-calendar-cell--selected' : '')
+                      }
+                      onClick={() => toggleDate(cell)}
+                    >
+                      <span
+                        className={
+                          'create-date-calendar-day' +
+                          (isWeekendDay ? ' create-date-calendar-day--weekend' : '')
+                        }
+                      >
+                        {date.getDate()}
+                      </span>
+                      <span
+                        className={
+                          'create-date-calendar-weekday' +
+                          (isWeekendDay ? ' create-date-calendar-weekday--weekend' : '')
+                        }
+                      >
+                        {dayLabel}
+                      </span>
+                    </button>
                   );
-                }
-
-                const selected = selectedDateKeys.has(cell.key);
-                const date = cell.date;
-                const isWeekendDay = isWeekend(date);
-                const dayLabel = WEEKDAY_LABELS[(date.getDay() + 6) % 7] ?? '';
-
-                return (
-                  <button
-                    key={cell.key}
-                    type="button"
-                    className={
-                      'create-date-calendar-cell create-date-calendar-cell--date' +
-                      (selected ? ' create-date-calendar-cell--selected' : '')
-                    }
-                    onClick={() => toggleDate(cell)}
-                  >
-                    <span
-                      className={
-                        'create-date-calendar-day' +
-                        (isWeekendDay ? ' create-date-calendar-day--weekend' : '')
-                      }
-                    >
-                      {date.getDate()}
-                    </span>
-                    <span
-                      className={
-                        'create-date-calendar-weekday' +
-                        (isWeekendDay ? ' create-date-calendar-weekday--weekend' : '')
-                      }
-                    >
-                      {dayLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="create-date-section create-date-time-section">
-            <p className="create-date-section-title">
-              <span className="create-date-section-title-strong">시간대</span> 선택하기
-            </p>
-
-            <div className="create-date-time-picker">
-              <div
-                ref={startWheelRef}
-                className="create-date-time-wheel"
-                onWheel={handleStartWheel}
-              >
-                {renderWheelItems(startTimeIndex, 'start')}
+                })}
               </div>
+            </section>
 
-              <span className="create-date-time-separator">~</span>
+            <section className="create-date-section create-date-time-section">
+              <p className="create-date-section-title">
+                <span className="create-date-section-title-strong">시간대</span> 선택하기
+              </p>
 
-              <div ref={endWheelRef} className="create-date-time-wheel" onWheel={handleEndWheel}>
-                {renderWheelItems(endTimeIndex, 'end')}
+              <div className="create-date-time-picker">
+                <div
+                  ref={startWheelRef}
+                  className="create-date-time-wheel"
+                  onWheel={handleStartWheel}
+                >
+                  {renderWheelItems(startTimeIndex, 'start')}
+                </div>
+
+                <span className="create-date-time-separator">~</span>
+
+                <div ref={endWheelRef} className="create-date-time-wheel" onWheel={handleEndWheel}>
+                  {renderWheelItems(endTimeIndex, 'end')}
+                </div>
               </div>
-            </div>
-          </section>
-        </main>
+            </section>
+          </main>
 
-        <footer className="create-date-footer">
-          <NextButton disabled={!hasSelection} onClick={handleNext}>
-            다음
-          </NextButton>
-        </footer>
+          <footer className="create-date-footer">
+            <NextButton disabled={!hasSelection} onClick={handleNext}>
+              다음
+            </NextButton>
+          </footer>
+        </div>
       </div>
     </div>
   );

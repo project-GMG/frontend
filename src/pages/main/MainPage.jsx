@@ -520,206 +520,222 @@ export default function MainPage() {
 
   return (
     <div className="main-page">
-      <div className="main-page-container">
-        <header className="main-header">
-          <img src={Logo} alt="GMG 로고" className="main-logo" />
-
-          <div className="main-share-area">
-            <button
-              type="button"
-              className="main-share-bubble"
-              onClick={handleShare}
-              disabled={!hashUrl}
-            >
-              <span className="main-share-bubble-text">공유하고 모임을 잡아보세요!</span>
-            </button>
-
-            <button
-              type="button"
-              className="main-share-icon-button"
-              onClick={handleShare}
-              disabled={!hashUrl}
-            >
-              <img src={ShareIcon} alt="공유" className="main-share-icon-image" />
-            </button>
-          </div>
-        </header>
-
-        <main className="main-content">
-          {isLoading && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-              모임 정보를 불러오는 중...
+      <div className="main-desktop-shell">
+        <aside className="main-brand-panel" aria-hidden="true">
+          <img src={Logo} alt="" className="main-brand-logo" />
+          <div className="main-brand-copy">
+            <p className="main-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
             </p>
-          )}
+            <div className="main-brand-divider" />
+            <p className="main-brand-text">
+              이제는 <span className="main-brand-text-strong">가면가</span>
+            </p>
+          </div>
+        </aside>
+        <div className="main-page-container">
+          <header className="main-header">
+            <img src={Logo} alt="GMG 로고" className="main-logo" />
 
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>
-          )}
+            <div className="main-share-area">
+              <button
+                type="button"
+                className="main-share-bubble"
+                onClick={handleShare}
+                disabled={!hashUrl}
+              >
+                <span className="main-share-bubble-text">공유하고 모임을 잡아보세요!</span>
+              </button>
 
-          {isReady && (
-            <>
-              <h1 className="main-title">{title || '제목이 없습니다.'}</h1>
+              <button
+                type="button"
+                className="main-share-icon-button"
+                onClick={handleShare}
+                disabled={!hashUrl}
+              >
+                <img src={ShareIcon} alt="공유" className="main-share-icon-image" />
+              </button>
+            </div>
+          </header>
 
-              <section className="main-section">
-                <div className="schedule-container">
-                  <h2 className="schedule-title">이때 만날까요?</h2>
+          <main className="main-content">
+            {isLoading && (
+              <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
+                모임 정보를 불러오는 중...
+              </p>
+            )}
 
-                  {!canRenderGrid ? (
-                    <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
-                      날짜/시간 범위가 설정되지 않아 시간표를 표시할 수 없습니다.
-                    </p>
-                  ) : (
-                    <div className="schedule-frame">
-                      <div
-                        ref={dateScrollRef}
-                        className="schedule-date-rail"
-                        onScroll={syncFromDate}
-                      >
-                        <div className="schedule-date-row">
-                          {dates.map((date) => (
-                            <div key={date} className="schedule-date-header">
-                              {date}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+            {!!errorText && (
+              <p style={{ margin: '8px 0', color: '#666', fontSize: 12 }}>{errorText}</p>
+            )}
 
-                      <div
-                        ref={timeScrollRef}
-                        className="schedule-time-rail"
-                        onScroll={syncFromTime}
-                      >
-                        <div className="schedule-time-col">
-                          {timeSlots.map((slot, rowIndex) => (
-                            <div key={slot} className="schedule-time-label">
-                              {timeLabels[rowIndex] ?? ''}
-                            </div>
-                          ))}
-                          {/* 종료 시각 레이블 */}
-                          <div className="schedule-time-label schedule-time-label--end">
-                            {timeLabels[timeSlots.length] ?? ''}
-                          </div>
-                        </div>
-                      </div>
+            {isReady && (
+              <>
+                <h1 className="main-title">{title || '제목이 없습니다.'}</h1>
 
-                      <div
-                        ref={gridScrollRef}
-                        className="schedule-grid-scroll gmg-scrollbar-both"
-                        onScroll={syncFromGrid}
-                      >
-                        <div className="schedule-grid-scroll-inner">
-                          <div
-                            className="schedule-grid-slots"
-                            style={{
-                              gridTemplateColumns: `repeat(${dates.length}, 87.666664px)`,
-                              gridTemplateRows: `repeat(${timeSlots.length}, 20px)`,
-                            }}
-                          >
-                            {timeSlots.map((slot, rowIndex) =>
-                              dates.map((date) => {
-                                const key = `${date}-${slot}`;
-                                const hmKey = slotToHm(slot);
+                <section className="main-section">
+                  <div className="schedule-container">
+                    <h2 className="schedule-title">이때 만날까요?</h2>
 
-                                const isTop = rowIndex % 2 === 0;
-                                const cellClass = isTop
-                                  ? 'schedule-slot schedule-slot--top'
-                                  : 'schedule-slot schedule-slot--bottom';
-
-                                const levelKey = hmKey ? `${date}|${hmKey}` : '';
-                                const level = levelKey ? heatmapLevelMap.get(levelKey) : null;
-                                const bg = level != null ? getSlotBgByLevel(level) : '#EDEEF1';
-
-                                return (
-                                  <div
-                                    key={key}
-                                    className={cellClass}
-                                    style={{ backgroundColor: bg }}
-                                  />
-                                );
-                              }),
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              <section className="main-section">
-                <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
-                  {recoLoading ? (
-                    <div className="restaurant-container">
-                      <h2 className="restaurant-container-title">추천 장소</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
-                        추천 장소를 불러오는 중...
+                    {!canRenderGrid ? (
+                      <p style={{ margin: '8px 0', color: '#666', fontSize: 14 }}>
+                        날짜/시간 범위가 설정되지 않아 시간표를 표시할 수 없습니다.
                       </p>
-                    </div>
-                  ) : recoSections.length === 0 ? (
-                    <div className="restaurant-container">
-                      <h2 className="restaurant-container-title">추천 장소</h2>
-                      <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
-                        추천 장소가 없습니다.
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      {recoSections.map((section) => (
-                        <div key={section.key} className="restaurant-container">
-                          <h2 className="restaurant-container-title">{section.title}</h2>
-
-                          <div className="restaurant-set">
-                            {section.places.map((place) => (
-                              <article key={place.id ?? place.name} className="restaurant-card">
-                                <img
-                                  src={place.imageUrl || NoImage}
-                                  alt={place.name}
-                                  className="restaurant-thumb"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.onerror = null;
-                                    e.currentTarget.src = NoImage;
-                                  }}
-                                />
-                                <div className="restaurant-label">
-                                  <p className="restaurant-label-text">
-                                    {truncateKorean(place.name, 7)}
-                                  </p>
-                                </div>
-                              </article>
+                    ) : (
+                      <div className="schedule-frame">
+                        <div
+                          ref={dateScrollRef}
+                          className="schedule-date-rail"
+                          onScroll={syncFromDate}
+                        >
+                          <div className="schedule-date-row">
+                            {dates.map((date) => (
+                              <div key={date} className="schedule-date-header">
+                                {date}
+                              </div>
                             ))}
-
-                            {Array.from({ length: Math.max(0, 3 - section.places.length) }).map(
-                              (_, emptyIdx) => (
-                                <div
-                                  key={`${section.key}-empty-${emptyIdx}`}
-                                  className="restaurant-card restaurant-card--empty"
-                                />
-                              ),
-                            )}
                           </div>
                         </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </section>
-            </>
-          )}
-        </main>
 
-        <footer className="main-footer">
-          <NextButton disabled={false} onClick={handleParticipate}>
-            참여 · 수정하기
-          </NextButton>
-        </footer>
+                        <div
+                          ref={timeScrollRef}
+                          className="schedule-time-rail"
+                          onScroll={syncFromTime}
+                        >
+                          <div className="schedule-time-col">
+                            {timeSlots.map((slot, rowIndex) => (
+                              <div key={slot} className="schedule-time-label">
+                                {timeLabels[rowIndex] ?? ''}
+                              </div>
+                            ))}
+                            {/* 종료 시각 레이블 */}
+                            <div className="schedule-time-label schedule-time-label--end">
+                              {timeLabels[timeSlots.length] ?? ''}
+                            </div>
+                          </div>
+                        </div>
 
-        <JoinModalPage
-          open={isJoinOpen}
-          hashUrl={hashUrl}
-          onClose={handleCloseJoin}
-          onSuccessGoTime={handleJoinedGoTime}
-        />
+                        <div
+                          ref={gridScrollRef}
+                          className="schedule-grid-scroll gmg-scrollbar-both"
+                          onScroll={syncFromGrid}
+                        >
+                          <div className="schedule-grid-scroll-inner">
+                            <div
+                              className="schedule-grid-slots"
+                              style={{
+                                gridTemplateColumns: `repeat(${dates.length}, 87.666664px)`,
+                                gridTemplateRows: `repeat(${timeSlots.length}, 20px)`,
+                              }}
+                            >
+                              {timeSlots.map((slot, rowIndex) =>
+                                dates.map((date) => {
+                                  const key = `${date}-${slot}`;
+                                  const hmKey = slotToHm(slot);
+
+                                  const isTop = rowIndex % 2 === 0;
+                                  const cellClass = isTop
+                                    ? 'schedule-slot schedule-slot--top'
+                                    : 'schedule-slot schedule-slot--bottom';
+
+                                  const levelKey = hmKey ? `${date}|${hmKey}` : '';
+                                  const level = levelKey ? heatmapLevelMap.get(levelKey) : null;
+                                  const bg = level != null ? getSlotBgByLevel(level) : '#EDEEF1';
+
+                                  return (
+                                    <div
+                                      key={key}
+                                      className={cellClass}
+                                      style={{ backgroundColor: bg }}
+                                    />
+                                  );
+                                }),
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className="main-section">
+                  <div className="restaurant-rail restaurant-rail--hidden-scrollbar">
+                    {recoLoading ? (
+                      <div className="restaurant-container">
+                        <h2 className="restaurant-container-title">추천 장소</h2>
+                        <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                          추천 장소를 불러오는 중...
+                        </p>
+                      </div>
+                    ) : recoSections.length === 0 ? (
+                      <div className="restaurant-container">
+                        <h2 className="restaurant-container-title">추천 장소</h2>
+                        <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                          추천 장소가 없습니다.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {recoSections.map((section) => (
+                          <div key={section.key} className="restaurant-container">
+                            <h2 className="restaurant-container-title">{section.title}</h2>
+
+                            <div className="restaurant-set">
+                              {section.places.map((place) => (
+                                <article key={place.id ?? place.name} className="restaurant-card">
+                                  <img
+                                    src={place.imageUrl || NoImage}
+                                    alt={place.name}
+                                    className="restaurant-thumb"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src = NoImage;
+                                    }}
+                                  />
+                                  <div className="restaurant-label">
+                                    <p className="restaurant-label-text">
+                                      {truncateKorean(place.name, 7)}
+                                    </p>
+                                  </div>
+                                </article>
+                              ))}
+
+                              {Array.from({ length: Math.max(0, 3 - section.places.length) }).map(
+                                (_, emptyIdx) => (
+                                  <div
+                                    key={`${section.key}-empty-${emptyIdx}`}
+                                    className="restaurant-card restaurant-card--empty"
+                                  />
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </section>
+              </>
+            )}
+          </main>
+
+          <footer className="main-footer">
+            <NextButton disabled={false} onClick={handleParticipate}>
+              참여 · 수정하기
+            </NextButton>
+          </footer>
+
+          <JoinModalPage
+            open={isJoinOpen}
+            hashUrl={hashUrl}
+            onClose={handleCloseJoin}
+            onSuccessGoTime={handleJoinedGoTime}
+          />
+        </div>
       </div>
     </div>
   );

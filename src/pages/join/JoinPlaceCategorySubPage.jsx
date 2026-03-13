@@ -8,6 +8,7 @@ import NextButton from '../components/common/NextButton';
 
 import SearchIcon from '../../assets/icons/search.png';
 import NoImage from '../../assets/icons/no-image.png';
+import logoIcon from '../../assets/icons/logo.png';
 import { buildApiUrl } from '../../lib/api';
 
 async function apiFetch(path, options = {}) {
@@ -321,105 +322,121 @@ export default function JoinPlaceCategorySubPage() {
 
   return (
     <div className="jpcs-page">
-      <div className="jpcs-container">
-        <header className="jpcs-header">
-          <BackButton onClick={handleBack} />
-          <h1 className="jpcs-header-title">{title}</h1>
-          <div className="jpcs-header-spacer" />
-        </header>
-
-        <main ref={scrollRef} className="jpcs-content" onScroll={onScrollContent}>
-          <div className="jpcs-search">
-            <img src={SearchIcon} alt="검색" className="jpcs-search-icon" />
-            <input
-              className="jpcs-search-input"
-              placeholder="검색어를 입력해주세요"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-
-          {!!errorText && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
-          )}
-          {!!submitError && (
-            <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
-          )}
-
-          {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
-          {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
-
-          {!isApiEmpty && !isSearchEmpty && (
-            <section className="jpcs-grid">
-              <button
-                type="button"
-                className={
-                  'jpcs-tile jpcs-tile--all' +
-                  (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
-                }
-                onClick={toggleAll}
-                aria-label="전체 선택"
-                disabled={!!errorText || isLoading || isSubmitting || filteredPlaces.length === 0}
-              >
-                <span className="jpcs-all-text">전체 선택</span>
-
-                {allVisibleSelected && (
-                  <div className="jpcs-overlay">
-                    <span className="jpcs-x">×</span>
-                  </div>
-                )}
-              </button>
-
-              {filteredPlaces.map((p) => {
-                const idNum = Number(p.id);
-                const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
-                const displayName = truncatePlaceName(p.name, 7);
-
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className="jpcs-tile jpcs-tile--place"
-                    onClick={() => toggleOne(p.id)}
-                    disabled={!!errorText || isLoading || isSubmitting}
-                  >
-                    <img
-                      src={p.imageUrl || NoImage}
-                      alt={p.name}
-                      className="jpcs-thumb"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = NoImage;
-                      }}
-                    />
-
-                    {selected && (
-                      <div className="jpcs-overlay">
-                        <span className="jpcs-x">×</span>
-                      </div>
-                    )}
-
-                    <div className="jpcs-label">
-                      <p className="jpcs-label-text">{displayName}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </section>
-          )}
-
-          {isLoadingMore && !query.trim() && (
-            <p style={{ margin: '12px 0 0', color: '#666', fontSize: 14, textAlign: 'center' }}>
-              불러오는 중...
+      <div className="jpcs-desktop-shell">
+        <aside className="jpcs-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="jpcs-brand-logo" />
+          <div className="jpcs-brand-copy">
+            <p className="jpcs-brand-text">
+              싫어하는 것을
+              <br />
+              존중해주니까
             </p>
-          )}
-        </main>
+            <div className="jpcs-brand-divider" />
+            <p className="jpcs-brand-text">
+              이제는 <span className="jpcs-brand-text-strong">가면가</span>
+            </p>
+          </div>
+        </aside>
+        <div className="jpcs-container">
+          <header className="jpcs-header">
+            <BackButton onClick={handleBack} />
+            <h1 className="jpcs-header-title">{title}</h1>
+            <div className="jpcs-header-spacer" />
+          </header>
 
-        <footer className="jpcs-footer">
-          <NextButton disabled={!!errorText || isLoading || isSubmitting} onClick={handleDone}>
-            {isSubmitting ? '등록 중...' : '완료'}
-          </NextButton>
-        </footer>
+          <main ref={scrollRef} className="jpcs-content" onScroll={onScrollContent}>
+            <div className="jpcs-search">
+              <img src={SearchIcon} alt="검색" className="jpcs-search-icon" />
+              <input
+                className="jpcs-search-input"
+                placeholder="검색어를 입력해주세요"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+
+            {!!errorText && (
+              <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{errorText}</p>
+            )}
+            {!!submitError && (
+              <p style={{ margin: '8px 0', color: '#d00', fontSize: 14 }}>{submitError}</p>
+            )}
+
+            {isApiEmpty && <div className="jpcs-empty">해당 카테고리 장소가 없어요</div>}
+            {isSearchEmpty && <div className="jpcs-empty">해당 장소를 찾을 수 없어요</div>}
+
+            {!isApiEmpty && !isSearchEmpty && (
+              <section className="jpcs-grid">
+                <button
+                  type="button"
+                  className={
+                    'jpcs-tile jpcs-tile--all' +
+                    (allVisibleSelected ? ' jpcs-tile--all-selected' : '')
+                  }
+                  onClick={toggleAll}
+                  aria-label="전체 선택"
+                  disabled={!!errorText || isLoading || isSubmitting || filteredPlaces.length === 0}
+                >
+                  <span className="jpcs-all-text">전체 선택</span>
+
+                  {allVisibleSelected && (
+                    <div className="jpcs-overlay">
+                      <span className="jpcs-x">×</span>
+                    </div>
+                  )}
+                </button>
+
+                {filteredPlaces.map((p) => {
+                  const idNum = Number(p.id);
+                  const selected = Number.isFinite(idNum) && selectedIds.has(idNum);
+                  const displayName = truncatePlaceName(p.name, 7);
+
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className="jpcs-tile jpcs-tile--place"
+                      onClick={() => toggleOne(p.id)}
+                      disabled={!!errorText || isLoading || isSubmitting}
+                    >
+                      <img
+                        src={p.imageUrl || NoImage}
+                        alt={p.name}
+                        className="jpcs-thumb"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = NoImage;
+                        }}
+                      />
+
+                      {selected && (
+                        <div className="jpcs-overlay">
+                          <span className="jpcs-x">×</span>
+                        </div>
+                      )}
+
+                      <div className="jpcs-label">
+                        <p className="jpcs-label-text">{displayName}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </section>
+            )}
+
+            {isLoadingMore && !query.trim() && (
+              <p style={{ margin: '12px 0 0', color: '#666', fontSize: 14, textAlign: 'center' }}>
+                불러오는 중...
+              </p>
+            )}
+          </main>
+
+          <footer className="jpcs-footer">
+            <NextButton disabled={!!errorText || isLoading || isSubmitting} onClick={handleDone}>
+              {isSubmitting ? '등록 중...' : '완료'}
+            </NextButton>
+          </footer>
+        </div>
       </div>
     </div>
   );

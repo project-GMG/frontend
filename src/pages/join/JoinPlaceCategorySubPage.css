@@ -12,19 +12,27 @@
   box-sizing: border-box;
 }
 
+.jpcs-desktop-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
 .jpcs-container {
   box-sizing: border-box;
   width: min(393px, calc(100vw - 40px));
-  height: min(
-    852px,
-    calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
-  );
+  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   background-color: #f1f2f5;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: 16px;
   position: relative;
+}
+
+.jpcs-brand-panel {
+  display: none;
 }
 
 .jpcs-header {
@@ -83,7 +91,6 @@
   color: #333232;
 }
 
-
 .jpcs-header-spacer {
   display: none;
 }
@@ -96,7 +103,7 @@
   flex-direction: column;
   gap: 16px;
   margin-top: calc(56px + 18px);
-  padding-top:20px;
+  padding-top: 20px;
   -webkit-overflow-scrolling: touch;
   padding-left: 20px;
   padding-right: 20px;
@@ -267,6 +274,97 @@
 
 .jpcs-footer button {
   height: 70px;
+}
+
+@media (min-width: 768px) {
+  .jpcs-page {
+    align-items: center;
+    padding: 24px;
+    background:
+      linear-gradient(rgba(241, 121, 78, 0.7), rgba(241, 121, 78, 0.7)),
+      linear-gradient(135deg, #f5a585 0%, #f1794e 100%);
+  }
+
+  .jpcs-desktop-shell {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .jpcs-brand-panel {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    color: #1f1f1f;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(calc(-100% - 300px), -50%);
+  }
+
+  .jpcs-brand-logo {
+    width: 120px;
+    height: auto;
+    display: block;
+  }
+
+  .jpcs-brand-copy {
+    margin-top: 74px;
+  }
+
+  .jpcs-brand-text {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 300;
+    line-height: 1.14;
+    letter-spacing: -0.04em;
+    color: #1f1f1f;
+    word-break: keep-all;
+  }
+
+  .jpcs-brand-divider {
+    width: 100%;
+    max-width: 240px;
+    height: 1px;
+    margin: 18px 0 22px;
+    background: rgba(31, 31, 31, 0.7);
+  }
+
+  .jpcs-brand-text-strong {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .jpcs-container {
+    width: 393px;
+    height: 852px;
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
+  }
+
+  .jpcs-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+    background: #f1f2f5;
+  }
+
+  .jpcs-content {
+    padding-bottom: 120px;
+  }
+
+  .jpcs-footer {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    transform: none;
+    width: calc(100% - 40px);
+  }
 }
 
 @media (max-width: 393px) {
