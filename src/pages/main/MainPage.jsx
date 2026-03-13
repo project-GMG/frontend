@@ -9,6 +9,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import JoinModalPage from '../join/JoinModalPage';
 import { buildApiUrl } from '../../lib/api';
+import { buildConsecutiveSelectedDates, buildDateColumns } from '../../lib/eventDateSelection';
+
+const USE_DUMMY_WHEN_NO_CODE = true;
 
 function getBaseUrl() {
   const envBase = (import.meta.env.VITE_SHARE_BASE_URL || '').trim();
@@ -36,31 +39,6 @@ function truncateKorean(name, max = 7) {
   const chars = Array.from(s);
   if (chars.length <= max) return s;
   return `${chars.slice(0, max).join('')}...`;
-}
-
-function formatDateKorean(date) {
-  if (!(date instanceof Date)) return '';
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  const wd = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-  return `${mm}/${dd} ${wd}`;
-}
-
-function buildDatesFromRange(startYmd, endYmd, limit = 60) {
-  const start = parseYmd(startYmd);
-  const end = parseYmd(endYmd);
-  if (!start || !end) return [];
-
-  const out = [];
-  const cur = new Date(start);
-  let count = 0;
-
-  while (cur.getTime() <= end.getTime() && count < limit) {
-    out.push(formatDateKorean(cur));
-    cur.setDate(cur.getDate() + 1);
-    count += 1;
-  }
-  return out;
 }
 
 function buildTimeSlotsFromRange(startHm, endHm) {
@@ -209,7 +187,7 @@ function buildRecoSections(recoPlaces) {
 
 const DUMMY_EVENT = {
   title: '다같이 만나요',
-  dateRange: { startDate: '2026-02-10', endDate: '2026-02-15' },
+  selectedDates: buildConsecutiveSelectedDates('2026-02-10', 6),
   timeRange: { startTime: '10:00', endTime: '20:00' },
   heatmapData: [
     { date: '2026-02-10', timeSlot: '10:00', availableCount: 2 },
@@ -240,8 +218,6 @@ export default function MainPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hashUrl = (searchParams.get('code') || '').trim();
-
-  const USE_DUMMY_WHEN_NO_CODE = true;
 
   const gridScrollRef = useRef(null);
   const dateScrollRef = useRef(null);
@@ -434,7 +410,7 @@ export default function MainPage() {
 
     for (const h of list) {
       const dt = parseYmd(h?.date);
-      const dateLabel = dt ? formatDateKorean(dt) : '';
+      const dateLabel = dt ? buildDateColumns([h?.date]).labels[0] : '';
       const timeHm = String(h?.timeSlot || '').slice(0, 5);
       if (!dateLabel || !/^\d{2}:\d{2}$/.test(timeHm)) continue;
 
@@ -449,10 +425,8 @@ export default function MainPage() {
   const title = eventData?.title || '';
 
   const dates = useMemo(() => {
-    const startDate = eventData?.dateRange?.startDate;
-    const endDate = eventData?.dateRange?.endDate;
-    return buildDatesFromRange(startDate, endDate, 60);
-  }, [eventData?.dateRange?.startDate, eventData?.dateRange?.endDate]);
+    return buildDateColumns(eventData?.selectedDates, 60).labels;
+  }, [eventData?.selectedDates]);
 
   const { slots: timeSlots, labels: timeLabels } = useMemo(() => {
     const startTime = eventData?.timeRange?.startTime;
