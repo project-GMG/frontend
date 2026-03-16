@@ -203,6 +203,12 @@ export default function OnboardingPage() {
                 </p>
               </div>
             </div>
+            <div className="ob-section-indicator ob-section-indicator--light" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
+            </div>
           </section>
 
           {/* 3) F6F6F6 Section */}
@@ -237,6 +243,12 @@ export default function OnboardingPage() {
                 draggable={false}
               />
             </div>
+            <div className="ob-section-indicator" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
+            </div>
           </section>
 
           {/* 4) Section 4 - Left side animation */}
@@ -265,6 +277,12 @@ export default function OnboardingPage() {
               </div>
 
               <img className="ob-timetable" src={FoodImg} alt="음식 선택 예시" draggable={false} />
+            </div>
+            <div className="ob-section-indicator" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
             </div>
           </section>
 

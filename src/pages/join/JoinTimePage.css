@@ -212,6 +212,18 @@
   );
 }
 
+.jt-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--rail-left);
+  width: var(--time-col);
+  height: calc(var(--scroll-top) + var(--date-row) + 5px);
+  background: #f1f2f5;
+  z-index: 5;
+  pointer-events: none;
+}
+
 .jt-date-rail {
   position: absolute;
   top: var(--scroll-top);
