@@ -571,6 +571,18 @@
 
   .main-content {
     padding-bottom: 110px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .main-content::-webkit-scrollbar,
+  .schedule-grid-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .schedule-grid-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .main-footer {

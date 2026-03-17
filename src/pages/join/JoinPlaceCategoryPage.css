@@ -303,6 +303,12 @@
 
   .jpc-content {
     padding-bottom: 120px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .jpc-content::-webkit-scrollbar {
+    display: none;
   }
 
   .jpc-footer {

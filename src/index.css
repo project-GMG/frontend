@@ -36,6 +36,18 @@ button {
   font-family: inherit;
 }
 
+@media (min-width: 1024px) {
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

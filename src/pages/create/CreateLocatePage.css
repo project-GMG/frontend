@@ -430,6 +430,18 @@
 
   .create-locate-content {
     padding-bottom: 110px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .create-locate-content::-webkit-scrollbar,
+  .create-locate-search-results::-webkit-scrollbar {
+    display: none;
+  }
+
+  .create-locate-search-results {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .create-locate-footer {
