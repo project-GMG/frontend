@@ -379,6 +379,12 @@
 
   .create-date-content {
     padding-bottom: 110px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .create-date-content::-webkit-scrollbar {
+    display: none;
   }
 
   .create-date-footer {

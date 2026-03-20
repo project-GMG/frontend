@@ -5,6 +5,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OnboardingPage.css';
+import logoIcon from '../../assets/icons/logo.png';
 
 import StudyVideo from '../../assets/icons/category_icon/study.mp4';
 import MeetVideo from '../../assets/icons/category_icon/meet.mp4';
@@ -117,166 +118,227 @@ export default function OnboardingPage() {
 
   return (
     <div className="ob-page">
-      <div className="ob-container">
-        {/* 1) Hero (Video) */}
-        <section className="ob-section ob-hero">
-          <video
-            className="ob-hero-video"
-            src={heroVideoSrc}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-          />
-
-          <div className="ob-hero-overlay">
-            <p className="ob-hero-subtitle">
-              비선호 기반으로
+      <div className="ob-desktop-shell">
+        <aside className="ob-brand-panel" aria-hidden="true">
+          <img src={logoIcon} alt="" className="ob-brand-logo" />
+          <div className="ob-brand-copy">
+            <p className="ob-brand-text">
+              싫어하는 것을
               <br />
-              쉽게 약속잡자
+              존중해주니까
             </p>
+            <div className="ob-brand-divider" />
+            <p className="ob-brand-text">
+              이제는 <span className="ob-brand-text-strong">가면가</span>
+            </p>
+          </div>
+        </aside>
 
-            <div className="ob-hero-line" />
-
-            <img
-              className="ob-hero-logo"
-              src={OnboardingLogo}
-              alt="GMG Onboarding Logo"
-              draggable={false}
+        <div className="ob-container">
+          {/* 1) Hero (Video) */}
+          <section className="ob-section ob-hero">
+            <video
+              className="ob-hero-video"
+              src={heroVideoSrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
             />
 
-            <h1 className="ob-hero-title">
-              <span className="ob-hero-title-light">이제는</span>{' '}
-              <span className="ob-hero-title-bold">가면가</span>
-            </h1>
-
-            <button type="button" className="ob-hero-cta" onClick={goCreatePlace}>
-              회원가입 없이 바로 시작
-            </button>
-          </div>
-        </section>
-
-        {/* 2) Orange image + Black box */}
-        <section className="ob-section ob-image-block">
-          <img className="ob-image" src={Onboarding2} alt="온보딩 이미지 2" draggable={false} />
-
-          <div className="ob-black-box">
-            <div className="ob-black-inner">
-              <div className="ob-black-cta">
-                <img
-                  src={Onboarding22Icon}
-                  alt=""
-                  className="ob-black-cta-icon"
-                  draggable={false}
-                />
-                <span>이제 간편하게 정해요</span>
-              </div>
-
-              <p className="ob-black-desc">
-                모두의 불가능한 시간과 비선호 장소를 모아
+            <div className="ob-hero-overlay">
+              <p className="ob-hero-subtitle">
+                비선호 기반으로
                 <br />
-                최적의 시간과 장소를 추천해 드릴게요
+                쉽게 약속잡자
               </p>
+
+              <div className="ob-hero-line" />
+
+              <img
+                className="ob-hero-logo"
+                src={OnboardingLogo}
+                alt="GMG Onboarding Logo"
+                draggable={false}
+              />
+
+              <h1 className="ob-hero-title">
+                <span className="ob-hero-title-light">이제는</span>{' '}
+                <span className="ob-hero-title-bold">가면가</span>
+              </h1>
+
+              <div className="ob-scroll-indicator" aria-hidden="true">
+                <span className="ob-scroll-indicator-arrows">
+                  <span className="ob-scroll-indicator-arrow" />
+                  <span className="ob-scroll-indicator-arrow" />
+                </span>
+              </div>
+              <button type="button" className="ob-hero-cta" onClick={goCreatePlace}>
+                회원가입 없이 바로 시작
+              </button>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* 3) F6F6F6 Section */}
-        <section ref={infoRef} className="ob-section ob-info">
-          <div className="ob-info-inner">
-            <img
-              className="ob-calender-icon"
-              src={CalenderIcon}
-              alt="캘린더 아이콘"
-              draggable={false}
-            />
+          {/* 2) Orange image + Black box */}
+          <section className="ob-section ob-image-block">
+            <img className="ob-image" src={Onboarding2} alt="온보딩 이미지 2" draggable={false} />
 
-            <h2 className="ob-info-title">계속 물어보지 않아도 돼요</h2>
+            <div className="ob-black-box">
+              <div className="ob-black-inner">
+                <div className="ob-black-cta">
+                  <img
+                    src={Onboarding22Icon}
+                    alt=""
+                    className="ob-black-cta-icon"
+                    draggable={false}
+                  />
+                  <span>이제 간편하게 정해요</span>
+                </div>
 
-            <p className="ob-info-desc">
-              참여자 모두의 불가능한 시간을 모아
-              <br />
-              겹치지 않는 시간대를 바로 확인할 수 있어요.
-            </p>
-
-            <div className="ob-bubble-stage" aria-label="말풍선 애니메이션">
-              <div className={`ob-bubble-anim ${infoInView ? 'is-inview' : ''}`}>
-                <div className="ob-bubble">다들 2시 괜찮아?</div>
-                <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
+                <p className="ob-black-desc">
+                  모두의 불가능한 시간과 비선호 장소를 모아
+                  <br />
+                  최적의 시간과 장소를 추천해 드릴게요
+                </p>
               </div>
             </div>
+            <div className="ob-section-indicator ob-section-indicator--light" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
+            </div>
+          </section>
 
-            <img className="ob-timetable" src={TimetableImg} alt="시간표 예시" draggable={false} />
-          </div>
-        </section>
+          {/* 3) F6F6F6 Section */}
+          <section ref={infoRef} className="ob-section ob-info">
+            <div className="ob-info-inner">
+              <img
+                className="ob-calender-icon"
+                src={CalenderIcon}
+                alt="캘린더 아이콘"
+                draggable={false}
+              />
 
-        {/* 4) Section 4 - Left side animation */}
-        <section ref={section4Ref} className="ob-section ob-info">
-          <div className="ob-info-inner">
-            <img className="ob-food-icon" src={LocationIcon} alt="위치 아이콘" draggable={false} />
+              <h2 className="ob-info-title">계속 물어보지 않아도 돼요</h2>
 
-            <h2 className="ob-info-title">참여자들의 비선호를 고려해요</h2>
+              <p className="ob-info-desc">
+                참여자 모두의 불가능한 시간을 모아
+                <br />
+                겹치지 않는 시간대를 바로 확인할 수 있어요.
+              </p>
 
-            <p className="ob-info-desc">
-              한식·카페·술집 등 카테고리별로
-              <br />
-              선호하지 않는 장소를 선택하면 추천에서 제외돼요.
-            </p>
-
-            <div className="ob-bubble-stage is-left" aria-label="말풍선 애니메이션">
-              <div className={`ob-bubble-anim is-left ${section4InView ? 'is-inview' : ''}`}>
-                <img className="ob-hand" src={HandLeftImg} alt="손" draggable={false} />
-                <div className="ob-bubble">나 어제 치킨 먹어서 안땡겨</div>
+              <div className="ob-bubble-stage" aria-label="말풍선 애니메이션">
+                <div className={`ob-bubble-anim ${infoInView ? 'is-inview' : ''}`}>
+                  <div className="ob-bubble">다들 2시 괜찮아?</div>
+                  <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
+                </div>
               </div>
+
+              <img
+                className="ob-timetable"
+                src={TimetableImg}
+                alt="시간표 예시"
+                draggable={false}
+              />
             </div>
+            <div className="ob-section-indicator" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
+            </div>
+          </section>
 
-            <img className="ob-timetable" src={FoodImg} alt="음식 선택 예시" draggable={false} />
-          </div>
-        </section>
+          {/* 4) Section 4 - Left side animation */}
+          <section ref={section4Ref} className="ob-section ob-info">
+            <div className="ob-info-inner">
+              <img
+                className="ob-food-icon"
+                src={LocationIcon}
+                alt="위치 아이콘"
+                draggable={false}
+              />
 
-        {/* 5) Section 5 - Right side animation with choice */}
-        <section ref={section5Ref} className="ob-section ob-info">
-          <div className="ob-info-inner">
-            <img className="ob-choice-icon" src={ChoiceIcon} alt="선택 아이콘" draggable={false} />
+              <h2 className="ob-info-title">참여자들의 비선호를 고려해요</h2>
 
-            <h2 className="ob-info-title">어디갈지 골라드릴게요</h2>
+              <p className="ob-info-desc">
+                한식·카페·술집 등 카테고리별로
+                <br />
+                선호하지 않는 장소를 선택하면 추천에서 제외돼요.
+              </p>
 
-            <p className="ob-info-desc">
-              선택장애는 이제 그만, 입력정보를 바탕으로
-              <br />
-              만나기 좋은 장소를 자동으로 선별해드려요.
-            </p>
-
-            <div className="ob-bubble-stage" aria-label="말풍선 애니메이션">
-              <div className={`ob-bubble-anim ${section5InView ? 'is-inview' : ''}`}>
-                <div className="ob-bubble">그럼 어디로 갈까?</div>
-                <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
+              <div className="ob-bubble-stage is-left" aria-label="말풍선 애니메이션">
+                <div className={`ob-bubble-anim is-left ${section4InView ? 'is-inview' : ''}`}>
+                  <img className="ob-hand" src={HandLeftImg} alt="손" draggable={false} />
+                  <div className="ob-bubble">나 어제 치킨 먹어서 안땡겨</div>
+                </div>
               </div>
+
+              <img className="ob-timetable" src={FoodImg} alt="음식 선택 예시" draggable={false} />
             </div>
-
-            <img className="ob-timetable" src={ChoiceImg} alt="장소 추천 예시" draggable={false} />
-          </div>
-        </section>
-
-        {/* 6) Section 6 - Final closing section */}
-        <section ref={section6Ref} className="ob-section ob-final">
-          <div className="ob-final-inner">
-            <h2 className="ob-final-title">
-              쉽고 간편하게
-              <br />
-              모임 약속을 잡아보세요!
-            </h2>
-
-            <div className={`ob-final-hand-container ${section6InView ? 'is-inview' : ''}`}>
-              <img className="ob-final-hand" src={Hand2Img} alt="손가락" draggable={false} />
+            <div className="ob-section-indicator" aria-hidden="true">
+              <span className="ob-scroll-indicator-arrows">
+                <span className="ob-scroll-indicator-arrow" />
+                <span className="ob-scroll-indicator-arrow" />
+              </span>
             </div>
+          </section>
 
-            <button type="button" className="ob-final-cta" onClick={goCreatePlace}>
-              시작하기
-            </button>
-          </div>
-        </section>
+          {/* 5) Section 5 - Right side animation with choice */}
+          <section ref={section5Ref} className="ob-section ob-info">
+            <div className="ob-info-inner">
+              <img
+                className="ob-choice-icon"
+                src={ChoiceIcon}
+                alt="선택 아이콘"
+                draggable={false}
+              />
+
+              <h2 className="ob-info-title">어디갈지 골라드릴게요</h2>
+
+              <p className="ob-info-desc">
+                선택장애는 이제 그만, 입력정보를 바탕으로
+                <br />
+                만나기 좋은 장소를 자동으로 선별해드려요.
+              </p>
+
+              <div className="ob-bubble-stage" aria-label="말풍선 애니메이션">
+                <div className={`ob-bubble-anim ${section5InView ? 'is-inview' : ''}`}>
+                  <div className="ob-bubble">그럼 어디로 갈까?</div>
+                  <img className="ob-hand" src={HandImg} alt="손" draggable={false} />
+                </div>
+              </div>
+
+              <img
+                className="ob-timetable"
+                src={ChoiceImg}
+                alt="장소 추천 예시"
+                draggable={false}
+              />
+            </div>
+          </section>
+
+          {/* 6) Section 6 - Final closing section */}
+          <section ref={section6Ref} className="ob-section ob-final">
+            <div className="ob-final-inner">
+              <h2 className="ob-final-title">
+                쉽고 간편하게
+                <br />
+                모임 약속을 잡아보세요!
+              </h2>
+
+              <div className={`ob-final-hand-container ${section6InView ? 'is-inview' : ''}`}>
+                <img className="ob-final-hand" src={Hand2Img} alt="손가락" draggable={false} />
+              </div>
+
+              <button type="button" className="ob-final-cta" onClick={goCreatePlace}>
+                시작하기
+              </button>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

@@ -356,6 +356,12 @@
 
   .jpcs-content {
     padding-bottom: 120px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .jpcs-content::-webkit-scrollbar {
+    display: none;
   }
 
   .jpcs-footer {

@@ -204,6 +204,7 @@ function buildDummyEvent5Days() {
 }
 
 export default function JoinTimePage() {
+  const PAGE_SWIPE_ANIM_MS = 220;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hashUrl = (searchParams.get('code') || '').trim();
@@ -341,6 +342,8 @@ export default function JoinTimePage() {
   const PAGE_SIZE = 3;
   const totalPages = Math.max(1, Math.ceil(allDateLabels.length / PAGE_SIZE));
   const [page, setPage] = useState(0);
+  const [pageSwipeAnim, setPageSwipeAnim] = useState('');
+  const pageSwipeAnimTimerRef = useRef(null);
 
   const [hasReachedLast, setHasReachedLast] = useState(false);
 
@@ -380,8 +383,33 @@ export default function JoinTimePage() {
     grid.scrollTop = time.scrollTop;
   };
 
-  const goPrev = () => setPage((p) => Math.max(0, p - 1));
-  const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
+  const triggerPageSwipeAnim = (direction) => {
+    if (pageSwipeAnimTimerRef.current) {
+      clearTimeout(pageSwipeAnimTimerRef.current);
+    }
+
+    setPageSwipeAnim(direction);
+    pageSwipeAnimTimerRef.current = window.setTimeout(() => {
+      setPageSwipeAnim('');
+      pageSwipeAnimTimerRef.current = null;
+    }, PAGE_SWIPE_ANIM_MS);
+  };
+
+  const goPrev = () => {
+    setPage((p) => {
+      const next = Math.max(0, p - 1);
+      if (next !== p) triggerPageSwipeAnim('prev');
+      return next;
+    });
+  };
+
+  const goNext = () => {
+    setPage((p) => {
+      const next = Math.min(totalPages - 1, p + 1);
+      if (next !== p) triggerPageSwipeAnim('next');
+      return next;
+    });
+  };
 
   const handleBack = () => navigate(-1);
 
@@ -481,6 +509,7 @@ export default function JoinTimePage() {
   const shouldRequireLastPage = totalPages > 1;
   const isNextDisabled =
     (shouldRequireLastPage && !hasReachedLast) || isLoadingEvent || !!eventError || isSubmitting;
+  const showSwipeIndicator = allDateLabels.length >= 4;
 
   const [selectModeUI, setSelectModeUI] = useState('idle');
 
@@ -812,6 +841,14 @@ export default function JoinTimePage() {
 
   const onPointerCancel = (e) => finishPointer(e);
 
+  useEffect(() => {
+    return () => {
+      if (pageSwipeAnimTimerRef.current) {
+        clearTimeout(pageSwipeAnimTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="join-time-page">
       <div className="join-time-desktop-shell">
@@ -840,7 +877,9 @@ export default function JoinTimePage() {
           </header>
 
           <main className="join-time-content">
-            <h1 className="join-time-title">어려운 시간을 선택해주세요</h1>
+            <h1 className="join-time-title">
+              <span className="join-time-title-em">어려운</span> 시간을 선택해주세요
+            </h1>
 
             {isLoadingEvent && (
               <div className="join-time-loading">
@@ -857,7 +896,9 @@ export default function JoinTimePage() {
 
             <section className="join-time-grid-wrap">
               <section
-                className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''}`}
+                className={`join-time-grid-card ${selectModeUI !== 'idle' ? 'is-selecting' : ''} ${
+                  pageSwipeAnim ? `is-page-${pageSwipeAnim}` : ''
+                }`}
                 onPointerDownCapture={onGridPointerDownCapture}
                 onPointerMoveCapture={onGridPointerMoveCapture}
                 onPointerUpCapture={onGridPointerUpCapture}
@@ -942,6 +983,12 @@ export default function JoinTimePage() {
                 </div>
               </section>
 
+              {showSwipeIndicator && (
+                <div className="join-time-swipe-indicator" aria-hidden="true">
+                  <span className="join-time-swipe-arrow" />
+                  <span className="join-time-swipe-arrow" />
+                </div>
+              )}
               <div className="join-time-pagination join-time-pagination--dots-only">
                 <div className="join-time-dots" aria-label="페이지 표시">
                   {Array.from({ length: totalPages }).map((_, i) => (
