@@ -23,10 +23,18 @@
   width: min(393px, 100vw);
   height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   margin: 0 auto;
-  background-color: var(--bg-default);
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(env(safe-area-inset-top) + 94px),
+    var(--bg-default) calc(env(safe-area-inset-top) + 94px),
+    var(--bg-default) calc(100% - env(safe-area-inset-bottom) - 90px),
+    transparent calc(100% - env(safe-area-inset-bottom) - 90px),
+    transparent 100%
+  );
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 0;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
@@ -91,17 +99,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: calc(56px + 38px) 20px 90px;
 
   margin-top: 0;
-  padding-top: calc(56px + 38px);
-
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-
-  padding-bottom: 90px;
 }
 
 .create-date-title {
@@ -365,6 +369,7 @@
     height: 852px;
     max-height: calc(100dvh - 48px);
     margin: 0;
+    background: var(--bg-default);
     border-radius: 28px;
     box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
   }

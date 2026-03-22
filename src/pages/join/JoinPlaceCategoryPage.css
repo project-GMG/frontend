@@ -21,15 +21,32 @@
 
 .jpc-container {
   box-sizing: border-box;
-  width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
-  background-color: #f1f2f5;
+  width: min(393px, 100vw);
+  height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  background: transparent;
   display: flex;
   flex-direction: column;
   padding: 20px;
   overflow: hidden;
   border-radius: 16px;
   position: relative;
+}
+
+.jpc-container::before {
+  content: '';
+  position: absolute;
+  top: 92px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f1f2f5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.jpc-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 .jpc-brand-panel {
@@ -42,7 +59,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  width: calc(min(393px, 100vw) - 40px);
   height: 52px;
   margin: 0;
   padding: 0;
@@ -51,7 +68,7 @@
   grid-template-rows: 4px 1fr;
   row-gap: 14px;
   align-items: start;
-  background: #f1f2f5;
+  background: transparent;
 }
 
 .jpc-back {
@@ -90,9 +107,10 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  margin-top: calc(56px + 38px);
+  margin-top: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding-top: calc(56px + 38px);
   padding-bottom: 120px;
 }
 
@@ -206,7 +224,7 @@
   transform: translateX(-50%);
   z-index: 20;
   bottom: calc(env(safe-area-inset-bottom) + 20px);
-  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  width: calc(min(393px, 100vw) - 40px);
   display: flex;
   justify-content: center;
   padding: 0;
@@ -287,9 +305,14 @@
     height: 852px;
     max-height: calc(100dvh - 48px);
     margin: 0;
+    background: #f1f2f5;
     padding: 20px;
     border-radius: 28px;
     box-shadow: 0 20px 60px rgba(54, 22, 11, 0.22);
+  }
+
+  .jpc-container::before {
+    content: none;
   }
 
   .jpc-nav {
@@ -302,6 +325,8 @@
   }
 
   .jpc-content {
+    margin-top: 0;
+    padding-top: calc(56px + 38px);
     padding-bottom: 120px;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -327,21 +352,19 @@
   }
 
   .jpc-container {
-    width: min(393px, calc(100vw - 20px));
-    height: min(
-      852px,
-      calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
-    );
+    width: min(393px, 100vw);
+    height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
     padding: 20px;
   }
 
   .jpc-nav,
   .jpc-footer {
-    width: calc(min(393px, calc(100vw - 20px)) - 40px);
+    width: calc(min(393px, 100vw) - 40px);
   }
 
   .jpc-content {
-    margin-top: calc(56px + 16px);
+    margin-top: 0;
+    padding-top: calc(56px + 16px);
     padding-bottom: 110px;
   }
 

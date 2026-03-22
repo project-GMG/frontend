@@ -21,8 +21,8 @@
 
 .jpcs-container {
   box-sizing: border-box;
-  width: min(393px, calc(100vw - 40px));
-  height: min(852px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  width: min(393px, 100vw);
+  height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   background-color: #f1f2f5;
   display: flex;
   flex-direction: column;
@@ -41,7 +41,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  width: calc(min(393px, 100vw) - 40px);
   height: 52px;
   margin: 0;
   padding: 0;
@@ -102,8 +102,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: calc(56px + 18px);
-  padding-top: 20px;
+  margin-top: 0;
+  padding-top: calc(56px + 38px);
   -webkit-overflow-scrolling: touch;
   padding-left: 20px;
   padding-right: 20px;
@@ -261,7 +261,7 @@
   transform: translateX(-50%);
   z-index: 20;
   bottom: calc(env(safe-area-inset-bottom) + 20px);
-  width: calc(min(393px, calc(100vw - 40px)) - 40px);
+  width: calc(min(393px, 100vw) - 40px);
   display: flex;
   justify-content: center;
   padding: 0;
@@ -380,20 +380,18 @@
   }
 
   .jpcs-container {
-    width: min(393px, calc(100vw - 20px));
-    height: min(
-      852px,
-      calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
-    );
+    width: min(393px, 100vw);
+    height: min(852px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   }
 
   .jpcs-header,
   .jpcs-footer {
-    width: calc(min(393px, calc(100vw - 20px)) - 40px);
+    width: calc(min(393px, 100vw) - 40px);
   }
 
   .jpcs-content {
-    margin-top: calc(56px + 16px);
+    margin-top: 0;
+    padding-top: calc(56px + 16px);
     padding-bottom: 110px;
   }
 
